@@ -13,8 +13,6 @@ const RIVERBANK_WIDTH = 6;
 const RIVER_WIDTH = 40;
 const HEDGE_HEIGHT = 1.1;
 const RAILING_HEIGHT = 0.9;
-const KIOSK_HEIGHT = 2.6;
-const KIOSK_DOOR = { width: 1.2, height: 2, depth: 0.06 };
 const TREE = { trunkRadius: 0.3, trunkHeight: 1.6, canopyRadius: 2.1, canopyBase: 1.2, canopyTop: 5.6 };
 const FOUNTAIN = { rimHeight: 0.6, waterInset: 0.4, columnRadius: 0.35, columnHeight: 1.8 };
 const CLOCK_TOWER_ROOF_HEIGHT = 5;
@@ -108,28 +106,9 @@ function addBuilding(mesh: MeshBuilder, b: Building): void {
     mesh.addBox(r.x0, 0, r.z0, r.x1, b.height, r.z1, color, tint(color, PALETTE.roofTint));
 }
 
-/** Everything solid except the buildings: kiosks, fountain, trees, and the hedge and railing along the border. */
+/** The small static solids: fountain, trees, and the hedge and railing along the border (kiosks have their own view). */
 function addSolids(city: City): MeshBuilder {
     const solids = new MeshBuilder();
-
-    for (const k of city.kioskSpots) {
-        const r = k.rect;
-        solids.addBox(r.x0, 0, r.z0, r.x1, KIOSK_HEIGHT, r.z1, PALETTE.kiosk);
-        // The door, a thin slab on the side facing the road
-        const cx = (r.x0 + r.x1) / 2;
-        const cz = (r.z0 + r.z1) / 2;
-        const half = KIOSK_DOOR.width / 2;
-        const fx = k.facing.x !== 0 ? (k.facing.x > 0 ? r.x1 : r.x0) : 0;
-        const fz = k.facing.z !== 0 ? (k.facing.z > 0 ? r.z1 : r.z0) : 0;
-        const d = KIOSK_DOOR.depth;
-        if (k.facing.x !== 0) {
-            const x0 = k.facing.x > 0 ? fx : fx - d;
-            solids.addBox(x0, 0, cz - half, x0 + d, KIOSK_DOOR.height, cz + half, PALETTE.kioskDoor);
-        } else {
-            const z0 = k.facing.z > 0 ? fz : fz - d;
-            solids.addBox(cx - half, 0, z0, cx + half, KIOSK_DOOR.height, z0 + d, PALETTE.kioskDoor);
-        }
-    }
 
     const f = city.plaza.fountain;
     solids.addCylinder(f.x, f.z, f.radius, 0, FOUNTAIN.rimHeight, PALETTE.fountainStone, 24);
@@ -172,7 +151,7 @@ function layer(app: AppBase, name: string, mesh: MeshBuilder, material: Standard
 
 /**
  * The greybox city: one mesh for the ground (edge, roads coloured by class, plaza, park), one for the small solids
- * (kiosks, fountain, trees, border), and the buildings split in two meshes, opaque and faded, so the buildings between
+ * (fountain, trees, border), and the buildings split in two meshes, opaque and faded, so the buildings between
  * the camera and Benny can turn see-through (design: *Camera*). Three or four draw calls, plus the shadow pass.
  */
 export class CityView {

@@ -19,6 +19,7 @@ import { mountCityDebugMap } from './debug/city-map';
 import { PlayerDebug } from './debug/player-debug';
 import { BennyView } from './game/benny-view';
 import { addBennyStandIn } from './game/greybox';
+import { KioskView } from './game/kiosk-view';
 import { KeyboardInput } from './input/keyboard';
 import { createGameCamera } from './render/camera';
 import { CameraRig } from './render/camera-rig';
@@ -26,6 +27,8 @@ import { CityView } from './render/city-view';
 import { addSunlight } from './render/lighting';
 import { showGameOver } from './ui/game-over';
 import { Hud } from './ui/hud';
+import { showRelief } from './ui/relief-pop';
+import { WaitRing } from './ui/wait-ring';
 
 import './ui/style.css';
 
@@ -68,9 +71,12 @@ const game = new Game(city, {
 addSunlight(app);
 const cityView = new CityView(app, city);
 const bennyView = new BennyView(addBennyStandIn(app));
-const cameraRig = new CameraRig(createGameCamera(app), cityView, new BuildingIndex(city.buildings));
+const kioskView = new KioskView(app, city);
+const camera = createGameCamera(app);
+const cameraRig = new CameraRig(camera, cityView, new BuildingIndex(city.buildings));
 
 const hud = new Hud(document.body);
+const waitRing = new WaitRing(document.body);
 const playerDebug = params.debug ? new PlayerDebug(mountCityDebugMap(document.body, city), game) : null;
 
 // Fixed-step simulation; rendering interpolates between the last two steps
@@ -82,6 +88,9 @@ const onUpdate = (dt: number) => {
         game.step(input.direction());
     }
     for (const event of game.drainEvents()) {
+        if (event === 'reliefStart') {
+            showRelief(document.body);
+        }
         if (event === 'gameOver') {
             // A new run: the same city with ?seed, a new one otherwise
             showGameOver(document.body, () => window.location.reload());
@@ -90,7 +99,9 @@ const onUpdate = (dt: number) => {
     bennyView.update(game, stepper.alpha);
     const position = bennyView.entity.getPosition();
     cameraRig.update(game, { x: position.x, z: position.z }, dt);
+    kioskView.update(game);
     hud.update(game);
+    waitRing.update(game, camera.camera!);
     playerDebug?.update(game);
 };
 app.on('update', onUpdate);

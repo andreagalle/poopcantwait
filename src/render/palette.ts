@@ -28,6 +28,8 @@ export const PALETTE = {
     treeCanopy: hex('#5fae62'),
     kiosk: hex('#f5f3ee'),
     kioskDoor: hex('#90a4ae'),
+    beaconFree: hex('#3ddc84'),
+    beaconOccupied: hex('#ff4d4d'),
     parkland: hex('#8bc34a'),
     riverbank: hex('#d7c79e'),
     river: hex('#5fa8d3'),

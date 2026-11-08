@@ -29,6 +29,8 @@ export class BennyView {
         const x = a.x + (b.x - a.x) * alpha + shiver;
         const z = a.z + (b.z - a.z) * alpha;
         const heading = a.heading + wrapAngle(b.heading - a.heading) * alpha;
+        // Inside a toilet he is out of sight
+        this.entity.enabled = game.phase !== 'relief';
         this.entity.setPosition(x, 0, z);
         this.entity.setEulerAngles(0, heading * RADIANS_TO_DEGREES, 0);
         const width = diameterAt(b.weight) / this.slimDiameter;

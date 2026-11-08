@@ -178,7 +178,9 @@ export const KIOSKS = {
     /** Relief animation length, in seconds; Benny cannot be hurt meanwhile. */
     reliefSeconds: 1.5,
     /** How long a kiosk stays occupied after Benny used it, in seconds. */
-    occupiedAfterUseSeconds: { min: 5, max: 10 } satisfies Range
+    occupiedAfterUseSeconds: { min: 5, max: 10 } satisfies Range,
+    /** Benny counts as standing in a door zone when his circle comes this close to it, in metres. */
+    doorReachMetres: 0.3
 } as const;
 
 /** Pop-up toilets that keep a heavy Benny in the game (design: *Pop-up toilets*). */

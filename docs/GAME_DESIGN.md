@@ -165,6 +165,9 @@ the HUD:
   size), relief plays for 1.5 s during which he cannot be hurt, then he comes out with a fresh countdown. The kiosk
   turns occupied for 5 to 10 s.
 - At an occupied kiosk, Benny can wait at the door: a ring shows how long until it frees up. Waiting is a gamble.
+- Benny is at a door when his circle comes within _initial_ 0.3 m of its door zone, so he can use a kiosk at any size
+  as long as he fits the road in front of it. A new run starts each kiosk at a random point of its cycle, free in
+  proportion to the average free and occupied times.
 
 ### Pop-up toilets
 
