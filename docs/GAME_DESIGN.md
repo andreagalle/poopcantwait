@@ -1,6 +1,6 @@
 # Gotta Go! — Game Design
 
-Source of truth for gameplay. Numbers marked *initial* are starting points for `src/config/tuning.ts`; tune them by
+Source of truth for gameplay. Numbers marked _initial_ are starting points for `src/config/tuning.ts`; tune them by
 playtesting and keep this document in sync.
 
 ## Pitch
@@ -54,25 +54,25 @@ clips gives the plush feel and can stand in for any clip that is not available.
 
 - Perspective camera above and behind Benny, looking down at about 55 degrees, 45-degree vertical field of view.
 - It follows Benny with damping and a small look-ahead in his direction of travel.
-- It pulls back as Benny grows: *initial* 18 m away when slim, 40 m when at maximum weight, so the player always sees
+- It pulls back as Benny grows: _initial_ 18 m away when slim, 40 m when at maximum weight, so the player always sees
   enough of the streets around him.
 - Buildings between the camera and Benny fade to about 25% opacity so he is never hidden.
 
 ## The city
 
-Procedurally generated from a seed for each run (`?seed=<n>` fixes it). *Initial* size 320 m by 320 m, surrounded by a
+Procedurally generated from a seed for each run (`?seed=<n>` fixes it). _Initial_ size 320 m by 320 m, surrounded by a
 park and river edge that blocks the way out.
 
 ### Street classes
 
 Width is the walkable width between building fronts, sidewalks included.
 
-| Class     | Width (initial) | Traffic         | Layout                                                     |
-| --------- | --------------- | --------------- | ---------------------------------------------------------- |
-| Alley     | 2 m             | none            | Cuts through about half the blocks, connects two streets   |
-| Street    | 6 m             | cars            | Grid roughly every 40 m                                    |
-| Avenue    | 12 m            | cars and buses  | Roughly every 80 m                                         |
-| Boulevard | 20 m            | cars and buses  | One or two across the city in each direction               |
+| Class     | Width (initial) | Traffic        | Layout                                                   |
+| --------- | --------------- | -------------- | -------------------------------------------------------- |
+| Alley     | 2 m             | none           | Cuts through about half the blocks, connects two streets |
+| Street    | 6 m             | cars           | Grid roughly every 40 m                                  |
+| Avenue    | 12 m            | cars and buses | Roughly every 80 m                                       |
+| Boulevard | 20 m            | cars and buses | One or two across the city in each direction             |
 
 Generation rules:
 
@@ -88,7 +88,7 @@ Generation rules:
 
 Weight `w` goes from 0 (slim) to 1 (maximum). Junk food adds weight; nothing removes it during a run.
 
-*Initial* formulas, all in `tuning.ts`:
+_Initial_ formulas, all in `tuning.ts`:
 
 - Diameter of Benny's collision circle: `d(w) = 0.9 + 6.6 * w^1.3` metres (0.9 m slim, 7.5 m at maximum).
 - Top speed: `v(w) = 7.0 * (1 - 0.7 * w^0.8)` m/s (7 m/s slim, 2.1 m/s at maximum).
@@ -108,8 +108,8 @@ the HUD:
 
 ## Urgency countdown and underpants
 
-- The countdown starts at *initial* 40 seconds and resets to that value after every relief and every accident.
-- Vegetables subtract seconds (see *Food*). A vehicle knocking Benny over subtracts 3 seconds (the shock).
+- The countdown starts at _initial_ 40 seconds and resets to that value after every relief and every accident.
+- Vegetables subtract seconds (see _Food_). A vehicle knocking Benny over subtracts 3 seconds (the shock).
 - Under 10 seconds: the HUD gauge turns red and shakes, Benny switches to the clenched waddle, his tummy rumbles.
 - At 0: an **accident**. Benny freezes for 1.5 seconds with a shiver, a cartoon stink cloud puffs up, the camera shakes,
   and one pair of underpants in the HUD turns into a stained one. Then the countdown resets and the run continues.
@@ -119,10 +119,10 @@ the HUD:
 
 ### Public toilet kiosks
 
-- *Initial* 8 kiosks placed on sidewalks of streets and avenues, spread across the city, each with its door facing
+- _Initial_ 8 kiosks placed on sidewalks of streets and avenues, spread across the city, each with its door facing
   the street.
 - Each kiosk cycles between **free** (green beacon and an upward light beam) and **occupied** (red beacon, rattling
-  door). *Initial* free time: 6 to 14 s; occupied time: 5 to 15 s; both random per cycle.
+  door). _Initial_ free time: 6 to 14 s; occupied time: 5 to 15 s; both random per cycle.
 - Benny uses a free toilet by standing in its door zone for 0.5 s. He enters (he squeezes through comically at any
   size), relief plays for 1.5 s during which he cannot be hurt, then he comes out with a fresh countdown. The kiosk
   turns occupied for 5 to 10 s.
@@ -131,7 +131,7 @@ the HUD:
 ### Pop-up toilets
 
 - Portable toilets that pop out of the ground with a puff. They exist to keep a heavy Benny in the game.
-- Spawn interval shrinks with weight: *initial* every 25 s at `w = 0` down to every 6 s at `w = 1`. Lifetime 20 s.
+- Spawn interval shrinks with weight: _initial_ every 25 s at `w = 0` down to every 6 s at `w = 1`. Lifetime 20 s.
   At most 4 at a time.
 - They spawn only where Benny can go at his current girth, at a path distance of 25 to 80 m from him.
 - **Mercy rule:** if no free toilet is reachable within 80% of the remaining time at Benny's current speed, one pop-up
@@ -164,19 +164,19 @@ With these values Benny reaches maximum weight after roughly 35 to 45 items.
 
 ### Vegetables (countdown penalty, no points)
 
-| Item              | Countdown (initial) |
-| ----------------- | ------------------- |
-| Beans             | -10 s               |
-| Cabbage           | -8 s                |
-| Brussels sprouts  | -7 s                |
-| Broccoli          | -6 s                |
-| Cauliflower       | -5 s                |
-| Carrot            | -4 s                |
+| Item             | Countdown (initial) |
+| ---------------- | ------------------- |
+| Beans            | -10 s               |
+| Cabbage          | -8 s                |
+| Brussels sprouts | -7 s                |
+| Broccoli         | -6 s                |
+| Cauliflower      | -5 s                |
+| Carrot           | -4 s                |
 
 ### Spawning
 
 - Items appear at random walkable points, including alleys, which tempt a slim Benny into routes he will lose later.
-- *Initial*: one spawn every 1.2 s, at most 25 items in the city, each lasting 30 s before it fades out.
+- _Initial_: one spawn every 1.2 s, at most 25 items in the city, each lasting 30 s before it fades out.
 - Vegetables are 20% of spawns at the start, rising to 40% over eight minutes.
 
 ## Traffic
@@ -184,14 +184,14 @@ With these values Benny reaches maximum weight after roughly 35 to 45 items.
 - Cars drive on streets, avenues and boulevards; buses only on avenues and boulevards. Nothing drives in alleys.
 - Vehicles follow lanes and pick a random direction at each intersection. They do not brake for Benny and they honk
   when he is close ahead.
-- *Initial* speeds: cars 9 to 14 m/s, buses 7 to 9 m/s. *Initial* density: 12 cars and 3 buses, growing 15% per minute
+- _Initial_ speeds: cars 9 to 14 m/s, buses 7 to 9 m/s. _Initial_ density: 12 cars and 3 buses, growing 15% per minute
   up to three times that.
 
 ### Collisions
 
 - **Benny gets hit** while his weight is below the vehicle's crumple threshold (cars 0.5, buses 0.85): he is knocked
-  back along the vehicle's direction and stunned, and loses 3 s of countdown. Knock-back distance (*initial* up to 8 m)
-  and stun time (*initial* up to 1.2 s, at least 0.3 s) scale with `1 - w / threshold`, so a fatter Benny is shaken
+  back along the vehicle's direction and stunned, and loses 3 s of countdown. Knock-back distance (_initial_ up to 8 m)
+  and stun time (_initial_ up to 1.2 s, at least 0.3 s) scale with `1 - w / threshold`, so a fatter Benny is shaken
   less.
 - **The vehicle crumples** when his weight is at or above the threshold: it squashes to 40% of its length with a puff
   of smoke and stops, Benny does a belly bounce and is slowed for 0.3 s, and the player scores the bonus. Crumpled

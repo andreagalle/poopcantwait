@@ -1,4 +1,4 @@
 {
-  "$comment": "Provenance of every committed asset. Schema and rules: docs/ASSET_PIPELINE.md.",
-  "assets": []
+    "$comment": "Provenance of every committed asset. Schema and rules: docs/ASSET_PIPELINE.md.",
+    "assets": []
 }
