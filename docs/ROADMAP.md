@@ -12,7 +12,7 @@ Gameplay comes first, in greybox; art comes later (M6), so no generation credits
 | ----------------------------- | ------------- |
 | M0: scaffold and toolchain    | Done (#3)     |
 | M1: the city                  | Done (#5, #6) |
-| M2: Benny moves               | In progress   |
+| M2: Benny moves               | Done (#7, #8) |
 | M3: the clock and the toilets | Not started   |
 | M4: food, weight and score    | Not started   |
 | M5: traffic                   | Not started   |

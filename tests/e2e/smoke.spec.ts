@@ -134,8 +134,14 @@ function benny(page: Page) {
     return page.evaluate(() => {
         const app = [...globalThis.__playcanvasApps!.keys()][0]!;
         const entity = app.root.findByName('benny') as Entity;
+        const camera = app.root.findByName('camera') as Entity;
         const position = entity.getPosition();
-        return { x: position.x, z: position.z, scale: entity.getLocalScale().x };
+        return {
+            x: position.x,
+            z: position.z,
+            scale: entity.getLocalScale().x,
+            cameraDistance: camera.getPosition().distance(position)
+        };
     });
 }
 
@@ -196,8 +202,37 @@ test('starts a massive Benny with ?weight=1', async ({ page }) => {
     const massive = await benny(page);
     const slimDiameter = WEIGHT.diameter.baseMetres;
     expect(massive.scale).toBeCloseTo((slimDiameter + WEIGHT.diameter.gainMetres) / slimDiameter, 3);
+    // The camera pulls back to its farthest distance
+    expect(massive.cameraDistance).toBeCloseTo(CAMERA.distance.maxWeightMetres, 1);
     await expect(page.locator('.debug-readout')).toContainText('massive');
 
     await page.screenshot({ path: `${SCREENSHOT_DIR}/smoke-massive.png` });
+    expect(errors).toEqual([]);
+});
+
+test('fades the buildings between the camera and Benny', async ({ page }) => {
+    const errors = await openGame(page, '?seed=42');
+    await sampleCanvas(page);
+    const fadedNow = () =>
+        page.evaluate(() => {
+            const app = [...globalThis.__playcanvasApps!.keys()][0]!;
+            return (app.root.findByName('city-buildings-faded') as Entity).enabled;
+        });
+    expect(await fadedNow()).toBe(false);
+
+    // South of the plaza, the buildings beyond the next street stand between the camera (to the south) and Benny
+    await page.keyboard.down('ArrowDown');
+    await page.waitForFunction(
+        () => {
+            const app = [...globalThis.__playcanvasApps!.keys()][0]!;
+            return (app.root.findByName('city-buildings-faded') as Entity).enabled;
+        },
+        undefined,
+        { timeout: 60_000, polling: 100 }
+    );
+    await page.keyboard.up('ArrowDown');
+    expect(await fadedNow()).toBe(true);
+
+    await page.screenshot({ path: `${SCREENSHOT_DIR}/smoke-faded.png` });
     expect(errors).toEqual([]);
 });
