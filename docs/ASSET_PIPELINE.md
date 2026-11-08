@@ -5,13 +5,13 @@ optimized, reviewed and committed. The shipped game never calls a generation API
 
 ## Tools
 
-| Need                                   | Tool                                                                 | Paid |
-| -------------------------------------- | -------------------------------------------------------------------- | ---- |
-| 3D models, PBR texturing, remeshing, rigging, animation | Meshy, through its MCP server (`meshy` in `.mcp.json`) | yes  |
-| 2D images: concept sheets, reference images for image-to-3D, facade and road textures, HUD icons, title art | OpenRouter Images API through `npm run assets:image` | yes |
-| City geometry (buildings, roads, sidewalks) | Procedural code in `src/render/` and `src/game/`, textured with generated or hand-made textures | no |
-| Optimization and inspection            | `@gltf-transform/core`, `@gltf-transform/functions`, `@gltf-transform/cli`, `sharp`, `meshoptimizer` | no |
-| Filler props and sound effects         | CC0 packs (for example Kenney, Quaternius) downloaded by the maintainer into `art/raw/` | no |
+| Need                                                                                                        | Tool                                                                                                 | Paid |
+| ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ---- |
+| 3D models, PBR texturing, remeshing, rigging, animation                                                     | Meshy, through its MCP server (`meshy` in `.mcp.json`)                                               | yes  |
+| 2D images: concept sheets, reference images for image-to-3D, facade and road textures, HUD icons, title art | OpenRouter Images API through `npm run assets:image`                                                 | yes  |
+| City geometry (buildings, roads, sidewalks)                                                                 | Procedural code in `src/render/` and `src/game/`, textured with generated or hand-made textures      | no   |
+| Optimization and inspection                                                                                 | `@gltf-transform/core`, `@gltf-transform/functions`, `@gltf-transform/cli`, `sharp`, `meshoptimizer` | no   |
+| Filler props and sound effects                                                                              | CC0 packs (for example Kenney, Quaternius) downloaded by the maintainer into `art/raw/`              | no   |
 
 The agent cannot run `curl` or `wget`. Files from outside sources reach `art/raw/` through the maintainer or through a
 tool designed for it (the Meshy download tool, the OpenRouter script).
@@ -65,15 +65,15 @@ and refuses to run without `--yes` so every paid call is deliberate.
 
 ## Budgets
 
-| Asset                  | Triangles | Textures            | Notes                                        |
-| ---------------------- | --------- | ------------------- | -------------------------------------------- |
-| Benny                  | 20,000    | 1024 px, PBR        | rigged, animation clips embedded             |
-| Car (each variant)     | 4,000     | 512 px              | 3 or 4 variants, recolored by material tint  |
-| Bus                    | 6,000     | 512 px              |                                              |
-| Toilet kiosk           | 3,000     | 512 px              | beacon is a separate node for the light      |
-| Pop-up toilet          | 2,000     | 256 px              |                                              |
-| Food or vegetable item | 1,500     | 256 px              | 13 items                                     |
-| Street prop            | 1,000     | 256 px              | benches, lamps, trees, hydrants              |
+| Asset                  | Triangles | Textures     | Notes                                       |
+| ---------------------- | --------- | ------------ | ------------------------------------------- |
+| Benny                  | 20,000    | 1024 px, PBR | rigged, animation clips embedded            |
+| Car (each variant)     | 4,000     | 512 px       | 3 or 4 variants, recolored by material tint |
+| Bus                    | 6,000     | 512 px       |                                             |
+| Toilet kiosk           | 3,000     | 512 px       | beacon is a separate node for the light     |
+| Pop-up toilet          | 2,000     | 256 px       |                                             |
+| Food or vegetable item | 1,500     | 256 px       | 13 items                                    |
+| Street prop            | 1,000     | 256 px       | benches, lamps, trees, hydrants             |
 
 The whole of `public/assets/` stays under 12 MB, and the initial download under 15 MB.
 
@@ -99,18 +99,18 @@ Every committed asset has an entry like this:
 
 ```json
 {
-  "id": "food.burger",
-  "file": "public/assets/models/food/burger.glb",
-  "source": "meshy",
-  "tool": "meshy_text_to_3d + meshy_text_to_3d_refine",
-  "taskIds": ["<preview task id>", "<refine task id>"],
-  "prompt": "<full prompt including the style block>",
-  "generatedAt": "2026-11-08",
-  "license": "<the output terms of the plan used, as checked on the provider's site>",
-  "attributionRequired": false,
-  "triangles": 1420,
-  "bytes": 183552,
-  "approvedBy": "maintainer"
+    "id": "food.burger",
+    "file": "public/assets/models/food/burger.glb",
+    "source": "meshy",
+    "tool": "meshy_text_to_3d + meshy_text_to_3d_refine",
+    "taskIds": ["<preview task id>", "<refine task id>"],
+    "prompt": "<full prompt including the style block>",
+    "generatedAt": "2026-11-08",
+    "license": "<the output terms of the plan used, as checked on the provider's site>",
+    "attributionRequired": false,
+    "triangles": 1420,
+    "bytes": 183552,
+    "approvedBy": "maintainer"
 }
 ```
 

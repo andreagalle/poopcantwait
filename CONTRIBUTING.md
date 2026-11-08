@@ -5,11 +5,11 @@ is written in English.
 
 ## Branch model
 
-| Branch         | Purpose                                                       | Who writes to it                                   |
-| -------------- | ------------------------------------------------------------- | -------------------------------------------------- |
-| `master`       | Production. Every push deploys the game to GitHub Pages.      | Only the maintainer, by merging the release PR.    |
-| `dev`          | Integration. Always builds and passes CI.                     | Only through pull requests from topic branches.    |
-| topic branches | One change each: a feature, a fix, a chore, an asset set.     | Their author. Short-lived, deleted after merge.    |
+| Branch         | Purpose                                                   | Who writes to it                                |
+| -------------- | --------------------------------------------------------- | ----------------------------------------------- |
+| `master`       | Production. Every push deploys the game to GitHub Pages.  | Only the maintainer, by merging the release PR. |
+| `dev`          | Integration. Always builds and passes CI.                 | Only through pull requests from topic branches. |
+| topic branches | One change each: a feature, a fix, a chore, an asset set. | Their author. Short-lived, deleted after merge. |
 
 Nobody commits or pushes to `master` or `dev` directly. Changes flow one way:
 
@@ -25,38 +25,38 @@ Format: `<type>/<short-description>`, optionally with an issue number: `<type>/<
 - Describe the outcome, not the activity: `feat/toilet-occupancy`, not `feat/working-on-toilets`.
 - One branch, one purpose. If the description needs "and", split the branch.
 
-| Type        | Use it for                                                           | Example                        |
-| ----------- | -------------------------------------------------------------------- | ------------------------------ |
-| `feat/`     | New gameplay or user-visible behavior                                | `feat/12-urgency-countdown`    |
-| `fix/`      | A bug fix                                                            | `fix/player-stuck-in-alley`    |
-| `perf/`     | Performance work with no behavior change                             | `perf/instanced-buildings`     |
-| `refactor/` | Code restructuring with no behavior change                           | `refactor/split-traffic-system`|
-| `test/`     | Tests only                                                           | `test/toilet-scheduler-edges`  |
-| `assets/`   | Generating, replacing or optimizing art and audio                    | `assets/food-set`              |
-| `docs/`     | Documentation only                                                   | `docs/tuning-tables`           |
-| `chore/`    | Tooling, dependencies, configuration, releases                       | `chore/release-v0.3.0`         |
-| `ci/`       | Proposed CI changes (applied by the maintainer, see below)            | `ci/cache-playwright`          |
-| `hotfix/`   | Urgent production fix branched from `master` (maintainer only)       | `hotfix/blank-screen-safari`   |
+| Type        | Use it for                                                     | Example                         |
+| ----------- | -------------------------------------------------------------- | ------------------------------- |
+| `feat/`     | New gameplay or user-visible behavior                          | `feat/12-urgency-countdown`     |
+| `fix/`      | A bug fix                                                      | `fix/player-stuck-in-alley`     |
+| `perf/`     | Performance work with no behavior change                       | `perf/instanced-buildings`      |
+| `refactor/` | Code restructuring with no behavior change                     | `refactor/split-traffic-system` |
+| `test/`     | Tests only                                                     | `test/toilet-scheduler-edges`   |
+| `assets/`   | Generating, replacing or optimizing art and audio              | `assets/food-set`               |
+| `docs/`     | Documentation only                                             | `docs/tuning-tables`            |
+| `chore/`    | Tooling, dependencies, configuration, releases                 | `chore/release-v0.3.0`          |
+| `ci/`       | Proposed CI changes (applied by the maintainer, see below)     | `ci/cache-playwright`           |
+| `hotfix/`   | Urgent production fix branched from `master` (maintainer only) | `hotfix/blank-screen-safari`    |
 
 ## Working on a change
 
 1. Start from an up-to-date `dev`:
 
-   ```sh
-   git fetch origin --prune
-   git switch dev
-   git pull --ff-only origin dev
-   git switch -c feat/short-description
-   ```
+    ```sh
+    git fetch origin --prune
+    git switch dev
+    git pull --ff-only origin dev
+    git switch -c feat/short-description
+    ```
 
-2. Commit in small, focused steps (see *Commit messages*). Keep the branch building at every commit.
+2. Commit in small, focused steps (see _Commit messages_). Keep the branch building at every commit.
 3. Before opening the PR, bring the branch up to date by rebasing, never by merging `dev` into it:
 
-   ```sh
-   git fetch origin
-   git rebase origin/dev
-   git push --force-with-lease   # only on your own topic branch, only after a rebase
-   ```
+    ```sh
+    git fetch origin
+    git rebase origin/dev
+    git push --force-with-lease   # only on your own topic branch, only after a rebase
+    ```
 
 4. Open a pull request **into `dev`** with `--base dev` and fill in the template.
 5. When every check is green, **squash-merge** it and delete the branch. The squash commit title is the PR title, so
