@@ -1,0 +1,121 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Test dev: production preview (switch to dev, install, build, serve)",
+      "detail": "The release check. Serves the same build that GitHub Pages will publish, on port 4173.",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "Git: switch to latest dev",
+        "Deps: clean install",
+        "Game: production build",
+        "Game: serve production preview"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "Test dev: dev server (switch to dev, install, hot reload)",
+      "detail": "Quick look at dev with hot reload and the PlayCanvas Inspector (backquote key), on port 5173.",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Git: switch to latest dev", "Deps: clean install", "Game: dev server"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Git: switch to latest dev",
+      "detail": "Refuses to run with uncommitted changes, then fast-forwards local dev to origin/dev.",
+      "type": "shell",
+      "command": "if ! git diff --quiet || ! git diff --cached --quiet; then echo 'Uncommitted changes in the working tree: commit or stash them first.'; exit 1; fi; git fetch origin --prune && git switch dev && git pull --ff-only origin dev && git log --oneline -5",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "Deps: clean install",
+      "type": "shell",
+      "command": "npm ci",
+      "problemMatcher": [],
+      "presentation": { "reveal": "silent", "panel": "shared" }
+    },
+    {
+      "label": "Game: production build",
+      "type": "shell",
+      "command": "npm run build",
+      "group": "build",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "Game: serve production preview",
+      "detail": "Serves dist/ on port 4173. Stop it with the trash icon in the terminal panel.",
+      "type": "shell",
+      "command": "npm run start -- --host 0.0.0.0 --port 4173 --strictPort",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "vite-preview",
+        "pattern": { "regexp": "^__never_matches__$" },
+        "background": {
+          "activatesOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "Local:"
+        }
+      },
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "Game: dev server",
+      "detail": "Hot-reload dev server for the current branch on port 5173.",
+      "type": "shell",
+      "command": "npm run dev -- --host 0.0.0.0 --port 5173 --strictPort",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "vite-dev",
+        "pattern": { "regexp": "^__never_matches__$" },
+        "background": {
+          "activatesOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "Local:"
+        }
+      },
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "Ports: print game URLs",
+      "detail": "Prints the forwarded Codespaces URLs for the dev server and the preview.",
+      "type": "shell",
+      "command": "if [ -n \"${CODESPACE_NAME:-}\" ]; then d=\"${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN:-app.github.dev}\"; echo \"Dev server: https://${CODESPACE_NAME}-5173.${d}/\"; echo \"Preview:    https://${CODESPACE_NAME}-4173.${d}/\"; else echo 'Dev server: http://localhost:5173/'; echo 'Preview:    http://localhost:4173/'; fi",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "Checks: lint, types, format, unit tests",
+      "type": "shell",
+      "command": "npm run check",
+      "group": "test",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "Checks: end-to-end smoke test",
+      "type": "shell",
+      "command": "npm run build && npm run test:e2e",
+      "group": "test",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "Release: show the dev -> master PR",
+      "detail": "Shows the open release PR and its CI status. Merge it on GitHub with 'Create a merge commit'.",
+      "type": "shell",
+      "command": "n=$(gh pr list --base master --head dev --state open --json number --jq '.[0].number'); if [ -z \"$n\" ]; then echo 'No open release PR from dev to master. Ask the agent to run /release-pr.'; else gh pr view \"$n\"; echo; gh pr checks \"$n\" || true; echo; echo \"Open in browser: gh pr view $n --web\"; fi",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "Release: tag master after merging",
+      "detail": "Run after you merged the release PR. Tags origin/master with the version in package.json.",
+      "type": "shell",
+      "command": "git fetch origin --prune --tags && v=$(git show origin/master:package.json | node -e \"let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).version))\") && if git rev-parse -q --verify \"refs/tags/v$v\" >/dev/null; then echo \"Tag v$v already exists: bump the version with '/release-pr cut <version>' first.\"; exit 1; fi && git tag -a \"v$v\" origin/master -m \"Release v$v\" && git push origin \"v$v\" && echo \"Tagged v$v\"",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "shared" }
+    }
+  ]
+}
