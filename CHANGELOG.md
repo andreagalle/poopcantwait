@@ -15,3 +15,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   and a greybox scene: ground, a capsule standing in for Benny, the camera at the design angle and a work-in-progress
   banner.
 - The development roadmap (`docs/ROADMAP.md`), milestones M0 to M8.
+- Seeded city generator: perimeter ring, avenues and boulevards, street spans, alleys, building lots, the central
+  plaza with its fountain, the park, the clock tower, eight kiosk spots and the park and river edge; a navigation grid
+  with an exact clearance field and girth-aware path distances.
