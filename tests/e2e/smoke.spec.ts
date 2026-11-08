@@ -5,7 +5,7 @@ import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import type { AppBase, Entity } from 'playcanvas';
 
-import { CAMERA } from '../../src/config/tuning';
+import { CAMERA, WEIGHT } from '../../src/config/tuning';
 
 declare global {
     // Filled by the devtools hook of the inspect-runtime skill: every live PlayCanvas app (engine 2.23+)
@@ -120,11 +120,84 @@ test('shows the debug maps for a fixed seed with ?seed and ?debug', async ({ pag
     const panel = page.locator('.debug-map');
     await expect(panel).toBeVisible();
     await expect(panel).toContainText('seed 42');
-    await expect(panel.locator('canvas')).toHaveCount(2);
+    await expect(panel.locator('.debug-map-cell')).toHaveCount(2);
 
     const sample = await sampleCanvas(page);
     expect(sample.distinctColors).toBeGreaterThanOrEqual(3);
 
     await page.screenshot({ path: `${SCREENSHOT_DIR}/smoke-debug.png` });
+    expect(errors).toEqual([]);
+});
+
+/** Benny's position and size, read from his entity through the devtools hook. */
+function benny(page: Page) {
+    return page.evaluate(() => {
+        const app = [...globalThis.__playcanvasApps!.keys()][0]!;
+        const entity = app.root.findByName('benny') as Entity;
+        const position = entity.getPosition();
+        return { x: position.x, z: position.z, scale: entity.getLocalScale().x };
+    });
+}
+
+/**
+ * Holds arrow keys until Benny has moved past a goal. WebGL renders in software here, a few frames per second, and slow
+ * frames slow the simulation down, so the test waits for the distance rather than for a fixed time.
+ */
+async function holdUntil(
+    page: Page,
+    keys: string[],
+    goal: { dx?: number; dz?: number },
+    from: { x: number; z: number }
+) {
+    for (const key of keys) {
+        await page.keyboard.down(key);
+    }
+    await page.waitForFunction(
+        ({ goal, from }) => {
+            const app = [...globalThis.__playcanvasApps!.keys()][0]!;
+            const p = (app.root.findByName('benny') as Entity).getPosition();
+            const reached = (delta: number | undefined, moved: number) =>
+                delta === undefined || (delta > 0 ? moved >= delta : moved <= delta);
+            return reached(goal.dx, p.x - from.x) && reached(goal.dz, p.z - from.z);
+        },
+        { goal, from },
+        { timeout: 30_000, polling: 100 }
+    );
+    for (const key of keys) {
+        await page.keyboard.up(key);
+    }
+}
+
+test('moves Benny with the arrow keys, diagonals included, without scrolling the page', async ({ page }) => {
+    const errors = await openGame(page, '?seed=42');
+    await sampleCanvas(page);
+
+    const start = await benny(page);
+    await holdUntil(page, ['ArrowRight'], { dx: 2 }, start);
+    const right = await benny(page);
+    expect(Math.abs(right.z - start.z)).toBeLessThan(0.05);
+
+    await holdUntil(page, ['ArrowLeft', 'ArrowDown'], { dx: -1, dz: 1 }, right);
+    const diagonal = await benny(page);
+    // Eight directions: left and down together move him both ways at once
+    expect(right.x - diagonal.x).toBeGreaterThan(1);
+    expect(diagonal.z - right.z).toBeGreaterThan(1);
+
+    const scrolled = await page.evaluate(() => window.scrollX + window.scrollY);
+    expect(scrolled).toBe(0);
+    await page.screenshot({ path: `${SCREENSHOT_DIR}/smoke-moved.png` });
+    expect(errors).toEqual([]);
+});
+
+test('starts a massive Benny with ?weight=1', async ({ page }) => {
+    const errors = await openGame(page, '?seed=42&weight=1&debug=1');
+    await sampleCanvas(page);
+
+    const massive = await benny(page);
+    const slimDiameter = WEIGHT.diameter.baseMetres;
+    expect(massive.scale).toBeCloseTo((slimDiameter + WEIGHT.diameter.gainMetres) / slimDiameter, 3);
+    await expect(page.locator('.debug-readout')).toContainText('massive');
+
+    await page.screenshot({ path: `${SCREENSHOT_DIR}/smoke-massive.png` });
     expect(errors).toEqual([]);
 });

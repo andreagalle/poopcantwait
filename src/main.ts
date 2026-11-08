@@ -9,11 +9,16 @@ import {
     createGraphicsDevice
 } from 'playcanvas';
 
-import { CAMERA } from './config/tuning';
+import { CAMERA, SIMULATION } from './config/tuning';
 import { generateCity } from './core/city/generate';
+import { Game } from './core/game';
 import { parseLaunchParams } from './core/params';
+import { FixedStepper } from './core/sim/fixed-step';
 import { mountCityDebugMap } from './debug/city-map';
+import { PlayerDebug } from './debug/player-debug';
+import { BennyView } from './game/benny-view';
 import { addBennyStandIn } from './game/greybox';
+import { KeyboardInput } from './input/keyboard';
 import { createGameCamera, placeCamera } from './render/camera';
 import { buildCityView } from './render/city-view';
 import { addSunlight } from './render/lighting';
@@ -47,18 +52,31 @@ app.on('destroy', () => {
     window.removeEventListener('resize', resize);
 });
 
-// The run: a seeded city (?seed=<n> fixes it), Benny at the spawn point, the camera at the design angle
+// The run: a seeded city (?seed=<n> fixes it), Benny at the spawn point (?weight=<0..1> sets his starting weight)
 const params = parseLaunchParams(window.location.search);
 const seed = params.seed ?? crypto.getRandomValues(new Uint32Array(1))[0];
 const city = generateCity(seed);
+const game = new Game(city, { weight: params.weight ?? 0 });
 
 addSunlight(app);
 buildCityView(app, city);
-const benny = addBennyStandIn(app);
-benny.setPosition(city.spawn.x, 0, city.spawn.z);
+const bennyView = new BennyView(addBennyStandIn(app));
 const camera = createGameCamera(app);
-placeCamera(camera, benny.getPosition(), CAMERA.distance.slimMetres);
 
-if (params.debug) {
-    mountCityDebugMap(document.body, city);
-}
+const playerDebug = params.debug ? new PlayerDebug(mountCityDebugMap(document.body, city), game) : null;
+
+// Fixed-step simulation; rendering interpolates between the last two steps
+const input = new KeyboardInput(window);
+const stepper = new FixedStepper(game.stepSeconds, SIMULATION.maxStepsPerFrame);
+const onUpdate = (dt: number) => {
+    const steps = stepper.advance(dt);
+    for (let i = 0; i < steps; i++) {
+        game.step(input.direction());
+    }
+    bennyView.update(game, stepper.alpha);
+    placeCamera(camera, bennyView.entity.getPosition(), CAMERA.distance.slimMetres);
+    playerDebug?.update(game);
+};
+app.on('update', onUpdate);
+onUpdate(0);
+app.on('destroy', () => input.dispose());

@@ -50,3 +50,17 @@
     margin-right: 4px;
     vertical-align: middle;
 }
+
+.debug-readout {
+    margin: 0 0 6px;
+    white-space: nowrap;
+}
+
+.debug-map-cell {
+    position: relative;
+}
+
+.debug-marker {
+    position: absolute;
+    inset: 0;
+}

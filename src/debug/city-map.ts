@@ -97,7 +97,12 @@ export function mountCityDebugMap(parent: HTMLElement, city: City): HTMLElement 
 
     const maps = document.createElement('div');
     maps.className = 'debug-maps';
-    maps.append(zones, fit);
+    for (const map of [zones, fit]) {
+        const cell = document.createElement('div');
+        cell.className = 'debug-map-cell';
+        cell.append(map);
+        maps.append(cell);
+    }
     panel.append(
         title,
         maps,
