@@ -65,10 +65,13 @@ export const CITY = {
     lotWidthMetres: { min: 8, max: 16 } satisfies Range,
     /** Blocks at least this deep get two rows of buildings back to back instead of one, in metres. */
     twoRowMinDepthMetres: 24,
-    /** Building heights, in metres (whole metres). */
-    buildingHeightMetres: { min: 5, max: 16 } satisfies Range,
+    /**
+     * Building heights, in metres (whole metres). Kept below the camera height for a slim Benny (about 14.7 m), so roofs
+     * never fill the screen.
+     */
+    buildingHeightMetres: { min: 4, max: 12 } satisfies Range,
     /** The clock tower landmark, next to the central plaza, in metres. */
-    clockTowerHeightMetres: 30,
+    clockTowerHeightMetres: 24,
     /** Radius of the fountain in the middle of the central plaza, in metres. */
     fountainRadiusMetres: 3,
     /** Trees in the park: spacing of their jittered grid, trunk radius and margin from the park edge, in metres. */

@@ -18,3 +18,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Seeded city generator: perimeter ring, avenues and boulevards, street spans, alleys, building lots, the central
   plaza with its fountain, the park, the clock tower, eight kiosk spots and the park and river edge; a navigation grid
   with an exact clearance field and girth-aware path distances.
+- The city in greybox, two draw calls for the whole of it: roads coloured by class, pastel buildings, the plaza and
+  fountain, the park, the clock tower, kiosks, and the river and parkland around. `?seed=<n>` fixes the city and
+  `?debug=1` shows maps of the zones and of where each Benny size fits.

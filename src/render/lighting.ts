@@ -9,13 +9,13 @@ import { CAMERA } from '../config/tuning';
  * towards the top right.
  */
 export function addSunlight(app: AppBase): Entity {
-    app.scene.ambientLight = new Color(0.46, 0.5, 0.58);
+    app.scene.ambientLight = new Color(0.78, 0.8, 0.86);
 
     const sun = new Entity('sun');
     sun.addComponent('light', {
         type: 'directional',
         color: new Color(1, 0.93, 0.82),
-        intensity: 1.1,
+        intensity: 0.85,
         castShadows: true,
         shadowType: SHADOW_PCF3_32F,
         // Cover everything the camera sees at its farthest pull-back
@@ -24,8 +24,10 @@ export function addSunlight(app: AppBase): Entity {
         shadowBias: 0.2,
         normalOffsetBias: 0.05
     });
-    // Lights shine along their local -Y: tilt the beam towards -Z (screen top), then swing it towards +X (right)
-    sun.setEulerAngles(50, -35, 0);
+    // Lights shine along their local -Y: tilt the beam 35 degrees from vertical towards -Z (screen top), then swing it
+    // towards +X (right). A high sun keeps shadows short (0.7 times the height), so tall buildings do not swallow the
+    // streets seen from the high camera.
+    sun.setEulerAngles(35, -35, 0);
     app.root.addChild(sun);
     return sun;
 }

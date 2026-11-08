@@ -4,9 +4,12 @@ const PORT = 4173;
 const BASE_URL = `http://localhost:${PORT}/`;
 
 // End-to-end smoke tests against the production preview (`npm run build` first). Chromium only.
+// WebGL runs in software (SwiftShader), so every test is bound by rendering speed: one worker at a time, a generous
+// timeout, and a smaller viewport than a desktop window.
 export default defineConfig({
     testDir: 'tests/e2e',
-    fullyParallel: true,
+    workers: 1,
+    timeout: 90_000,
     forbidOnly: Boolean(process.env.CI),
     retries: 0,
     reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
@@ -19,6 +22,7 @@ export default defineConfig({
             name: 'chromium',
             use: {
                 ...devices['Desktop Chrome'],
+                viewport: { width: 960, height: 540 },
                 // No GPU in a Codespace or on CI runners: render WebGL in software. Headless Chromium falls back to
                 // SwiftShader on its own today, but that fallback is deprecated and logs driver warnings, so ask for
                 // it explicitly
