@@ -29,3 +29,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Urgency countdown (40 s) with accidents: at 0 Benny freezes and shivers, a pair of underpants is soiled and the
   countdown starts again; after the fifth the run is over (Enter starts a new one). `?countdown=<s>` shortens the
   fuse for testing.
+- First HUD: the urgency gauge (tummy icon, seconds, a bar from green to red that shakes in the last ten seconds),
+  the score, five pairs of boxer shorts that stain one by one, and the weight bar with the girth tier.

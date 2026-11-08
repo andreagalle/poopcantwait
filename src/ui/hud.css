@@ -1,0 +1,202 @@
+/* The heads-up display (design: HUD and screens). Chunky, toy-like, readable over the city. */
+.hud {
+    position: fixed;
+    inset: 0;
+    z-index: 15;
+    color: #2b211b;
+    font-weight: 800;
+    pointer-events: none;
+}
+
+.hud-gauge,
+.hud-score-box,
+.hud-underpants,
+.hud-weight {
+    position: absolute;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 6px 12px;
+    border: 3px solid #2b211b;
+    border-radius: 16px;
+    background: #fff6e0;
+    box-shadow: 0 4px 0 #2b211b;
+}
+
+/* Top left: the urgency gauge */
+.hud-gauge {
+    top: 12px;
+    left: 12px;
+}
+
+.hud-tummy svg {
+    display: block;
+    width: 34px;
+    height: 34px;
+}
+
+.tummy-belly {
+    fill: #f7b48f;
+    stroke: #2b211b;
+    stroke-width: 3;
+}
+
+.tummy-navel,
+.tummy-rumble {
+    fill: none;
+    stroke: #2b211b;
+    stroke-linecap: round;
+    stroke-width: 3;
+}
+
+.tummy-rumble {
+    visibility: hidden;
+}
+
+.hud-seconds {
+    min-width: 2ch;
+    font-size: 26px;
+    text-align: right;
+}
+
+.hud-bar,
+.hud-weight-bar {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    width: 140px;
+    height: 14px;
+    border: 2px solid #2b211b;
+    border-radius: 8px;
+    background: #e8dcc4;
+}
+
+.hud-bar-fill,
+.hud-weight-fill {
+    display: block;
+    height: 100%;
+}
+
+.hud-gauge.is-low {
+    animation: hud-shake 0.25s linear infinite;
+}
+
+.hud-gauge.is-low .hud-seconds {
+    color: #c62828;
+}
+
+.hud-gauge.is-low .tummy-rumble {
+    visibility: visible;
+}
+
+@keyframes hud-shake {
+    0%,
+    100% {
+        translate: 0 0;
+    }
+
+    25% {
+        translate: -2px 1px;
+    }
+
+    75% {
+        translate: 2px -1px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hud-gauge.is-low {
+        animation: none;
+    }
+}
+
+/* Top centre: score and combo */
+.hud-score-box {
+    top: 12px;
+    left: 50%;
+    translate: -50% 0;
+}
+
+.hud-score {
+    min-width: 4ch;
+    font-size: 26px;
+    text-align: center;
+}
+
+.hud-combo {
+    padding: 0 8px;
+    border-radius: 8px;
+    background: #ffd54a;
+    font-size: 18px;
+}
+
+/* Top right: five pairs of boxer shorts */
+.hud-underpants {
+    top: 12px;
+    right: 12px;
+    gap: 4px;
+}
+
+.underpants svg {
+    display: block;
+    width: 34px;
+    height: 34px;
+}
+
+.boxers-cloth {
+    fill: #9be3c4;
+    stroke: #2b211b;
+    stroke-linejoin: round;
+    stroke-width: 3.5;
+}
+
+.boxers-band {
+    fill: #fff6e0;
+    stroke: #2b211b;
+    stroke-linejoin: round;
+    stroke-width: 3.5;
+}
+
+.boxers-print {
+    fill: none;
+    stroke: #ffd54a;
+    stroke-linecap: round;
+    stroke-width: 3;
+}
+
+.boxers-stain {
+    fill: #8d6e3f;
+    visibility: hidden;
+}
+
+.underpants.is-soiled .boxers-cloth {
+    fill: #c8c3a8;
+}
+
+.underpants.is-soiled .boxers-stain {
+    visibility: visible;
+}
+
+/* Bottom left: weight and girth tier */
+.hud-weight {
+    bottom: 12px;
+    left: 12px;
+}
+
+.hud-tier {
+    min-width: 7ch;
+    font-size: 16px;
+    text-transform: capitalize;
+}
+
+.hud-weight-fill {
+    background: #f39c4a;
+}
+
+.hud-weight-tick {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #2b211b;
+}
