@@ -9,7 +9,7 @@ import {
     createGraphicsDevice
 } from 'playcanvas';
 
-import { FOOD, SIMULATION } from './config/tuning';
+import { COLLISIONS, FOOD, SIMULATION } from './config/tuning';
 import { BuildingIndex } from './core/camera';
 import { generateCity } from './core/city/generate';
 import { Game } from './core/game';
@@ -110,6 +110,10 @@ const onUpdate = (dt: number) => {
         }
     }
     for (const event of game.drainEvents()) {
+        if (event === 'knocked') {
+            const shock = COLLISIONS.shockCountdownPenaltySeconds;
+            floatText(document.body, camera.camera!, game.player.x, game.player.z, `-${shock} s`, 'bad');
+        }
         if (event === 'reliefStart') {
             showRelief(document.body);
         }

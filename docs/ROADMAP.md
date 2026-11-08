@@ -15,7 +15,7 @@ Gameplay comes first, in greybox; art comes later (M6), so no generation credits
 | M2: Benny moves               | Done (#7, #8)     |
 | M3: the clock and the toilets | Done (#9 to #13)  |
 | M4: food, weight and score    | Done (#14 to #16) |
-| M5: traffic                   | Not started       |
+| M5: traffic                   | Done (#17, #18)   |
 | M6: art pass                  | Not started       |
 | M7: game feel and flow        | Not started       |
 | M8: hardening                 | Not started       |

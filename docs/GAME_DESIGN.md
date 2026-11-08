@@ -251,6 +251,9 @@ With these values Benny reaches maximum weight after roughly 35 to 45 items.
 - **The vehicle crumples** when his weight is at or above the threshold: it squashes to 40% of its length with a puff
   of smoke and stops, Benny does a belly bounce and is slowed for 0.3 s, and the player scores the bonus. Crumpled
   vehicles disappear after 3 s; other vehicles drive around them.
+- _Initial_ details: the knock-back is a push along the vehicle's way that Benny's ordinary braking soaks up over the
+  knock-back distance, so walls stop him the usual way; the arrow keys do nothing while he is stunned, and vehicles
+  cannot hit him again until 0.5 s after the stun. While slowed after a belly bounce, his top speed is halved.
 
 ## Scoring
 

@@ -492,3 +492,66 @@ describe('Game traffic', () => {
         expect(game.drainEvents()).not.toContain('honk');
     });
 });
+
+describe('Game collisions', () => {
+    const city = generateCity(42);
+    /** Puts one vehicle of this type right on top of Benny, driving along x, and nothing else. */
+    const hitBy = (game: Game, type: 'car' | 'bus') => {
+        const edge = game.lanes.edges.findIndex(
+            (e) => e.dx === 1 && e.length > 30 && (type === 'car' || e.streetClass !== 'street')
+        );
+        const e = game.lanes.edges[edge];
+        const start = game.lanes.nodes[e.from];
+        const offset = 0.25 * (e.streetClass === 'street' ? 6 : e.streetClass === 'avenue' ? 12 : 20);
+        game.player = { ...game.player, x: start.x + 15, z: start.z + offset, vx: 0, vz: 0 };
+        game.vehicles = [{ id: 900, type, edge, t: 15, speed: 10, wreckSecondsLeft: 0, honkCooldown: 0 }];
+        game.food = [];
+        game.popups = [];
+    };
+
+    it('knocks a slim Benny back along the vehicle, stuns him and costs him three seconds', () => {
+        const game = new Game(city);
+        hitBy(game, 'car');
+        const before = { x: game.player.x, seconds: game.urgency.secondsLeft };
+        game.step({ x: 0, z: 1 });
+        expect(game.drainEvents()).toContain('knocked');
+        expect(game.urgency.secondsLeft).toBeCloseTo(before.seconds - 3 - game.stepSeconds, 6);
+        expect(game.stunSecondsLeft).toBeGreaterThan(1);
+        // He flies along the car's direction, ignoring the arrow keys while stunned
+        for (let i = 0; i < 30; i++) {
+            game.step({ x: -1, z: 0 });
+        }
+        expect(game.player.x).toBeGreaterThan(before.x + 3);
+        // No second hit right away
+        expect(game.drainEvents()).not.toContain('knocked');
+    });
+
+    it('crumples a car against a Benny of weight 0.5 or more, scoring 300 and slowing him', () => {
+        const game = new Game(city, { weight: 0.6 });
+        hitBy(game, 'car');
+        game.step({ x: 0, z: 0 });
+        expect(game.drainEvents()).toContain('crumple');
+        expect(game.vehicles[0].wreckSecondsLeft).toBeGreaterThan(2.9);
+        expect(game.score.points).toBe(300);
+        expect(game.slowSecondsLeft).toBeGreaterThan(0);
+        expect(game.stunSecondsLeft).toBe(0);
+        // The wreck vanishes after three seconds
+        for (let i = 0; i < 60 * 3 + 5; i++) {
+            game.step({ x: 0, z: 0 });
+        }
+        expect(game.vehicles.find((v) => v.id === 900)).toBeUndefined();
+    });
+
+    it('lets a bus knock over a Benny of weight 0.6, and crumples it from 0.85', () => {
+        const round = new Game(city, { weight: 0.6 });
+        hitBy(round, 'bus');
+        round.step({ x: 0, z: 0 });
+        expect(round.drainEvents()).toContain('knocked');
+
+        const massive = new Game(city, { weight: 0.9 });
+        hitBy(massive, 'bus');
+        massive.step({ x: 0, z: 0 });
+        expect(massive.drainEvents()).toContain('crumple');
+        expect(massive.score.points).toBe(800);
+    });
+});
