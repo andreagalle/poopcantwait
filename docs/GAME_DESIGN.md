@@ -46,7 +46,10 @@ clips gives the plush feel and can stand in for any clip that is not available.
 - Gameplay uses **only the arrow keys**. Up moves up the screen, and so on; two keys together move diagonally (eight
   directions). The camera never rotates, so the mapping is always screen-relative.
 - Movement has acceleration and deceleration that worsen with weight (a heavy Benny takes time to start and stop).
-  Benny turns to face his direction of travel.
+  Benny turns to face his direction of travel. _Initial_: 30 m/s² acceleration and 40 m/s² braking when slim (scaled
+  by `1 - 0.6 * w`, see below), turning at 720° per second.
+- Collision is a circle of Benny's girth against the buildings, kiosks, fountain, trees and the city edge; he slides
+  along walls. A street narrower than his diameter simply does not let him in.
 - Menus only: Enter or Space to start and confirm, Escape or P to pause, M to mute.
 - The page must not scroll when arrow keys are pressed.
 

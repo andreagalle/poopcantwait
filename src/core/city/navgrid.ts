@@ -204,6 +204,27 @@ export class NavGrid {
         return distance;
     }
 
+    /**
+     * The cell centre nearest to `point` (in a straight line) where a Benny of this diameter fits, or `null` when he
+     * fits nowhere. Used to place him at the start and when he grows too wide for where he stands.
+     */
+    nearestStandable(point: Point, diameter: number): Point | null {
+        const radius = diameter / 2;
+        let best = -1;
+        let bestDistance = Infinity;
+        for (let cell = 0; cell < this.clearance.length; cell++) {
+            if (this.clearance[cell] > radius) {
+                const c = this.centreOf(cell);
+                const d = (c.x - point.x) ** 2 + (c.z - point.z) ** 2;
+                if (d < bestDistance) {
+                    bestDistance = d;
+                    best = cell;
+                }
+            }
+        }
+        return best < 0 ? null : this.centreOf(best);
+    }
+
     /** Shortest walking distance between two points for a Benny of this diameter, or `Infinity`. */
     pathDistance(from: Point, to: Point, diameter: number): number {
         const target = this.cellAt(to.x, to.z);

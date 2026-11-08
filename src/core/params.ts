@@ -6,6 +6,8 @@ export interface LaunchParams {
     readonly seed: number | null;
     /** `?debug=1` shows the debug overlays. */
     readonly debug: boolean;
+    /** `?weight=<0..1>` starts Benny at that weight, to test the girth tiers; `null` means slim. */
+    readonly weight: number | null;
 }
 
 /** Parses a URL query string such as `?seed=42&debug=1`. Malformed values are ignored. */
@@ -14,5 +16,8 @@ export function parseLaunchParams(search: string): LaunchParams {
     const seedText = params.get('seed')?.trim() ?? '';
     const seed = /^-?\d{1,15}$/.test(seedText) ? normalizeSeed(Number(seedText)) : null;
     const debugText = params.get('debug');
-    return { seed, debug: debugText === '1' || debugText === 'true' };
+    const weightText = params.get('weight')?.trim() ?? '';
+    const weightValue = /^\d*\.?\d+$/.test(weightText) ? Number(weightText) : Number.NaN;
+    const weight = Number.isFinite(weightValue) ? Math.min(1, weightValue) : null;
+    return { seed, debug: debugText === '1' || debugText === 'true', weight };
 }

@@ -13,7 +13,9 @@ export interface Range {
 /** Fixed-step simulation (AGENTS.md, Architecture). */
 export const SIMULATION = {
     /** Simulation steps per second; rendering interpolates between steps. */
-    stepsPerSecond: 60
+    stepsPerSecond: 60,
+    /** At most this many steps per rendered frame: very slow frames slow the game down instead of piling up steps. */
+    maxStepsPerFrame: 5
 } as const;
 
 /** Street classes, from narrowest to widest. */
@@ -110,6 +112,16 @@ export const WEIGHT = {
         { name: 'round', maxWeight: 0.82 },
         { name: 'massive', maxWeight: 1 }
     ]
+} as const;
+
+/** How Benny runs (design: *Controls*). Acceleration and braking scale with `WEIGHT.acceleration`. */
+export const MOVEMENT = {
+    /** Acceleration towards the arrow-key direction for a slim Benny, in m/s². */
+    accelerationMetresPerSecond2: 30,
+    /** Braking when no arrow key is held, for a slim Benny, in m/s². */
+    brakingMetresPerSecond2: 40,
+    /** How fast Benny turns to face his direction of travel, in degrees per second. */
+    turnDegreesPerSecond: 720
 } as const;
 
 /** Perspective camera above and behind Benny (design: *Camera*). It never rotates. */

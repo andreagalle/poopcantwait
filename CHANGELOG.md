@@ -21,3 +21,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - The city in greybox, two draw calls for the whole of it: roads coloured by class, pastel buildings, the plaza and
   fountain, the park, the clock tower, kiosks, and the river and parkland around. `?seed=<n>` fixes the city and
   `?debug=1` shows maps of the zones and of where each Benny size fits.
+- Benny runs with the arrow keys in eight directions (screen-relative, the page never scrolls): acceleration, top
+  speed and girth from his weight, sliding collisions against the city, a fixed-step simulation with interpolated
+  rendering. `?weight=<0..1>` starts him at a given weight; `?debug=1` shows his live numbers and position.
