@@ -50,3 +50,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Traffic: 12 cars and 3 buses drive the streets, avenues and boulevards (buses only the wide ones) in right-hand
   lanes, picking a way at every intersection; their number grows 15% a minute up to three times, and they honk at Benny
   when he stands in their way.
+- Collisions with traffic: below a vehicle's crumple threshold (cars 0.5, buses 0.85) Benny is knocked back along its
+  way, stunned and loses 3 s, all less the fatter he is; at or above it the vehicle crumples into a wreck for 3 s, he
+  belly-bounces and scores 300 for a car or 800 for a bus.

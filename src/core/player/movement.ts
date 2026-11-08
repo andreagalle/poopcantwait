@@ -37,13 +37,19 @@ export function wrapAngle(a: number): number {
  * Advances Benny by one fixed step: steer the velocity towards the arrow-key direction at his top speed (accelerating
  * or braking at a rate that worsens with weight), move, then push him out of walls and drop the part of his velocity
  * that points into them, so he slides along facades. A move that would leave him stuck (a gap narrower than his
- * girth) is cancelled.
+ * girth) is cancelled. `speedShare` cuts the top speed for a moment (after a belly bounce).
  */
-export function stepPlayer(state: PlayerState, input: MoveInput, world: CollisionWorld, dt: number): PlayerState {
+export function stepPlayer(
+    state: PlayerState,
+    input: MoveInput,
+    world: CollisionWorld,
+    dt: number,
+    speedShare = 1
+): PlayerState {
     const length = Math.hypot(input.x, input.z);
     const dirX = length > 1 ? input.x / length : input.x;
     const dirZ = length > 1 ? input.z / length : input.z;
-    const top = topSpeedAt(state.weight);
+    const top = topSpeedAt(state.weight) * speedShare;
     const scale = accelerationScaleAt(state.weight);
     const steering = length > 0;
     const rate = (steering ? MOVEMENT.accelerationMetresPerSecond2 : MOVEMENT.brakingMetresPerSecond2) * scale;

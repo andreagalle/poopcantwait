@@ -320,7 +320,11 @@ export const COLLISIONS = {
     /** Benny is slowed for this long after a belly bounce, in seconds. */
     bellyBounceSlowSeconds: 0.3,
     /** A crumpled vehicle disappears after this long, in seconds. */
-    crumpledLifetimeSeconds: 3
+    crumpledLifetimeSeconds: 3,
+    /** While slowed after a belly bounce, Benny's top speed is cut to this share. */
+    bellyBounceSpeedShare: 0.5,
+    /** After being knocked over, vehicles cannot hit Benny again for the stun plus this long, in seconds. */
+    invulnerableAfterHitSeconds: 0.5
 } as const;
 
 /** Points (design: *Scoring*). */

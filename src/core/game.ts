@@ -1,4 +1,4 @@
-import { FOOD, KIOSKS, NAVIGATION, POPUP_TOILETS, SIMULATION, TRAFFIC } from '../config/tuning';
+import { COLLISIONS, FOOD, KIOSKS, MOVEMENT, NAVIGATION, POPUP_TOILETS, SIMULATION, TRAFFIC } from '../config/tuning';
 
 import type { City, Point } from './city/types';
 import type { FoodItem, FoodKind } from './food/food';
@@ -7,18 +7,19 @@ import type { CollisionWorld } from './player/collision';
 import { buildCollisionWorld, overlapDepth } from './player/collision';
 import type { MoveInput, PlayerState } from './player/movement';
 import { stepPlayer } from './player/movement';
-import { clampWeight, diameterAt, girthTierAt, topSpeedAt } from './player/weight';
+import { accelerationScaleAt, clampWeight, diameterAt, girthTierAt, topSpeedAt } from './player/weight';
 import { Rng } from './rng';
 import type { ScoreState } from './score/score';
-import { initialScore, scoreJunk, scoreRelief, tickScore } from './score/score';
+import { initialScore, scoreCrumple, scoreJunk, scoreRelief, tickScore } from './score/score';
 import type { KioskState } from './toilets/kiosks';
 import { circleNearRect, initialKiosks, occupyAfterUse, tickKiosks } from './toilets/kiosks';
 import type { PopupToilet } from './toilets/popups';
 import { choosePopupSpot, popupIntervalAt, touchesPopup } from './toilets/popups';
+import { hitOutcome, knockSpeed } from './traffic/collisions';
 import type { LaneGraph } from './traffic/lanes';
 import { buildLaneGraph } from './traffic/lanes';
 import type { Vehicle } from './traffic/vehicles';
-import { driveVehicle, spawnVehicle, targetCounts, vehiclePose } from './traffic/vehicles';
+import { driveVehicle, spawnVehicle, targetCounts, vehicleFootprint, vehiclePose } from './traffic/vehicles';
 import type { UrgencyState } from './urgency/urgency';
 import { initialUrgency, isOut, penalize, relieve, tickUrgency } from './urgency/urgency';
 
@@ -51,7 +52,9 @@ export type GameEvent =
     | 'squeezed'
     | 'ateJunk'
     | 'ateVegetable'
-    | 'honk';
+    | 'honk'
+    | 'knocked'
+    | 'crumple';
 
 /** Something Benny ate, for the views to show where and what. */
 export interface Eaten {
@@ -115,6 +118,12 @@ export class Game {
     vehicles: Vehicle[] = [];
     private nextVehicleId = 1;
     private readonly honks: Point[] = [];
+    /** Knocked over by a vehicle: the arrow keys do nothing until this runs out, in seconds. */
+    stunSecondsLeft = 0;
+    /** Slowed after a belly bounce, in seconds. */
+    slowSecondsLeft = 0;
+    /** Vehicles cannot hit Benny while this runs, in seconds. */
+    private invulnerableSecondsLeft = 0;
     private popupTimer: number;
     private nextPopupId = 1;
     private mercyUsed = false;
@@ -277,9 +286,16 @@ export class Game {
         const dt = this.stepSeconds;
         const phase = this.phase;
 
-        // Benny runs while playing; he stands still inside a toilet and while frozen in an accident
+        // Benny runs while playing (unless knocked over); he stands still inside a toilet and while frozen in an accident
+        const steering = this.stunSecondsLeft > 0 ? { x: 0, z: 0 } : input;
+        const speedShare = this.slowSecondsLeft > 0 ? COLLISIONS.bellyBounceSpeedShare : 1;
         this.player =
-            phase === 'playing' ? stepPlayer(this.player, input, this.world, dt) : { ...this.player, vx: 0, vz: 0 };
+            phase === 'playing'
+                ? stepPlayer(this.player, steering, this.world, dt, speedShare)
+                : { ...this.player, vx: 0, vz: 0 };
+        this.stunSecondsLeft = Math.max(0, this.stunSecondsLeft - dt);
+        this.slowSecondsLeft = Math.max(0, this.slowSecondsLeft - dt);
+        this.invulnerableSecondsLeft = Math.max(0, this.invulnerableSecondsLeft - dt);
 
         this.kiosks = tickKiosks(this.kiosks, dt, this.kioskRng, this.time).kiosks;
 
@@ -313,6 +329,7 @@ export class Game {
         this.updateTraffic(dt);
 
         if (this.phase === 'playing') {
+            this.collide();
             this.eat();
             this.useToilets(dt);
         } else {
@@ -419,6 +436,46 @@ export class Game {
             }
             return v;
         });
+    }
+
+    /**
+     * Benny against the traffic: below a vehicle's crumple threshold it knocks him back along its way, stuns him and
+     * shocks him out of a few seconds; at or above it, the vehicle crumples against his belly and he bounces.
+     */
+    private collide(): void {
+        if (this.invulnerableSecondsLeft > 0) {
+            return;
+        }
+        const radius = diameterAt(this.player.weight) / 2;
+        for (let i = 0; i < this.vehicles.length; i++) {
+            const v = this.vehicles[i];
+            if (v.wreckSecondsLeft > 0) {
+                continue;
+            }
+            const pose = vehiclePose(this.lanes, v);
+            if (!circleNearRect(this.player.x, this.player.z, radius, vehicleFootprint(v, pose), 0)) {
+                continue;
+            }
+            const outcome = hitOutcome(v.type, this.player.weight);
+            if (outcome.kind === 'crumple') {
+                this.vehicles[i] = { ...v, speed: 0, wreckSecondsLeft: COLLISIONS.crumpledLifetimeSeconds };
+                const scored = scoreCrumple(this.score, v.type);
+                this.score = scored.state;
+                this.gains.push({ points: scored.gained, x: pose.x, z: pose.z });
+                this.slowSecondsLeft = COLLISIONS.bellyBounceSlowSeconds;
+                this.player = { ...this.player, vx: this.player.vx * 0.3, vz: this.player.vz * 0.3 };
+                this.events.push('crumple');
+                continue;
+            }
+            const braking = MOVEMENT.brakingMetresPerSecond2 * accelerationScaleAt(this.player.weight);
+            const speed = knockSpeed(outcome.distance, braking);
+            this.player = { ...this.player, vx: pose.dx * speed, vz: pose.dz * speed };
+            this.stunSecondsLeft = outcome.stunSeconds;
+            this.invulnerableSecondsLeft = outcome.stunSeconds + COLLISIONS.invulnerableAfterHitSeconds;
+            this.urgency = penalize(this.urgency, COLLISIONS.shockCountdownPenaltySeconds);
+            this.events.push('knocked');
+            return;
+        }
     }
 
     /** Items fade out when their time is up, and a new one appears on the spawn timer near Benny, up to the cap. */
