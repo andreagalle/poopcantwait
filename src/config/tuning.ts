@@ -45,7 +45,36 @@ export const CITY = {
     /** Boulevards crossing the city in each direction (one or two). */
     boulevardsPerAxis: { min: 1, max: 2 } satisfies Range,
     /** Share of blocks an alley cuts through (about half). */
-    alleyBlockShare: 0.5
+    alleyBlockShare: 0.5,
+    /**
+     * Side of a navigation grid cell, in metres. The generator puts every road edge and building edge on whole
+     * metres, so with 1 m cells the clearance field is exact. Keep it at 1.
+     */
+    navCellMetres: 1,
+    /** Avenues and boulevards move up to this far from their even spacing, in metres. */
+    majorJitterMetres: 8,
+    /** Streets move up to this far from their even spacing, in metres. */
+    streetJitterMetres: 4,
+    /** Share of street spans (from one major road to the next) that exist; the others merge two blocks into one. */
+    streetSpanKeepShare: 0.85,
+    /** Narrowest block side, in metres; streets that would make a block narrower are left out. */
+    minBlockMetres: 16,
+    /** An alley stays at least this far from the corners of its block, in metres. */
+    alleyMinOffsetMetres: 6,
+    /** Width of a building lot along its street, in metres (whole metres). */
+    lotWidthMetres: { min: 8, max: 16 } satisfies Range,
+    /** Blocks at least this deep get two rows of buildings back to back instead of one, in metres. */
+    twoRowMinDepthMetres: 24,
+    /** Building heights, in metres (whole metres). */
+    buildingHeightMetres: { min: 5, max: 16 } satisfies Range,
+    /** The clock tower landmark, next to the central plaza, in metres. */
+    clockTowerHeightMetres: 30,
+    /** Radius of the fountain in the middle of the central plaza, in metres. */
+    fountainRadiusMetres: 3,
+    /** Trees in the park: spacing of their jittered grid, trunk radius and margin from the park edge, in metres. */
+    parkTrees: { spacingMetres: 9, radiusMetres: 0.8, marginMetres: 3 },
+    /** Sides of the city bordered by the river; the other sides are parkland. Either way, the edge blocks the way. */
+    riverSides: { min: 1, max: 2 } satisfies Range
 } as const;
 
 /** Benny's body (design: *The protagonist* and *Weight, girth and speed*). */
@@ -108,6 +137,13 @@ export const URGENCY = {
 export const KIOSKS = {
     /** Kiosks placed on the sidewalks of streets and avenues. */
     count: 8,
+    /**
+     * Side of the square kiosk footprint, in metres. The kiosk stands in a notch of its building, flush with the
+     * facades, so it never narrows the street.
+     */
+    footprintMetres: 2,
+    /** Depth of the door zone on the sidewalk in front of the kiosk, in metres. */
+    doorZoneDepthMetres: 1.5,
     /** How long a kiosk stays free per cycle, in seconds. */
     freeSeconds: { min: 6, max: 14 } satisfies Range,
     /** How long a kiosk stays occupied per cycle, in seconds. */

@@ -84,6 +84,36 @@ Generation rules:
 - The navigation grid (for reachability and path distances) is computed per street class, so "can Benny reach this
   point at his current girth?" is a fast lookup.
 
+How the generator meets them (`src/core/city/`):
+
+- A perimeter ring avenue runs just inside the park and river edge. Avenues and boulevards run from edge to edge, so
+  they always form one network.
+- Streets run in spans from one avenue or boulevard to the next, so both of their ends meet the network. A few spans
+  are left out, which merges two blocks into a bigger one.
+- An alley crosses its block straight from one road to the opposite one. Buildings fill the rest of each block without
+  gaps, so roads, alleys, the plaza and the park are the only ways through.
+- The plaza is the block nearest the centre, with the fountain in its middle; Benny starts in the plaza, south of the
+  fountain. The clock tower is the building nearest the plaza. The park is one of the larger blocks far from the plaza,
+  planted with trees.
+- Every edge lies on whole metres, and the navigation grid has 1 m cells, so the clearance (distance to the nearest
+  wall) is exact: Benny of diameter `d` fits wherever the clearance is greater than `d / 2`.
+
+_Initial_ generation parameters:
+
+| Parameter                         | Value                                     |
+| --------------------------------- | ----------------------------------------- |
+| Avenue and boulevard jitter       | up to 8 m from even spacing               |
+| Street jitter                     | up to 4 m from even spacing               |
+| Street spans kept                 | 85%                                       |
+| Narrowest block side              | 16 m                                      |
+| Alley distance from block corners | at least 6 m                              |
+| Lot width along the street        | 8 to 16 m                                 |
+| Blocks with two rows of buildings | at least 24 m deep                        |
+| Building height                   | 5 to 16 m; the clock tower 30 m           |
+| Fountain radius                   | 3 m                                       |
+| Park trees                        | every 9 m, trunk radius 0.8 m, 3 m margin |
+| River sides                       | 1 or 2 (the others are parkland)          |
+
 ## Weight, girth and speed
 
 Weight `w` goes from 0 (slim) to 1 (maximum). Junk food adds weight; nothing removes it during a run.
@@ -120,7 +150,8 @@ the HUD:
 ### Public toilet kiosks
 
 - _Initial_ 8 kiosks placed on sidewalks of streets and avenues, spread across the city, each with its door facing
-  the street.
+  the street. A kiosk has a 2 m square footprint and stands in a notch of its building, flush with the facades, so it
+  never narrows the street; its door zone is the 1.5 m of sidewalk in front of the door.
 - Each kiosk cycles between **free** (green beacon and an upward light beam) and **occupied** (red beacon, rattling
   door). _Initial_ free time: 6 to 14 s; occupied time: 5 to 15 s; both random per cycle.
 - Benny uses a free toilet by standing in its door zone for 0.5 s. He enters (he squeezes through comically at any
