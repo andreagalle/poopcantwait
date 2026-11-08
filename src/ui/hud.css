@@ -335,3 +335,42 @@
 .toilet-indicator.is-offscreen .toilet-arrow {
     display: block;
 }
+
+/* Floating feedback over the spot where something happened */
+.float-text {
+    position: fixed;
+    z-index: 16;
+    margin: 0;
+    font-size: 22px;
+    font-weight: 900;
+    text-shadow:
+        0 2px 0 #fff6e0,
+        0 0 4px #fff6e0;
+    translate: -50% -50%;
+    pointer-events: none;
+    animation: float-text 1s ease-out forwards;
+}
+
+.float-text.is-good {
+    color: #e65100;
+}
+
+.float-text.is-bad {
+    color: #2e7d32;
+}
+
+@keyframes float-text {
+    0% {
+        opacity: 0;
+        translate: -50% -50%;
+    }
+
+    15% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+        translate: -50% -180%;
+    }
+}

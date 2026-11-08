@@ -343,3 +343,72 @@ describe('NavGrid.nearestRoomy', () => {
         expect(city.nav.nearestRoomy(city.spawn, 500)).toBeNull();
     });
 });
+
+describe('Game food', () => {
+    const city = generateCity(42);
+
+    it('spawns food near Benny on a timer, up to the cap, and lets it fade', () => {
+        const game = new Game(city);
+        for (let i = 0; i < 60 * 12; i++) {
+            game.step({ x: 0, z: 0 });
+        }
+        expect(game.food.length).toBeGreaterThanOrEqual(8);
+        expect(game.food.length).toBeLessThanOrEqual(25);
+        for (const item of game.food) {
+            expect(Math.hypot(item.x - game.player.x, item.z - game.player.z)).toBeLessThanOrEqual(41);
+        }
+        const first = game.food[0].id;
+        for (let i = 0; i < 60 * 31; i++) {
+            game.step({ x: 0, z: 0 });
+            expect(game.food.length).toBeLessThanOrEqual(25);
+        }
+        expect(game.food.find((f) => f.id === first)).toBeUndefined();
+    });
+
+    it('fattens Benny with junk food and costs him seconds with vegetables', () => {
+        const game = new Game(city);
+        game.food.push({
+            id: 1001,
+            kind: { category: 'junk', id: 'burger' },
+            x: game.player.x + 0.5,
+            z: game.player.z,
+            secondsLeft: 10
+        });
+        game.step({ x: 0, z: 0 });
+        expect(game.player.weight).toBeCloseTo(0.035, 10);
+        expect(game.drainEvents()).toContain('ateJunk');
+        expect(game.drainEaten()).toEqual([
+            { kind: { category: 'junk', id: 'burger' }, x: game.player.x + 0.5, z: game.player.z }
+        ]);
+
+        const before = game.urgency.secondsLeft;
+        game.food.push({
+            id: 1002,
+            kind: { category: 'vegetable', id: 'beans' },
+            x: game.player.x,
+            z: game.player.z + 0.5,
+            secondsLeft: 10
+        });
+        game.step({ x: 0, z: 0 });
+        expect(game.urgency.secondsLeft).toBeCloseTo(before - 10 - game.stepSeconds, 6);
+        expect(game.drainEvents()).toContain('ateVegetable');
+        expect(game.food.find((f) => f.id >= 1001)).toBeUndefined();
+    });
+
+    it('does not eat while frozen in an accident', () => {
+        const game = new Game(city, { countdownSeconds: 1 });
+        while (game.phase !== 'accident') {
+            game.step({ x: 0, z: 0 });
+        }
+        game.food.push({
+            id: 2001,
+            kind: { category: 'junk', id: 'donut' },
+            x: game.player.x,
+            z: game.player.z,
+            secondsLeft: 10
+        });
+        game.step({ x: 0, z: 0 });
+        expect(game.food.find((f) => f.id === 2001)).toBeDefined();
+        expect(game.player.weight).toBe(0);
+    });
+});
