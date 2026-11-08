@@ -4,7 +4,7 @@ import { defineConfig } from 'vitest/config';
 // line coverage.
 export default defineConfig({
     test: {
-        include: ['src/**/*.test.ts'],
+        include: ['src/**/*.test.ts', 'scripts/**/*.test.mjs'],
         environment: 'node',
         // Some tests simulate tens of seconds of play, path searches included: give them room on slower CI runners
         testTimeout: 30_000,

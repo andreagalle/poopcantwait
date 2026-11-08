@@ -53,3 +53,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Collisions with traffic: below a vehicle's crumple threshold (cars 0.5, buses 0.85) Benny is knocked back along its
   way, stunned and loses 3 s, all less the fatter he is; at or above it the vehicle crumples into a wreck for 3 s, he
   belly-bounces and scores 300 for a car or 800 for a bus.
+- Asset pipeline: `npm run assets:optimize` (glTF Transform, meshoptimizer and sharp: triangle budgets per preset,
+  WebP textures, metadata stripped), `npm run assets:image` (OpenRouter images, refuses to spend without `--yes`,
+  never prints the key) and the typed asset registry.

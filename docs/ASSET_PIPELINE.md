@@ -57,8 +57,9 @@ one (for example, the `lowpoly` model type is retired). Control polygon counts w
 
 ### 2D images through OpenRouter
 
-`scripts/assets/gen-image.mjs` (written in milestone M6) calls `POST https://openrouter.ai/api/v1/images` with
-`OPENROUTER_API_KEY` from the environment. The model comes from `OPENROUTER_IMAGE_MODEL` or a `--model` flag; list
+`scripts/assets/gen-image.mjs` (`npm run assets:image -- <asset-id> --prompt "<description>" --yes`) calls
+`POST https://openrouter.ai/api/v1/images` with `OPENROUTER_API_KEY` from the environment. It starts the prompt with
+the style block below unless `--raw` is given; `--n`, `--aspect`, `--resolution` and `--format` set the request. The model comes from `OPENROUTER_IMAGE_MODEL` or a `--model` flag; list
 candidates and prices with `GET https://openrouter.ai/api/v1/images/models`. The script writes images and a JSON
 sidecar (model, prompt, parameters, date, cost if reported) into `art/raw/images/<asset-id>/`, never prints the key,
 and refuses to run without `--yes` so every paid call is deliberate.
@@ -89,9 +90,27 @@ The whole of `public/assets/` stays under 12 MB, and the initial download under 
 ## Optimization
 
 `npm run assets:optimize -- <input> <output> --preset <hero|vehicle|prop|food|texture>` wraps glTF Transform:
-dedup, prune, weld, simplify to the preset's triangle budget, resize textures to the preset's maximum, convert them
-to WebP, quantize. It prints triangles, texture sizes and bytes before and after. Check every result with the
-`inspect-glb` and `calibrate-model` skills before using it.
+strip extras, dedup, prune, weld, simplify to the preset's triangle budget with meshoptimizer, resize textures to the
+preset's maximum and convert them to WebP. It prints triangles, texture sizes and bytes before and after. Check every
+result with the `inspect-glb` and `calibrate-model` skills before using it.
+
+| Preset    | Triangles | Textures | Use it for                                                                                     |
+| --------- | --------- | -------- | ---------------------------------------------------------------------------------------------- |
+| `hero`    | 20,000    | 1024 px  | Benny                                                                                          |
+| `vehicle` | 4,000     | 512 px   | cars (a bus: add `--max-triangles 6000`)                                                       |
+| `prop`    | 1,000     | 256 px   | street props (kiosk: `--max-triangles 3000 --max-texture 512`; pop-up: `--max-triangles 2000`) |
+| `food`    | 1,500     | 256 px   | food and vegetables                                                                            |
+| `texture` | n/a       | 1024 px  | 2D images: facades, roads, HUD art (PNG or JPEG in, WebP out)                                  |
+
+Notes:
+
+- `--max-triangles` and `--max-texture` override the preset for one asset. If a model stays over budget after
+  simplification, remesh it first (`meshy_remesh`) and optimize again.
+- `--quantize` also quantizes vertex attributes (KHR_mesh_quantization). It is off by default: the engine version in
+  `package.json` has no explicit support for it, so load the result in the game before keeping it.
+- Pruning replaces single-colour textures with the material colour, which saves a texture.
+- Only `.glb`, `.gltf`, `.png`, `.jpg`, `.jpeg` and `.webp` inputs are accepted; models are written as `.glb`, images
+  as `.webp`.
 
 ## Provenance: `art/manifest.json`
 
