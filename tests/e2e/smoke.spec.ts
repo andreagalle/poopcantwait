@@ -337,3 +337,27 @@ test('spawns food around Benny', async ({ page }) => {
     );
     expect(errors).toEqual([]);
 });
+
+test('drives 12 cars and 3 buses through the city', async ({ page }) => {
+    const errors = await openGame(page, '?seed=42');
+    const positions = () =>
+        page.evaluate(() => {
+            const app = [...globalThis.__playcanvasApps!.keys()][0]!;
+            return app.root
+                .find((e) => /^vehicle-(car|bus)-\d+$/.test(e.name) && (e as Entity).enabled)
+                .map((e) => ({ name: e.name, x: (e as Entity).getPosition().x, z: (e as Entity).getPosition().z }));
+        });
+    const before = await positions();
+    expect(before.filter((v) => v.name.startsWith('vehicle-car'))).toHaveLength(12);
+    expect(before.filter((v) => v.name.startsWith('vehicle-bus'))).toHaveLength(3);
+    await page.waitForFunction(
+        (start) => {
+            const app = [...globalThis.__playcanvasApps!.keys()][0]!;
+            const now = app.root.findByName(start.name) as Entity;
+            return Math.hypot(now.getPosition().x - start.x, now.getPosition().z - start.z) > 2;
+        },
+        before[0],
+        { timeout: 30_000, polling: 100 }
+    );
+    expect(errors).toEqual([]);
+});

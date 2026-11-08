@@ -456,3 +456,39 @@ describe('Game score', () => {
         expect(game.score.comboSecondsLeft).toBe(0);
     });
 });
+
+describe('Game traffic', () => {
+    const city = generateCity(42);
+
+    it('starts with 12 cars and 3 buses away from Benny, and adds more as the run goes on', () => {
+        const game = new Game(city);
+        expect(game.vehicles.filter((v) => v.type === 'car')).toHaveLength(12);
+        expect(game.vehicles.filter((v) => v.type === 'bus')).toHaveLength(3);
+        game.time = 120;
+        game.step({ x: 0, z: 0 });
+        game.step({ x: 0, z: 0 });
+        expect(game.vehicles.filter((v) => v.type === 'car').length).toBeGreaterThanOrEqual(14);
+    });
+
+    it('honks when Benny stands in a lane just ahead of a vehicle', () => {
+        const game = new Game(city);
+        const v = game.vehicles[0];
+        // Put Benny 6 m ahead of the first vehicle, in its lane
+        const e = game.lanes.edges[v.edge];
+        const start = game.lanes.nodes[e.from];
+        const offset = 0.25 * (e.streetClass === 'street' ? 6 : e.streetClass === 'avenue' ? 12 : 20);
+        const ahead = v.t + 6;
+        game.player = {
+            ...game.player,
+            x: start.x + e.dx * ahead - e.dz * offset,
+            z: start.z + e.dz * ahead + e.dx * offset
+        };
+        game.vehicles = [{ ...v, speed: 0 }];
+        game.step({ x: 0, z: 0 });
+        expect(game.drainEvents()).toContain('honk');
+        expect(game.drainHonks()).toHaveLength(1);
+        // Not again right away
+        game.step({ x: 0, z: 0 });
+        expect(game.drainEvents()).not.toContain('honk');
+    });
+});

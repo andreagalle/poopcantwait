@@ -1,4 +1,4 @@
-import { FOOD, KIOSKS, NAVIGATION, POPUP_TOILETS, SIMULATION } from '../config/tuning';
+import { FOOD, KIOSKS, NAVIGATION, POPUP_TOILETS, SIMULATION, TRAFFIC } from '../config/tuning';
 
 import type { City, Point } from './city/types';
 import type { FoodItem, FoodKind } from './food/food';
@@ -15,6 +15,10 @@ import type { KioskState } from './toilets/kiosks';
 import { circleNearRect, initialKiosks, occupyAfterUse, tickKiosks } from './toilets/kiosks';
 import type { PopupToilet } from './toilets/popups';
 import { choosePopupSpot, popupIntervalAt, touchesPopup } from './toilets/popups';
+import type { LaneGraph } from './traffic/lanes';
+import { buildLaneGraph } from './traffic/lanes';
+import type { Vehicle } from './traffic/vehicles';
+import { driveVehicle, spawnVehicle, targetCounts, vehiclePose } from './traffic/vehicles';
 import type { UrgencyState } from './urgency/urgency';
 import { initialUrgency, isOut, penalize, relieve, tickUrgency } from './urgency/urgency';
 
@@ -46,7 +50,8 @@ export type GameEvent =
     | 'tierChanged'
     | 'squeezed'
     | 'ateJunk'
-    | 'ateVegetable';
+    | 'ateVegetable'
+    | 'honk';
 
 /** Something Benny ate, for the views to show where and what. */
 export interface Eaten {
@@ -105,12 +110,18 @@ export class Game {
     private readonly eaten: Eaten[] = [];
     score: ScoreState = initialScore();
     private readonly gains: Gain[] = [];
+    /** The lanes vehicles drive on. */
+    readonly lanes: LaneGraph;
+    vehicles: Vehicle[] = [];
+    private nextVehicleId = 1;
+    private readonly honks: Point[] = [];
     private popupTimer: number;
     private nextPopupId = 1;
     private mercyUsed = false;
     private readonly kioskRng: Rng;
     private readonly popupRng: Rng;
     private readonly foodRng: Rng;
+    private readonly trafficRng: Rng;
     private readonly events: GameEvent[] = [];
 
     constructor(city: City, options: GameOptions = {}) {
@@ -128,6 +139,14 @@ export class Game {
         this.kioskRng = runRng.fork();
         this.popupRng = runRng.fork();
         this.foodRng = runRng.fork();
+        this.trafficRng = runRng.fork();
+        this.lanes = buildLaneGraph(city);
+        const initial = targetCounts(0);
+        for (const type of ['car', 'bus'] as const) {
+            for (let i = 0; i < initial[type]; i++) {
+                this.addVehicle(type);
+            }
+        }
         this.kiosks = initialKiosks(city.kioskSpots.length, this.kioskRng);
         this.popupTimer = popupIntervalAt(weight);
         this.refreshField();
@@ -229,6 +248,11 @@ export class Game {
         return this.relief ? 'relief' : 'playing';
     }
 
+    /** Returns where vehicles honked since the last call and forgets it. */
+    drainHonks(): Point[] {
+        return this.honks.splice(0);
+    }
+
     /** Returns the points scored since the last call and forgets them. */
     drainGains(): Gain[] {
         return this.gains.splice(0);
@@ -286,6 +310,7 @@ export class Game {
         }
         this.updatePopups(dt, refreshed);
         this.updateFood(dt);
+        this.updateTraffic(dt);
 
         if (this.phase === 'playing') {
             this.eat();
@@ -338,6 +363,62 @@ export class Game {
         if (spawned) {
             this.events.push('mercy');
         }
+    }
+
+    private addVehicle(type: 'car' | 'bus'): void {
+        const v = spawnVehicle(
+            this.lanes,
+            this.nextVehicleId,
+            type,
+            this.trafficRng,
+            this.player,
+            TRAFFIC.spawnMinDistanceMetres
+        );
+        if (v) {
+            this.nextVehicleId++;
+            this.vehicles.push(v);
+        }
+    }
+
+    /**
+     * Vehicles drive on (wrecks vanish when their time is up), new ones join far from Benny as the density grows, and
+     * a vehicle honks when Benny is close ahead in its lane.
+     */
+    private updateTraffic(dt: number): void {
+        this.vehicles = this.vehicles.flatMap((v) => {
+            const next = driveVehicle(this.lanes, v, dt, this.trafficRng);
+            return v.wreckSecondsLeft > 0 && next.wreckSecondsLeft === 0 ? [] : [next];
+        });
+
+        const target = targetCounts(this.time);
+        for (const type of ['car', 'bus'] as const) {
+            if (this.vehicles.filter((v) => v.type === type).length < target[type]) {
+                this.addVehicle(type);
+            }
+        }
+
+        const radius = diameterAt(this.player.weight) / 2;
+        this.vehicles = this.vehicles.map((v) => {
+            if (v.wreckSecondsLeft > 0 || v.honkCooldown > 0) {
+                return v;
+            }
+            const pose = vehiclePose(this.lanes, v);
+            const ox = this.player.x - pose.x;
+            const oz = this.player.z - pose.z;
+            const ahead = ox * pose.dx + oz * pose.dz;
+            const aside = Math.abs(-ox * pose.dz + oz * pose.dx);
+            const half = TRAFFIC.size[v.type];
+            if (
+                ahead > half.length / 2 &&
+                ahead < half.length / 2 + TRAFFIC.honkDistanceMetres &&
+                aside < half.width / 2 + radius
+            ) {
+                this.events.push('honk');
+                this.honks.push({ x: pose.x, z: pose.z });
+                return { ...v, honkCooldown: TRAFFIC.honkCooldownSeconds };
+            }
+            return v;
+        });
     }
 
     /** Items fade out when their time is up, and a new one appears on the spawn timer near Benny, up to the cap. */

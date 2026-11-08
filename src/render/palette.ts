@@ -32,6 +32,11 @@ export const PALETTE = {
     beaconOccupied: hex('#ff4d4d'),
     popup: hex('#4fc3c7'),
     popupDoor: hex('#2e7d84'),
+    cars: ['#e53935', '#1e88e5', '#fdd835', '#43a047', '#fb8c00', '#8e24aa'].map(hex),
+    carCabin: hex('#cfe8f5'),
+    bus: hex('#ffb300'),
+    busWindows: hex('#3d5a6c'),
+    wreck: hex('#6d6d6d'),
     junkGlow: hex('#ffd54a'),
     vegetableGlow: hex('#9be564'),
     food: {

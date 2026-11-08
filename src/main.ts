@@ -22,6 +22,7 @@ import { FoodView } from './game/food-view';
 import { addBennyStandIn } from './game/greybox';
 import { KioskView } from './game/kiosk-view';
 import { PopupView } from './game/popup-view';
+import { VehicleView } from './game/vehicle-view';
 import { KeyboardInput } from './input/keyboard';
 import { createGameCamera } from './render/camera';
 import { CameraRig } from './render/camera-rig';
@@ -79,6 +80,7 @@ const bennyView = new BennyView(addBennyStandIn(app));
 const kioskView = new KioskView(app, city);
 const popupView = new PopupView(app);
 const foodView = new FoodView(app);
+const vehicleView = new VehicleView(app);
 const camera = createGameCamera(app);
 const cameraRig = new CameraRig(camera, cityView, new BuildingIndex(city.buildings));
 
@@ -94,6 +96,9 @@ const onUpdate = (dt: number) => {
     const steps = stepper.advance(dt);
     for (let i = 0; i < steps; i++) {
         game.step(input.direction());
+    }
+    for (const honk of game.drainHonks()) {
+        floatText(document.body, camera.camera!, honk.x, honk.z, 'Honk!', 'bad');
     }
     for (const gain of game.drainGains()) {
         floatText(document.body, camera.camera!, gain.x, gain.z, `+${gain.points}`, 'good');
@@ -120,6 +125,7 @@ const onUpdate = (dt: number) => {
     kioskView.update(game);
     popupView.update(game);
     foodView.update(game);
+    vehicleView.update(game);
     hud.update(game);
     waitRing.update(game, camera.camera!);
     indicators.update(game, camera.camera!);
