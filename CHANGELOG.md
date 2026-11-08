@@ -39,3 +39,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   toilet is, once per countdown.
 - Toilet indicators: the three nearest free toilets by path distance at Benny's girth, with the distance in metres and
   the nearest highlighted, as labels in view or arrows at the screen edges; the ones he is too wide for show grey.
+- Weight gain: Benny grows wider and slower and the camera pulls back as his weight rises; if he grows too wide for an
+  alley or a street, he is squeezed out along it to the nearest spot where he fits.

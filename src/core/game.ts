@@ -2,10 +2,10 @@ import { KIOSKS, NAVIGATION, POPUP_TOILETS, SIMULATION } from '../config/tuning'
 
 import type { City, Point } from './city/types';
 import type { CollisionWorld } from './player/collision';
-import { buildCollisionWorld } from './player/collision';
+import { buildCollisionWorld, overlapDepth } from './player/collision';
 import type { MoveInput, PlayerState } from './player/movement';
 import { stepPlayer } from './player/movement';
-import { clampWeight, diameterAt, topSpeedAt } from './player/weight';
+import { clampWeight, diameterAt, girthTierAt, topSpeedAt } from './player/weight';
 import { Rng } from './rng';
 import type { KioskState } from './toilets/kiosks';
 import { circleNearRect, initialKiosks, occupyAfterUse, tickKiosks } from './toilets/kiosks';
@@ -31,7 +31,16 @@ export type GamePhase = 'playing' | 'relief' | 'accident' | 'over';
 
 /** Things that happened during a step, for the views (sounds, effects, HUD) to react to. */
 export type GameEvent =
-    'accident' | 'accidentOver' | 'gameOver' | 'reliefStart' | 'reliefEnd' | 'popupSpawned' | 'popupGone' | 'mercy';
+    | 'accident'
+    | 'accidentOver'
+    | 'gameOver'
+    | 'reliefStart'
+    | 'reliefEnd'
+    | 'popupSpawned'
+    | 'popupGone'
+    | 'mercy'
+    | 'tierChanged'
+    | 'squeezed';
 
 /** A toilet Benny can use: one of the city's kiosks (by index) or a pop-up toilet (by id). */
 export type ToiletRef =
@@ -93,6 +102,35 @@ export class Game {
         this.kiosks = initialKiosks(city.kioskSpots.length, this.kioskRng);
         this.popupTimer = popupIntervalAt(weight);
         this.refreshField();
+    }
+
+    /**
+     * Benny gains weight (junk food). Weight only grows during a run and stops at 1. If he no longer fits where he
+     * stands (a narrow street, an alley), he is squeezed out to the nearest spot along the passage where he does.
+     */
+    addWeight(amount: number): void {
+        const before = this.player.weight;
+        const weight = clampWeight(before + Math.max(0, amount));
+        if (weight === before) {
+            return;
+        }
+        this.player = { ...this.player, weight };
+        if (girthTierAt(weight) !== girthTierAt(before)) {
+            this.events.push('tierChanged');
+        }
+        const diameter = diameterAt(weight);
+        if (overlapDepth(this.world, this.player.x, this.player.z, diameter / 2) > 0) {
+            const spot =
+                this.city.nav.nearestRoomy(this.player, diameter + 2 * PLACEMENT_MARGIN) ??
+                this.city.nav.nearestRoomy(this.player, diameter);
+            if (spot) {
+                this.player = { ...this.player, x: spot.x, z: spot.z, vx: 0, vz: 0 };
+                this.previousPlayer = { ...this.player };
+                this.events.push('squeezed');
+            }
+        }
+        // His girth changed what he can reach: refresh the distances at the next step
+        this.fieldAge = NAVIGATION.refreshSeconds;
     }
 
     /** Recomputes the path distances from where Benny stands, at his current girth. */

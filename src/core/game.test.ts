@@ -282,3 +282,64 @@ describe('Game pop-up toilets', () => {
         expect(slim.freeToilets().every((t) => t.kind === 'kiosk' || t.kind === 'popup')).toBe(true);
     });
 });
+
+describe('Game weight', () => {
+    const city = generateCity(42);
+
+    it('grows Benny, up to the maximum, and reports girth tier changes', () => {
+        const game = new Game(city);
+        game.addWeight(0.2);
+        expect(game.player.weight).toBeCloseTo(0.2, 10);
+        expect(game.drainEvents()).not.toContain('tierChanged');
+        game.addWeight(0.1);
+        expect(game.drainEvents()).toContain('tierChanged');
+        game.addWeight(5);
+        expect(game.player.weight).toBe(1);
+        game.addWeight(-1);
+        expect(game.player.weight).toBe(1);
+    });
+
+    it('squeezes him out of an alley he no longer fits, along the alley rather than through a wall', () => {
+        const alley = city.alleys.find((a) => a.to - a.from >= 20)!;
+        const middle = (alley.from + alley.to) / 2;
+        const inside = alley.axis === 'z' ? { x: alley.centre, z: middle } : { x: middle, z: alley.centre };
+        const game = new Game(city, { weight: 0.2 });
+        game.player = { ...game.player, ...inside, vx: 0, vz: 0 };
+        game.addWeight(0.1);
+        const { x, z } = game.player;
+        expect(game.drainEvents()).toContain('squeezed');
+        expect(overlapDepth(game.world, x, z, diameterAt(game.player.weight) / 2)).toBe(0);
+        // Out at one end of the alley, on the road it opens onto
+        const along = alley.axis === 'z' ? z : x;
+        const across = alley.axis === 'z' ? x : z;
+        expect(Math.abs(across - alley.centre)).toBeLessThan(4);
+        expect(along <= alley.from + 1 || along >= alley.to - 1).toBe(true);
+        // And he can move again
+        game.step({ x: 1, z: 0 });
+        game.step({ x: 1, z: 0 });
+        game.step({ x: 0, z: 1 });
+        expect(Math.hypot(game.player.x - x, game.player.z - z)).toBeGreaterThan(0);
+    });
+
+    it('leaves him where he is when he still fits', () => {
+        const game = new Game(city);
+        const before = game.player;
+        game.addWeight(0.05);
+        expect(game.player.x).toBe(before.x);
+        expect(game.player.z).toBe(before.z);
+        expect(game.drainEvents()).not.toContain('squeezed');
+    });
+});
+
+describe('NavGrid.nearestRoomy', () => {
+    const city = generateCity(42);
+
+    it('finds the nearest roomy cell through open ground only', () => {
+        const spot = city.nav.nearestRoomy(city.spawn, 0.9)!;
+        expect(spot).toEqual(city.spawn);
+        const wide = city.nav.nearestRoomy(city.spawn, 7.5)!;
+        expect(city.nav.clearanceAt(wide.x, wide.z)).toBeGreaterThan(3.75);
+        expect(city.nav.nearestRoomy({ x: 9999, z: 0 }, 1)).toBeNull();
+        expect(city.nav.nearestRoomy(city.spawn, 500)).toBeNull();
+    });
+});

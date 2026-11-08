@@ -225,6 +225,41 @@ export class NavGrid {
         return best < 0 ? null : this.centreOf(best);
     }
 
+    /**
+     * The nearest cell, walking through open ground from `point` (never through walls), where a Benny of this diameter
+     * fits; `null` when there is none. Used when he grows too wide for where he stands: he is squeezed out along the
+     * passage he is in, not across a building.
+     */
+    nearestRoomy(point: Point, diameter: number): Point | null {
+        const start = this.cellAt(point.x, point.z);
+        if (start < 0) {
+            return null;
+        }
+        const radius = diameter / 2;
+        const size = this.size;
+        const seen = new Uint8Array(this.clearance.length);
+        const queue = new Int32Array(this.clearance.length);
+        let head = 0;
+        let tail = 0;
+        queue[tail++] = start;
+        seen[start] = 1;
+        while (head < tail) {
+            const cell = queue[head++];
+            if (this.clearance[cell] > radius) {
+                return this.centreOf(cell);
+            }
+            const col = cell % size;
+            const neighbours = [col > 0 ? cell - 1 : -1, col < size - 1 ? cell + 1 : -1, cell - size, cell + size];
+            for (const next of neighbours) {
+                if (next >= 0 && next < this.clearance.length && !seen[next] && this.clearance[next] > 0) {
+                    seen[next] = 1;
+                    queue[tail++] = next;
+                }
+            }
+        }
+        return null;
+    }
+
     /** Shortest walking distance between two points for a Benny of this diameter, or `Infinity`. */
     pathDistance(from: Point, to: Point, diameter: number): number {
         const target = this.cellAt(to.x, to.z);
