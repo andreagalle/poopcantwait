@@ -1,0 +1,19 @@
+# Generated or vendored
+dist
+coverage
+playwright-report
+test-results
+tmp
+art/raw
+package-lock.json
+public/ammo
+
+# Agent skills (installed by create-playcanvas)
+.claude
+.agents
+
+# Maintainer-owned guardrail and CI files
+.github
+.devcontainer
+.vscode
+.mcp.json
