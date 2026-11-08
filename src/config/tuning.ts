@@ -133,7 +133,17 @@ export const CAMERA = {
     /** Distance from Benny, in metres: `slimMetres` at `w = 0`, `maxWeightMetres` at `w = 1`. */
     distance: { slimMetres: 18, maxWeightMetres: 40 },
     /** Opacity of buildings between the camera and Benny. */
-    buildingFadeOpacity: 0.25
+    buildingFadeOpacity: 0.25,
+    /** How fast the camera catches up with Benny: the gap shrinks by `1 - e^(-rate * t)`. */
+    followRatePerSecond: 5,
+    /** How fast it pulls back or closes in when Benny's weight changes, same form. */
+    distanceRatePerSecond: 1.5,
+    /** The camera aims ahead of Benny by his velocity times this, in seconds... */
+    lookAheadSeconds: 0.4,
+    /** ...but never more than this far ahead, in metres. */
+    maxLookAheadMetres: 3,
+    /** A building fades when the line from the camera to Benny passes this close to it, in metres. */
+    fadeMarginMetres: 0.5
 } as const;
 
 /** Urgency countdown, accidents and lives (design: *Urgency countdown and underpants*). */

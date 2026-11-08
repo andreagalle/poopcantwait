@@ -60,6 +60,10 @@ clips gives the plush feel and can stand in for any clip that is not available.
 - It pulls back as Benny grows: _initial_ 18 m away when slim, 40 m when at maximum weight, so the player always sees
   enough of the streets around him.
 - Buildings between the camera and Benny fade to about 25% opacity so he is never hidden.
+- _Initial_ rig values: the camera closes the gap to its target at a rate of 5 per second (exponential smoothing), aims
+  0.4 s ahead of Benny's velocity but no more than 3 m ahead, and moves to a new distance at a rate of 1.5 per second;
+  the distance grows linearly with weight between the two values above. A building fades when a line of sight from the
+  camera to Benny's middle, top or sides passes within 0.5 m of it.
 
 ## The city
 

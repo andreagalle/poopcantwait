@@ -24,3 +24,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Benny runs with the arrow keys in eight directions (screen-relative, the page never scrolls): acceleration, top
   speed and girth from his weight, sliding collisions against the city, a fixed-step simulation with interpolated
   rendering. `?weight=<0..1>` starts him at a given weight; `?debug=1` shows his live numbers and position.
+- Camera rig: it follows Benny with damping and a small look-ahead, pulls back from 18 m to 40 m as he grows, and
+  fades the buildings that stand between it and him.

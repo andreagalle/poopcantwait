@@ -1,7 +1,8 @@
-import { Color, Entity, MeshInstance, StandardMaterial } from 'playcanvas';
+import { BLEND_NORMAL, Color, Entity, MeshInstance, StandardMaterial } from 'playcanvas';
 import type { AppBase } from 'playcanvas';
 
-import type { City, Rect, Side } from '../core/city/types';
+import { CAMERA } from '../config/tuning';
+import type { Building, City, Rect, Side } from '../core/city/types';
 
 import { MeshBuilder } from './mesh-builder';
 import { PALETTE } from './palette';
@@ -17,19 +18,29 @@ const KIOSK_DOOR = { width: 1.2, height: 2, depth: 0.06 };
 const TREE = { trunkRadius: 0.3, trunkHeight: 1.6, canopyRadius: 2.1, canopyBase: 1.2, canopyTop: 5.6 };
 const FOUNTAIN = { rimHeight: 0.6, waterInset: 0.4, columnRadius: 0.35, columnHeight: 1.8 };
 const CLOCK_TOWER_ROOF_HEIGHT = 5;
-/** Roads draw at slightly different heights so the wider class wins where two of them cross. */
-const ROAD_LIFT: Record<string, number> = { alley: 0.01, street: 0.012, avenue: 0.014, boulevard: 0.016 };
+/**
+ * Roads draw at slightly different heights so the wider class wins where two of them cross. The steps are a few
+ * centimetres, enough to avoid depth fighting at the farthest camera distance.
+ */
+const ROAD_LIFT: Record<string, number> = { alley: 0.02, street: 0.03, avenue: 0.04, boulevard: 0.05 };
+const OPEN_SPACE_LIFT = 0.02;
+const EDGE_DROP = { parkland: -0.15, riverbank: -0.1, river: -0.05 };
 
 const tint = (c: Color, t: number): Color => new Color(c.r * t, c.g * t, c.b * t, c.a);
 
-function vertexColorMaterial(): StandardMaterial {
+function vertexColorMaterial(name: string, opacity = 1): StandardMaterial {
     const material = new StandardMaterial();
-    material.name = 'city-greybox';
+    material.name = name;
     material.diffuse.set(1, 1, 1);
     material.diffuseVertexColor = true;
     material.useMetalness = true;
     material.metalness = 0;
     material.gloss = 0.2;
+    if (opacity < 1) {
+        material.opacity = opacity;
+        material.blendType = BLEND_NORMAL;
+        material.depthWrite = false;
+    }
     material.update();
     return material;
 }
@@ -53,14 +64,14 @@ function addGround(city: City): MeshBuilder {
     const half = city.halfSize;
     const far = half + EDGE_EXTENT;
     const ground = new MeshBuilder();
-    ground.addGroundRect(-far, -far, far, far, -0.05, PALETTE.parkland);
+    ground.addGroundRect(-far, -far, far, far, EDGE_DROP.parkland, PALETTE.parkland);
     for (const edge of city.edges.filter((e) => e.kind === 'river')) {
         const bank = beyond(edge.side, half, 0, RIVERBANK_WIDTH);
-        ground.addGroundRect(bank.x0, bank.z0, bank.x1, bank.z1, -0.04, PALETTE.riverbank);
+        ground.addGroundRect(bank.x0, bank.z0, bank.x1, bank.z1, EDGE_DROP.riverbank, PALETTE.riverbank);
     }
     for (const edge of city.edges.filter((e) => e.kind === 'river')) {
         const river = beyond(edge.side, half, RIVERBANK_WIDTH, RIVERBANK_WIDTH + RIVER_WIDTH);
-        ground.addGroundRect(river.x0, river.z0, river.x1, river.z1, -0.03, PALETTE.river);
+        ground.addGroundRect(river.x0, river.z0, river.x1, river.z1, EDGE_DROP.river, PALETTE.river);
     }
     ground.addGroundRect(-half, -half, half, half, 0, PALETTE.cityGround);
     for (const road of [...city.alleys, ...city.roads]) {
@@ -68,38 +79,38 @@ function addGround(city: City): MeshBuilder {
         ground.addGroundRect(r.x0, r.z0, r.x1, r.z1, ROAD_LIFT[road.streetClass], PALETTE.roads[road.streetClass]);
     }
     const plaza = city.plaza.rect;
-    ground.addGroundRect(plaza.x0, plaza.z0, plaza.x1, plaza.z1, 0.02, PALETTE.plaza);
+    ground.addGroundRect(plaza.x0, plaza.z0, plaza.x1, plaza.z1, OPEN_SPACE_LIFT, PALETTE.plaza);
     const park = city.park.rect;
-    ground.addGroundRect(park.x0, park.z0, park.x1, park.z1, 0.02, PALETTE.grass);
+    ground.addGroundRect(park.x0, park.z0, park.x1, park.z1, OPEN_SPACE_LIFT, PALETTE.grass);
     return ground;
 }
 
+function addBuilding(mesh: MeshBuilder, b: Building): void {
+    const r = b.rect;
+    if (b.landmark === 'clockTower') {
+        mesh.addBox(r.x0, 0, r.z0, r.x1, b.height, r.z1, PALETTE.clockTower);
+        const cx = (r.x0 + r.x1) / 2;
+        const cz = (r.z0 + r.z1) / 2;
+        const radius = Math.hypot(r.x1 - r.x0, r.z1 - r.z0) / 2;
+        mesh.addCone(
+            cx,
+            cz,
+            radius,
+            b.height,
+            b.height + CLOCK_TOWER_ROOF_HEIGHT,
+            PALETTE.clockTowerRoof,
+            4,
+            Math.atan2(r.z1 - r.z0, r.x1 - r.x0)
+        );
+        return;
+    }
+    const color = PALETTE.buildings[b.colorIndex % PALETTE.buildings.length];
+    mesh.addBox(r.x0, 0, r.z0, r.x1, b.height, r.z1, color, tint(color, PALETTE.roofTint));
+}
+
+/** Everything solid except the buildings: kiosks, fountain, trees, and the hedge and railing along the border. */
 function addSolids(city: City): MeshBuilder {
     const solids = new MeshBuilder();
-    const palette = PALETTE.buildings;
-
-    for (const b of city.buildings) {
-        const r = b.rect;
-        if (b.landmark === 'clockTower') {
-            solids.addBox(r.x0, 0, r.z0, r.x1, b.height, r.z1, PALETTE.clockTower);
-            const cx = (r.x0 + r.x1) / 2;
-            const cz = (r.z0 + r.z1) / 2;
-            const radius = Math.hypot(r.x1 - r.x0, r.z1 - r.z0) / 2;
-            solids.addCone(
-                cx,
-                cz,
-                radius,
-                b.height,
-                b.height + CLOCK_TOWER_ROOF_HEIGHT,
-                PALETTE.clockTowerRoof,
-                4,
-                Math.atan2(r.z1 - r.z0, r.x1 - r.x0)
-            );
-            continue;
-        }
-        const color = palette[b.colorIndex % palette.length];
-        solids.addBox(r.x0, 0, r.z0, r.x1, b.height, r.z1, color, tint(color, PALETTE.roofTint));
-    }
 
     for (const k of city.kioskSpots) {
         const r = k.rect;
@@ -160,14 +171,68 @@ function layer(app: AppBase, name: string, mesh: MeshBuilder, material: Standard
 }
 
 /**
- * Builds the greybox city: one mesh for the ground (edge, roads coloured by class, plaza, park) and one for everything
- * solid (buildings, kiosks, fountain, trees, the border hedge and railing). Two draw calls, plus the shadow pass.
+ * The greybox city: one mesh for the ground (edge, roads coloured by class, plaza, park), one for the small solids
+ * (kiosks, fountain, trees, border), and the buildings split in two meshes, opaque and faded, so the buildings between
+ * the camera and Benny can turn see-through (design: *Camera*). Three or four draw calls, plus the shadow pass.
  */
-export function buildCityView(app: AppBase, city: City): Entity {
-    const material = vertexColorMaterial();
-    const root = new Entity('city');
-    root.addChild(layer(app, 'city-ground', addGround(city), material, false));
-    root.addChild(layer(app, 'city-solids', addSolids(city), material, true));
-    app.root.addChild(root);
-    return root;
+export class CityView {
+    readonly root: Entity;
+    private readonly app: AppBase;
+    private readonly city: City;
+    private readonly buildings: Entity;
+    private readonly faded: Entity;
+    private readonly opaqueMaterial = vertexColorMaterial('city-greybox');
+    private readonly fadedMaterial = vertexColorMaterial('city-faded', CAMERA.buildingFadeOpacity);
+    private fadedKey = '';
+
+    constructor(app: AppBase, city: City) {
+        this.app = app;
+        this.city = city;
+        this.root = new Entity('city');
+        this.root.addChild(layer(app, 'city-ground', addGround(city), this.opaqueMaterial, false));
+        this.root.addChild(layer(app, 'city-solids', addSolids(city), this.opaqueMaterial, true));
+        this.buildings = layer(
+            app,
+            'city-buildings',
+            this.buildingMesh(() => true),
+            this.opaqueMaterial,
+            true
+        );
+        this.faded = new Entity('city-buildings-faded');
+        this.faded.addComponent('render', { meshInstances: [], castShadows: true, receiveShadows: true });
+        this.faded.enabled = false;
+        this.root.addChild(this.buildings);
+        this.root.addChild(this.faded);
+        app.root.addChild(this.root);
+    }
+
+    private buildingMesh(include: (index: number) => boolean): MeshBuilder {
+        const mesh = new MeshBuilder();
+        this.city.buildings.forEach((b, i) => {
+            if (include(i)) {
+                addBuilding(mesh, b);
+            }
+        });
+        return mesh;
+    }
+
+    /** Fades the buildings with these indices (sorted) and makes every other one opaque again. */
+    setFaded(indices: readonly number[]): void {
+        const key = indices.join(',');
+        if (key === this.fadedKey) {
+            return;
+        }
+        this.fadedKey = key;
+        const faded = new Set(indices);
+        const device = this.app.graphicsDevice;
+        this.buildings.render!.meshInstances =
+            faded.size < this.city.buildings.length
+                ? [new MeshInstance(this.buildingMesh((i) => !faded.has(i)).build(device), this.opaqueMaterial)]
+                : [];
+        this.faded.enabled = faded.size > 0;
+        this.faded.render!.meshInstances =
+            faded.size > 0
+                ? [new MeshInstance(this.buildingMesh((i) => faded.has(i)).build(device), this.fadedMaterial)]
+                : [];
+    }
 }

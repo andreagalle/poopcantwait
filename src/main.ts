@@ -9,7 +9,8 @@ import {
     createGraphicsDevice
 } from 'playcanvas';
 
-import { CAMERA, SIMULATION } from './config/tuning';
+import { SIMULATION } from './config/tuning';
+import { BuildingIndex } from './core/camera';
 import { generateCity } from './core/city/generate';
 import { Game } from './core/game';
 import { parseLaunchParams } from './core/params';
@@ -19,8 +20,9 @@ import { PlayerDebug } from './debug/player-debug';
 import { BennyView } from './game/benny-view';
 import { addBennyStandIn } from './game/greybox';
 import { KeyboardInput } from './input/keyboard';
-import { createGameCamera, placeCamera } from './render/camera';
-import { buildCityView } from './render/city-view';
+import { createGameCamera } from './render/camera';
+import { CameraRig } from './render/camera-rig';
+import { CityView } from './render/city-view';
 import { addSunlight } from './render/lighting';
 
 import './ui/style.css';
@@ -59,9 +61,9 @@ const city = generateCity(seed);
 const game = new Game(city, { weight: params.weight ?? 0 });
 
 addSunlight(app);
-buildCityView(app, city);
+const cityView = new CityView(app, city);
 const bennyView = new BennyView(addBennyStandIn(app));
-const camera = createGameCamera(app);
+const cameraRig = new CameraRig(createGameCamera(app), cityView, new BuildingIndex(city.buildings));
 
 const playerDebug = params.debug ? new PlayerDebug(mountCityDebugMap(document.body, city), game) : null;
 
@@ -74,7 +76,8 @@ const onUpdate = (dt: number) => {
         game.step(input.direction());
     }
     bennyView.update(game, stepper.alpha);
-    placeCamera(camera, bennyView.entity.getPosition(), CAMERA.distance.slimMetres);
+    const position = bennyView.entity.getPosition();
+    cameraRig.update(game, { x: position.x, z: position.z }, dt);
     playerDebug?.update(game);
 };
 app.on('update', onUpdate);
