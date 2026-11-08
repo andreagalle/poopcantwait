@@ -199,7 +199,23 @@ export const POPUP_TOILETS = {
      */
     mercyTimeShare: 0.8,
     /** Mercy spawns allowed per countdown cycle. */
-    mercyPerCycle: 1
+    mercyPerCycle: 1,
+    /**
+     * Where a mercy pop-up appears: between these shares of the distance Benny can still cover, so he makes it in time,
+     * and never closer than `mercyMinMetres`.
+     */
+    mercyDistanceShare: { min: 0.3, max: 0.6 } satisfies Range,
+    mercyMinMetres: 5,
+    /** Side of the square cabin, in metres. Pop-ups are not solid: Benny steps into one to use it. */
+    footprintMetres: 1.4
+} as const;
+
+/** Path distances from Benny at his current girth, shared by pop-ups, the mercy rule and the toilet indicators. */
+export const NAVIGATION = {
+    /** How often the distances are recomputed, in seconds of game time. */
+    refreshSeconds: 0.5,
+    /** How far they reach along the paths, in metres; anything farther counts as out of reach. */
+    maxPathMetres: 200
 } as const;
 
 /** Off-screen toilet indicators (design: *Finding them*). */

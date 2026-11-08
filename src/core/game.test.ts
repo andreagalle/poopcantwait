@@ -6,6 +6,10 @@ import { overlapDepth } from './player/collision';
 import { diameterAt } from './player/weight';
 import { FixedStepper } from './sim/fixed-step';
 
+/** The urgency and relief events only, leaving out the pop-up ones. */
+const core = (events: readonly string[]) =>
+    events.filter((e) => ['accident', 'accidentOver', 'gameOver', 'reliefStart', 'reliefEnd'].includes(e));
+
 describe('FixedStepper', () => {
     it('runs whole steps and carries the remainder', () => {
         const stepper = new FixedStepper(0.1, 5);
@@ -93,7 +97,7 @@ describe('Game phases', () => {
             game.step({ x: 0, z: 0 });
             seen.push(...game.drainEvents());
         }
-        expect(seen).toEqual(['accident']);
+        expect(core(seen)).toEqual(['accident']);
         expect(game.urgency.cleanUnderpants).toBe(4);
         const frozenAt = game.player;
         for (let i = 0; i < 30; i++) {
@@ -103,7 +107,7 @@ describe('Game phases', () => {
         while (game.phase === 'accident') {
             game.step({ x: 1, z: 0 });
         }
-        expect(game.drainEvents()).toEqual(['accidentOver']);
+        expect(core(game.drainEvents())).toEqual(['accidentOver']);
         game.step({ x: 1, z: 0 });
         game.step({ x: 1, z: 0 });
         expect(game.player.x).toBeGreaterThan(frozenAt.x);
@@ -118,7 +122,7 @@ describe('Game phases', () => {
         }
         expect(game.phase).toBe('over');
         expect(events.filter((e) => e === 'accident')).toHaveLength(5);
-        expect(events.at(-1)).toBe('gameOver');
+        expect(core(events).at(-1)).toBe('gameOver');
         const at = game.time;
         game.step({ x: 1, z: 0 });
         expect(game.time).toBe(at);
@@ -160,7 +164,7 @@ describe('Game toilets', () => {
         }
         expect(game.phase).toBe('relief');
         expect(steps * game.stepSeconds).toBeCloseTo(0.5, 1);
-        expect(game.drainEvents()).toEqual(['reliefStart']);
+        expect(core(game.drainEvents())).toEqual(['reliefStart']);
         expect(game.kiosks[0].status).toBe('occupied');
 
         // He cannot move during the relief, and the countdown holds
@@ -175,7 +179,7 @@ describe('Game toilets', () => {
         while (game.phase === 'relief') {
             game.step({ x: 0, z: 0 });
         }
-        expect(game.drainEvents()).toEqual(['reliefEnd']);
+        expect(core(game.drainEvents())).toEqual(['reliefEnd']);
         expect(game.urgency.secondsLeft).toBe(game.urgency.countdownSeconds);
         expect(game.phase).toBe('playing');
     });
@@ -209,5 +213,72 @@ describe('Game toilets', () => {
         game.step({ x: 0, z: 0 });
         expect(game.dwell).toBeNull();
         expect(game.phase).toBe('playing');
+    });
+});
+
+describe('Game pop-up toilets', () => {
+    const city = generateCity(31);
+
+    it('spawns pop-ups on a timer, where Benny can go, and lets them sink after their lifetime', () => {
+        const game = new Game(city, { weight: 1 });
+        const events: string[] = [];
+        // At maximum weight one comes every 6 s
+        for (let i = 0; i < 60 * 7; i++) {
+            game.step({ x: 0, z: 0 });
+            events.push(...game.drainEvents());
+        }
+        expect(events).toContain('popupSpawned');
+        expect(game.popups.length).toBeGreaterThan(0);
+        const popup = game.popups[0];
+        expect(city.nav.canStand(popup.x, popup.z, 7.5)).toBe(true);
+        expect(game.toiletDistance({ kind: 'popup', id: popup.id })).toBeLessThan(200);
+        // Lifetimes run out; never more than four at once
+        for (let i = 0; i < 60 * 25; i++) {
+            game.step({ x: 0, z: 0 });
+            expect(game.popups.length).toBeLessThanOrEqual(4);
+            events.push(...game.drainEvents());
+        }
+        expect(game.popups.find((p) => p.id === popup.id)).toBeUndefined();
+        expect(events).toContain('popupGone');
+    });
+
+    it('applies the mercy rule once per countdown cycle when no free toilet is within reach', () => {
+        const game = new Game(city, { countdownSeconds: 4 });
+        for (let i = 0; i < game.kiosks.length; i++) {
+            game.kiosks[i] = { status: 'occupied', secondsLeft: 1000 };
+        }
+        const events: string[] = [];
+        for (let i = 0; i < 60 * 3; i++) {
+            game.step({ x: 0, z: 0 });
+            events.push(...game.drainEvents());
+        }
+        expect(events.filter((e) => e === 'mercy')).toHaveLength(1);
+        const mercy = game.popups.at(-1)!;
+        const distance = game.toiletDistance({ kind: 'popup', id: mercy.id });
+        expect(distance).toBeLessThan(0.8 * 4 * 7);
+    });
+
+    it('lets Benny use a pop-up by stepping into it, and removes it', () => {
+        const game = new Game(city);
+        game.popups.push({ id: 99, x: game.player.x + 1, z: game.player.z, secondsLeft: 20 });
+        let steps = 0;
+        while (game.phase === 'playing' && steps < 120) {
+            game.step({ x: 0, z: 0 });
+            steps++;
+        }
+        expect(game.phase).toBe('relief');
+        expect(game.relief?.toilet).toEqual({ kind: 'popup', id: 99 });
+        expect(game.popups.find((p) => p.id === 99)).toBeUndefined();
+        expect(game.toiletDistance({ kind: 'popup', id: 99 })).toBe(Infinity);
+    });
+
+    it("measures the way to every free toilet at Benny's girth", () => {
+        const slim = new Game(city);
+        const massive = new Game(city, { weight: 1 });
+        const kiosks = city.kioskSpots.map((_, index) => ({ kind: 'kiosk', index }) as const);
+        const reachable = (g: Game) => kiosks.filter((k) => Number.isFinite(g.toiletDistance(k))).length;
+        // A slim Benny reaches more kiosks than a massive one, who cannot fit the streets
+        expect(reachable(slim)).toBeGreaterThan(reachable(massive));
+        expect(slim.freeToilets().every((t) => t.kind === 'kiosk' || t.kind === 'popup')).toBe(true);
     });
 });

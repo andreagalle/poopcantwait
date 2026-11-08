@@ -30,6 +30,8 @@ export const PALETTE = {
     kioskDoor: hex('#90a4ae'),
     beaconFree: hex('#3ddc84'),
     beaconOccupied: hex('#ff4d4d'),
+    popup: hex('#4fc3c7'),
+    popupDoor: hex('#2e7d84'),
     parkland: hex('#8bc34a'),
     riverbank: hex('#d7c79e'),
     river: hex('#5fa8d3'),

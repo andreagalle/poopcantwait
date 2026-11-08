@@ -20,6 +20,7 @@ import { PlayerDebug } from './debug/player-debug';
 import { BennyView } from './game/benny-view';
 import { addBennyStandIn } from './game/greybox';
 import { KioskView } from './game/kiosk-view';
+import { PopupView } from './game/popup-view';
 import { KeyboardInput } from './input/keyboard';
 import { createGameCamera } from './render/camera';
 import { CameraRig } from './render/camera-rig';
@@ -72,6 +73,7 @@ addSunlight(app);
 const cityView = new CityView(app, city);
 const bennyView = new BennyView(addBennyStandIn(app));
 const kioskView = new KioskView(app, city);
+const popupView = new PopupView(app);
 const camera = createGameCamera(app);
 const cameraRig = new CameraRig(camera, cityView, new BuildingIndex(city.buildings));
 
@@ -100,6 +102,7 @@ const onUpdate = (dt: number) => {
     const position = bennyView.entity.getPosition();
     cameraRig.update(game, { x: position.x, z: position.z }, dt);
     kioskView.update(game);
+    popupView.update(game);
     hud.update(game);
     waitRing.update(game, camera.camera!);
     playerDebug?.update(game);

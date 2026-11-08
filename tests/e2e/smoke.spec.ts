@@ -281,3 +281,18 @@ test('shows the countdown, five pairs of underpants, the score and the girth in 
     await page.screenshot({ path: `${SCREENSHOT_DIR}/smoke-hud.png` });
     expect(errors).toEqual([]);
 });
+
+test('pops up a toilet within reach when time is short (mercy rule)', async ({ page }) => {
+    // Five seconds is too little to reach any kiosk: the mercy rule puts a pop-up toilet within reach
+    const errors = await openGame(page, '?seed=42&countdown=5');
+    await page.waitForFunction(
+        () => {
+            const app = [...globalThis.__playcanvasApps!.keys()][0]!;
+            return app.root.find((e) => /^popup-\d+$/.test(e.name) && (e as Entity).enabled).length > 0;
+        },
+        undefined,
+        { timeout: 60_000, polling: 100 }
+    );
+    await page.screenshot({ path: `${SCREENSHOT_DIR}/smoke-popup.png` });
+    expect(errors).toEqual([]);
+});
