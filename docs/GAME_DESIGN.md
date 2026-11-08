@@ -133,7 +133,8 @@ _Initial_ formulas, all in `tuning.ts`:
 - Visual size: the model widens in X and Z with the diameter ratio and grows in height up to two times, so a heavy
   Benny becomes a towering ball rather than a pancake.
 
-Benny fits a street when `d(w)` is smaller than its width. With the initial numbers that gives these tiers, shown in
+If Benny grows too wide for where he stands (an alley, a narrow street), he is squeezed out along the passage to the
+nearest spot where he fits. Benny fits a street when `d(w)` is smaller than its width. With the initial numbers that gives these tiers, shown in
 the HUD:
 
 | Tier    | Weight      | Fits through                 | Traffic                               |
