@@ -77,7 +77,10 @@ function sampleCanvas(page: Page) {
 }
 
 test('loads without console errors and renders the city around Benny', async ({ page }) => {
-    const errors = await openGame(page);
+    // A different city every run, but a known one: a failure names the seed that reproduces it
+    const seed = Math.floor(Math.random() * 2 ** 32);
+    test.info().annotations.push({ type: 'seed', description: String(seed) });
+    const errors = await openGame(page, `?seed=${seed}`);
 
     await expect(page).toHaveTitle('Gotta Go!');
     await expect(page.getByText('Gotta Go! (work in progress)')).toBeVisible();
@@ -85,23 +88,23 @@ test('loads without console errors and renders the city around Benny', async ({ 
 
     const sample = await sampleCanvas(page);
     test.info().annotations.push({ type: 'canvas', description: JSON.stringify(sample) });
-    expect(sample.distinctColors).toBeGreaterThanOrEqual(3);
-    expect(sample.dominantShare).toBeLessThan(0.99);
-    expect(sample.drawCalls).toBeLessThan(DRAW_CALL_BUDGET);
+    expect(sample.distinctColors, `seed ${seed}`).toBeGreaterThanOrEqual(3);
+    expect(sample.dominantShare, `seed ${seed}`).toBeLessThan(0.99);
+    expect(sample.drawCalls, `seed ${seed}`).toBeLessThan(DRAW_CALL_BUDGET);
 
     // The city is built, and the camera looks down at Benny from the design angle and distance
     const view = await page.evaluate(() => {
         const app = [...globalThis.__playcanvasApps!.keys()][0]!;
         const camera = app.root.findByName('camera') as Entity;
         const benny = app.root.findByName('benny') as Entity;
-        const solids = app.root.findByName('city-solids') as Entity;
+        const buildings = app.root.findByName('city-buildings') as Entity;
         const forward = camera.forward;
         return {
             pitchDegrees: (Math.asin(-forward.y) * 180) / Math.PI,
             yawOffAxis: Math.abs(forward.x),
             fovDegrees: camera.camera!.fov,
             distanceMetres: camera.getPosition().distance(benny.getPosition()),
-            cityVertices: solids.render!.meshInstances[0]!.mesh!.vertexBuffer!.numVertices,
+            cityVertices: buildings.render!.meshInstances[0]!.mesh!.vertexBuffer!.numVertices,
             kiosks: app.root.find((e) => e.name.startsWith('kiosk-beacon-')).length,
             beams: app.root.find((e) => e.name.startsWith('kiosk-beam-') && (e as Entity).enabled).length,
             freeBeacons: app.root
@@ -109,17 +112,18 @@ test('loads without console errors and renders the city around Benny', async ({ 
                 .filter((e) => (e as Entity).render!.meshInstances[0]!.material!.name === 'beacon-free').length
         };
     });
-    expect(view.cityVertices).toBeGreaterThan(1000);
-    expect(view.kiosks).toBe(8);
+    const where = `seed ${seed}: ${JSON.stringify(view)}`;
+    expect(view.cityVertices, where).toBeGreaterThan(1000);
+    expect(view.kiosks, where).toBe(8);
     // Every free kiosk sends a light beam up; occupied ones do not
-    expect(view.beams).toBe(view.freeBeacons);
-    expect(view.pitchDegrees).toBeCloseTo(CAMERA.pitchDegrees, 3);
-    expect(view.yawOffAxis).toBeCloseTo(0, 6);
-    expect(view.fovDegrees).toBe(CAMERA.fovDegrees);
-    expect(view.distanceMetres).toBeCloseTo(CAMERA.distance.slimMetres, 3);
+    expect(view.beams, where).toBe(view.freeBeacons);
+    expect(view.pitchDegrees, where).toBeCloseTo(CAMERA.pitchDegrees, 3);
+    expect(view.yawOffAxis, where).toBeCloseTo(0, 6);
+    expect(view.fovDegrees, where).toBe(CAMERA.fovDegrees);
+    expect(view.distanceMetres, where).toBeCloseTo(CAMERA.distance.slimMetres, 3);
 
     await page.screenshot({ path: `${SCREENSHOT_DIR}/smoke-city.png` });
-    expect(errors).toEqual([]);
+    expect(errors, `seed ${seed}`).toEqual([]);
 });
 
 test('shows the debug maps for a fixed seed with ?seed and ?debug', async ({ page }) => {
@@ -294,5 +298,22 @@ test('pops up a toilet within reach when time is short (mercy rule)', async ({ p
         { timeout: 60_000, polling: 100 }
     );
     await page.screenshot({ path: `${SCREENSHOT_DIR}/smoke-popup.png` });
+    expect(errors).toEqual([]);
+});
+
+test('points to the nearest free toilets by path distance, greying the ones Benny is too wide for', async ({
+    page
+}) => {
+    const errors = await openGame(page, '?seed=42');
+    const shown = page.locator('.toilet-indicator:not([hidden])');
+    await expect(shown.first()).toBeVisible();
+    await expect(shown.first()).toHaveClass(/is-nearest/);
+    await expect(shown.first()).toContainText(/\d+ m/);
+    await page.screenshot({ path: `${SCREENSHOT_DIR}/smoke-indicators.png` });
+
+    // At maximum weight, kiosks on streets are out of reach: they show greyed
+    await page.goto('./?seed=42&weight=1');
+    await page.waitForFunction(() => (globalThis.__playcanvasApps?.size ?? 0) > 0);
+    await expect(page.locator('.toilet-indicator.is-unreachable').first()).toContainText('too wide');
     expect(errors).toEqual([]);
 });

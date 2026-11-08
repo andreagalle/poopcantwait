@@ -29,6 +29,7 @@ import { addSunlight } from './render/lighting';
 import { showGameOver } from './ui/game-over';
 import { Hud } from './ui/hud';
 import { showRelief } from './ui/relief-pop';
+import { ToiletIndicators } from './ui/toilet-indicators';
 import { WaitRing } from './ui/wait-ring';
 
 import './ui/style.css';
@@ -79,6 +80,7 @@ const cameraRig = new CameraRig(camera, cityView, new BuildingIndex(city.buildin
 
 const hud = new Hud(document.body);
 const waitRing = new WaitRing(document.body);
+const indicators = new ToiletIndicators(document.body);
 const playerDebug = params.debug ? new PlayerDebug(mountCityDebugMap(document.body, city), game) : null;
 
 // Fixed-step simulation; rendering interpolates between the last two steps
@@ -105,6 +107,7 @@ const onUpdate = (dt: number) => {
     popupView.update(game);
     hud.update(game);
     waitRing.update(game, camera.camera!);
+    indicators.update(game, camera.camera!);
     playerDebug?.update(game);
 };
 app.on('update', onUpdate);

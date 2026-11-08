@@ -188,6 +188,8 @@ the HUD:
 - Off-screen indicators at the screen edges point to the three nearest free toilets **by path distance at Benny's
   current girth**, with the distance in metres. The nearest one is highlighted.
 - Toilets Benny cannot reach at his current size show a grey indicator, so the player understands why.
+  When fewer than three free toilets are within reach, the nearest unreachable ones fill in, greyed and marked "too
+  wide". A toilet in view gets its label over it; one out of view gets an arrow at the screen edge.
 
 ## Food
 
