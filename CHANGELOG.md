@@ -26,3 +26,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   rendering. `?weight=<0..1>` starts him at a given weight; `?debug=1` shows his live numbers and position.
 - Camera rig: it follows Benny with damping and a small look-ahead, pulls back from 18 m to 40 m as he grows, and
   fades the buildings that stand between it and him.
+- Urgency countdown (40 s) with accidents: at 0 Benny freezes and shivers, a pair of underpants is soiled and the
+  countdown starts again; after the fifth the run is over (Enter starts a new one). `?countdown=<s>` shortens the
+  fuse for testing.

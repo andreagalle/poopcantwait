@@ -24,6 +24,7 @@ import { createGameCamera } from './render/camera';
 import { CameraRig } from './render/camera-rig';
 import { CityView } from './render/city-view';
 import { addSunlight } from './render/lighting';
+import { showGameOver } from './ui/game-over';
 
 import './ui/style.css';
 
@@ -58,7 +59,10 @@ app.on('destroy', () => {
 const params = parseLaunchParams(window.location.search);
 const seed = params.seed ?? crypto.getRandomValues(new Uint32Array(1))[0];
 const city = generateCity(seed);
-const game = new Game(city, { weight: params.weight ?? 0 });
+const game = new Game(city, {
+    weight: params.weight ?? 0,
+    countdownSeconds: params.countdownSeconds ?? undefined
+});
 
 addSunlight(app);
 const cityView = new CityView(app, city);
@@ -74,6 +78,12 @@ const onUpdate = (dt: number) => {
     const steps = stepper.advance(dt);
     for (let i = 0; i < steps; i++) {
         game.step(input.direction());
+    }
+    for (const event of game.drainEvents()) {
+        if (event === 'gameOver') {
+            // A new run: the same city with ?seed, a new one otherwise
+            showGameOver(document.body, () => window.location.reload());
+        }
     }
     bennyView.update(game, stepper.alpha);
     const position = bennyView.entity.getPosition();

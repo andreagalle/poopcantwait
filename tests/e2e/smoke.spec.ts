@@ -236,3 +236,21 @@ test('fades the buildings between the camera and Benny', async ({ page }) => {
     await page.screenshot({ path: `${SCREENSHOT_DIR}/smoke-faded.png` });
     expect(errors).toEqual([]);
 });
+
+test('runs out of underpants after five accidents, and Enter starts again', async ({ page }) => {
+    // ?countdown=1 shortens the fuse so five accidents fit in a smoke test: 12.5 s of game time, which software
+    // rendering stretches to a minute or more
+    test.setTimeout(240_000);
+    const errors = await openGame(page, '?seed=42&countdown=1&debug=1');
+    const gameOver = page.locator('.game-over');
+    await expect(gameOver).toBeVisible({ timeout: 200_000 });
+    await expect(gameOver).toContainText('Out of underpants!');
+    await expect(page.locator('.debug-readout')).toContainText('underpants 0');
+    await page.screenshot({ path: `${SCREENSHOT_DIR}/smoke-game-over.png` });
+
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() => (globalThis.__playcanvasApps?.size ?? 0) > 0);
+    await expect(gameOver).toHaveCount(0);
+    await expect(page.locator('.debug-readout')).toContainText('underpants 5');
+    expect(errors).toEqual([]);
+});
