@@ -25,6 +25,7 @@ import { CameraRig } from './render/camera-rig';
 import { CityView } from './render/city-view';
 import { addSunlight } from './render/lighting';
 import { showGameOver } from './ui/game-over';
+import { Hud } from './ui/hud';
 
 import './ui/style.css';
 
@@ -69,6 +70,7 @@ const cityView = new CityView(app, city);
 const bennyView = new BennyView(addBennyStandIn(app));
 const cameraRig = new CameraRig(createGameCamera(app), cityView, new BuildingIndex(city.buildings));
 
+const hud = new Hud(document.body);
 const playerDebug = params.debug ? new PlayerDebug(mountCityDebugMap(document.body, city), game) : null;
 
 // Fixed-step simulation; rendering interpolates between the last two steps
@@ -88,6 +90,7 @@ const onUpdate = (dt: number) => {
     bennyView.update(game, stepper.alpha);
     const position = bennyView.entity.getPosition();
     cameraRig.update(game, { x: position.x, z: position.z }, dt);
+    hud.update(game);
     playerDebug?.update(game);
 };
 app.on('update', onUpdate);

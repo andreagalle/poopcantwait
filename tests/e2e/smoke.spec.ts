@@ -254,3 +254,22 @@ test('runs out of underpants after five accidents, and Enter starts again', asyn
     await expect(page.locator('.debug-readout')).toContainText('underpants 5');
     expect(errors).toEqual([]);
 });
+
+test('shows the countdown, five pairs of underpants, the score and the girth in the HUD', async ({ page }) => {
+    const errors = await openGame(page, '?seed=42&countdown=2');
+    const hud = page.locator('.hud');
+    await expect(hud).toBeVisible();
+    const seconds = Number(await hud.locator('.hud-seconds').textContent());
+    expect(seconds).toBeGreaterThan(0);
+    expect(seconds).toBeLessThanOrEqual(2);
+    await expect(hud.locator('.hud-score')).toHaveText('0');
+    await expect(hud.locator('.hud-tier')).toHaveText('slim');
+    await expect(hud.locator('.underpants')).toHaveCount(5);
+    // Two seconds is below the low warning: the gauge turns red and shakes
+    await expect(hud.locator('.hud-gauge')).toHaveClass(/is-low/);
+
+    // The first accident stains one pair
+    await expect(hud.locator('.underpants.is-soiled')).toHaveCount(1, { timeout: 60_000 });
+    await page.screenshot({ path: `${SCREENSHOT_DIR}/smoke-hud.png` });
+    expect(errors).toEqual([]);
+});
