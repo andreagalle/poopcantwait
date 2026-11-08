@@ -5,6 +5,7 @@ import { generateCity } from '../city/generate';
 import { Game } from '../game';
 
 import type { CollisionWorld } from './collision';
+import { overlapDepth } from './collision';
 import type { MoveInput, PlayerState } from './movement';
 import { stepPlayer, wrapAngle } from './movement';
 import { diameterAt, topSpeedAt } from './weight';
@@ -111,6 +112,7 @@ describe('Benny in a generated city', () => {
 
     it('never ends a step overlapping a wall, whatever the weight', () => {
         for (const weight of [0, 0.3, 0.6, 0.9, 1]) {
+            // Movement only: the Game picks the start spot and the collision world
             const game = new Game(city, { weight });
             const directions: MoveInput[] = [
                 { x: 1, z: 0 },
@@ -119,13 +121,15 @@ describe('Benny in a generated city', () => {
                 { x: 0, z: -1 },
                 { x: -1, z: 0.5 }
             ];
+            let state = game.player;
+            const radius = diameterAt(weight) / 2;
             for (const direction of directions) {
                 for (let i = 0; i < 240; i++) {
-                    game.step(direction);
+                    state = stepPlayer(state, direction, game.world, DT);
+                    expect(overlapDepth(game.world, state.x, state.z, radius)).toBeLessThan(1e-3);
                 }
             }
-            const radius = diameterAt(weight) / 2;
-            expect(game.city.nav.clearanceAt(game.player.x, game.player.z)).toBeGreaterThan(radius - 1);
+            expect(city.nav.clearanceAt(state.x, state.z)).toBeGreaterThan(radius - 1);
         }
     });
 });

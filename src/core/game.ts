@@ -1,14 +1,16 @@
-import { KIOSKS, SIMULATION } from '../config/tuning';
+import { KIOSKS, NAVIGATION, POPUP_TOILETS, SIMULATION } from '../config/tuning';
 
-import type { City } from './city/types';
+import type { City, Point } from './city/types';
 import type { CollisionWorld } from './player/collision';
 import { buildCollisionWorld } from './player/collision';
 import type { MoveInput, PlayerState } from './player/movement';
 import { stepPlayer } from './player/movement';
-import { clampWeight, diameterAt } from './player/weight';
+import { clampWeight, diameterAt, topSpeedAt } from './player/weight';
 import { Rng } from './rng';
 import type { KioskState } from './toilets/kiosks';
 import { circleNearRect, initialKiosks, occupyAfterUse, tickKiosks } from './toilets/kiosks';
+import type { PopupToilet } from './toilets/popups';
+import { choosePopupSpot, popupIntervalAt, touchesPopup } from './toilets/popups';
 import type { UrgencyState } from './urgency/urgency';
 import { initialUrgency, isOut, relieve, tickUrgency } from './urgency/urgency';
 
@@ -28,13 +30,15 @@ export interface GameOptions {
 export type GamePhase = 'playing' | 'relief' | 'accident' | 'over';
 
 /** Things that happened during a step, for the views (sounds, effects, HUD) to react to. */
-export type GameEvent = 'accident' | 'accidentOver' | 'gameOver' | 'reliefStart' | 'reliefEnd';
+export type GameEvent =
+    'accident' | 'accidentOver' | 'gameOver' | 'reliefStart' | 'reliefEnd' | 'popupSpawned' | 'popupGone' | 'mercy';
 
-/** A toilet Benny can use: one of the city's kiosks (by index). */
-export interface ToiletRef {
-    readonly kind: 'kiosk';
-    readonly index: number;
-}
+/** A toilet Benny can use: one of the city's kiosks (by index) or a pop-up toilet (by id). */
+export type ToiletRef =
+    { readonly kind: 'kiosk'; readonly index: number } | { readonly kind: 'popup'; readonly id: number };
+
+const sameToilet = (a: ToiletRef, b: ToiletRef): boolean =>
+    a.kind === 'kiosk' ? b.kind === 'kiosk' && a.index === b.index : b.kind === 'popup' && a.id === b.id;
 
 /**
  * The simulation (AGENTS.md, Architecture): it owns the state of a run and advances it in fixed steps. It never reads
@@ -57,7 +61,19 @@ export class Game {
     dwell: { toilet: ToiletRef; seconds: number } | null = null;
     /** The occupied kiosk Benny is waiting at, if any (the HUD shows how long until it frees up). */
     waitingAt: number | null = null;
+    /** Pop-up toilets in the city, oldest first. */
+    popups: PopupToilet[] = [];
+    /**
+     * Path distances from Benny at his current girth (`NavGrid.pathDistances`), recomputed every
+     * `NAVIGATION.refreshSeconds`: pop-up placement, the mercy rule and the toilet indicators read them.
+     */
+    field!: { readonly time: number; readonly diameter: number; readonly distances: Float64Array };
+    private fieldAge = 0;
+    private popupTimer: number;
+    private nextPopupId = 1;
+    private mercyUsed = false;
     private readonly kioskRng: Rng;
+    private readonly popupRng: Rng;
     private readonly events: GameEvent[] = [];
 
     constructor(city: City, options: GameOptions = {}) {
@@ -73,7 +89,67 @@ export class Game {
         this.urgency = initialUrgency(options.countdownSeconds);
         const runRng = new Rng((city.seed ^ RUN_SALT) >>> 0);
         this.kioskRng = runRng.fork();
+        this.popupRng = runRng.fork();
         this.kiosks = initialKiosks(city.kioskSpots.length, this.kioskRng);
+        this.popupTimer = popupIntervalAt(weight);
+        this.refreshField();
+    }
+
+    /** Recomputes the path distances from where Benny stands, at his current girth. */
+    private refreshField(): void {
+        const diameter = diameterAt(this.player.weight);
+        const nav = this.city.nav;
+        const here: Point = { x: this.player.x, z: this.player.z };
+        const start = nav.canStand(here.x, here.z, diameter) ? here : (nav.nearestStandable(here, diameter) ?? here);
+        this.field = {
+            time: this.time,
+            diameter,
+            distances: nav.pathDistances(start, diameter, NAVIGATION.maxPathMetres)
+        };
+        this.fieldAge = 0;
+    }
+
+    /**
+     * Walking distance from Benny to a toilet at his current girth, from the latest path distances; `Infinity` when he
+     * cannot get there (too wide for the road in front of it) or it is beyond `NAVIGATION.maxPathMetres`.
+     */
+    toiletDistance(toilet: ToiletRef): number {
+        const radius = this.field.diameter / 2;
+        let target: Point;
+        if (toilet.kind === 'kiosk') {
+            // Where his centre stands when he touches the door: out from the kiosk front by his radius
+            const spot = this.city.kioskSpots[toilet.index];
+            const half = (spot.rect.x1 - spot.rect.x0) / 2;
+            target = {
+                x: (spot.rect.x0 + spot.rect.x1) / 2 + spot.facing.x * (half + radius + KIOSKS.doorReachMetres),
+                z: (spot.rect.z0 + spot.rect.z1) / 2 + spot.facing.z * (half + radius + KIOSKS.doorReachMetres)
+            };
+        } else {
+            const popup = this.popups.find((p) => p.id === toilet.id);
+            if (!popup) {
+                return Infinity;
+            }
+            target = popup;
+        }
+        // The nearest of the cells around the target, so rounding to the grid never hides a reachable door
+        let best = Infinity;
+        for (let dz = -1; dz <= 1; dz++) {
+            for (let dx = -1; dx <= 1; dx++) {
+                const cell = this.city.nav.cellAt(target.x + dx, target.z + dz);
+                if (cell >= 0) {
+                    best = Math.min(best, this.field.distances[cell]);
+                }
+            }
+        }
+        return best;
+    }
+
+    /** Every toilet Benny could use right now: the free kiosks and every pop-up. */
+    freeToilets(): ToiletRef[] {
+        const kiosks = this.kiosks.flatMap((k, index): ToiletRef[] =>
+            k.status === 'free' ? [{ kind: 'kiosk', index }] : []
+        );
+        return [...kiosks, ...this.popups.map((p): ToiletRef => ({ kind: 'popup', id: p.id }))];
     }
 
     get phase(): GamePhase {
@@ -111,6 +187,7 @@ export class Game {
             if (this.relief.secondsLeft <= 0) {
                 this.relief = null;
                 this.urgency = relieve(this.urgency);
+                this.mercyUsed = false;
                 this.events.push('reliefEnd');
             }
         }
@@ -119,7 +196,17 @@ export class Game {
         this.urgency = urgency.state;
         for (const event of urgency.events) {
             this.events.push(event === 'outOfUnderpants' ? 'gameOver' : event);
+            if (event === 'accidentOver') {
+                this.mercyUsed = false;
+            }
         }
+
+        this.fieldAge += dt;
+        const refreshed = this.fieldAge >= NAVIGATION.refreshSeconds;
+        if (refreshed) {
+            this.refreshField();
+        }
+        this.updatePopups(dt, refreshed);
 
         if (this.phase === 'playing') {
             this.useToilets(dt);
@@ -130,31 +217,100 @@ export class Game {
         this.time += dt;
     }
 
-    /** Standing at the door of a free kiosk for a moment starts the relief; at an occupied one Benny waits. */
-    private useToilets(dt: number): void {
-        const radius = diameterAt(this.player.weight) / 2;
-        const at = this.city.kioskSpots.findIndex((spot) =>
-            circleNearRect(this.player.x, this.player.z, radius, spot.doorZone, KIOSKS.doorReachMetres)
-        );
-        if (at < 0) {
-            this.dwell = null;
-            this.waitingAt = null;
+    /** Pop-ups sink back when their time is up, new ones appear on a timer, and the mercy rule can add one at once. */
+    private updatePopups(dt: number, refreshed: boolean): void {
+        const before = this.popups.length;
+        this.popups = this.popups
+            .map((p) => ({ ...p, secondsLeft: p.secondsLeft - dt }))
+            .filter((p) => p.secondsLeft > 0);
+        for (let i = this.popups.length; i < before; i++) {
+            this.events.push('popupGone');
+        }
+
+        this.popupTimer -= dt;
+        if (this.popupTimer <= 0) {
+            this.popupTimer = popupIntervalAt(this.player.weight);
+            if (this.popups.length < POPUP_TOILETS.maxActive) {
+                const { min, max } = POPUP_TOILETS.spawnPathDistanceMetres;
+                this.spawnPopup(min, max);
+            }
+        }
+
+        // Mercy rule: checked whenever the distances are fresh, at most once per countdown cycle
+        if (!refreshed || this.mercyUsed || this.phase !== 'playing') {
             return;
         }
-        if (this.kiosks[at].status === 'occupied') {
-            this.dwell = null;
-            this.waitingAt = at;
+        const speed = topSpeedAt(this.player.weight);
+        const reach = POPUP_TOILETS.mercyTimeShare * this.urgency.secondsLeft * speed;
+        const nearest = Math.min(Infinity, ...this.freeToilets().map((t) => this.toiletDistance(t)));
+        if (nearest <= reach) {
             return;
+        }
+        const { min, max } = POPUP_TOILETS.mercyDistanceShare;
+        const floor = POPUP_TOILETS.mercyMinMetres;
+        if (this.popups.length >= POPUP_TOILETS.maxActive) {
+            this.popups.shift();
+            this.events.push('popupGone');
+        }
+        const spawned =
+            this.spawnPopup(Math.max(floor, reach * min), Math.max(floor, reach * max)) || this.spawnPopup(0, reach);
+        this.mercyUsed = true;
+        if (spawned) {
+            this.events.push('mercy');
+        }
+    }
+
+    /** Adds a pop-up at a path distance between `min` and `max` from Benny; false when no spot fits. */
+    private spawnPopup(min: number, max: number): boolean {
+        const spot = choosePopupSpot(this.city.nav, this.field.distances, this.field.diameter, min, max, this.popupRng);
+        if (!spot) {
+            return false;
+        }
+        this.popups.push({ id: this.nextPopupId++, x: spot.x, z: spot.z, secondsLeft: POPUP_TOILETS.lifetimeSeconds });
+        this.events.push('popupSpawned');
+        return true;
+    }
+
+    /**
+     * Standing at the door of a free kiosk, or stepping into a pop-up, for a moment starts the relief; at an occupied
+     * kiosk Benny waits.
+     */
+    private useToilets(dt: number): void {
+        const { x, z } = this.player;
+        const radius = diameterAt(this.player.weight) / 2;
+        const reach = KIOSKS.doorReachMetres;
+        let toilet: ToiletRef | null = null;
+        const kiosk = this.city.kioskSpots.findIndex((spot) => circleNearRect(x, z, radius, spot.doorZone, reach));
+        if (kiosk >= 0) {
+            if (this.kiosks[kiosk].status === 'occupied') {
+                this.dwell = null;
+                this.waitingAt = kiosk;
+                return;
+            }
+            toilet = { kind: 'kiosk', index: kiosk };
+        } else {
+            const popup = this.popups.find((p) => touchesPopup(x, z, radius, p, reach));
+            toilet = popup ? { kind: 'popup', id: popup.id } : null;
         }
         this.waitingAt = null;
-        const seconds = (this.dwell?.toilet.index === at ? this.dwell.seconds : 0) + dt;
+        if (!toilet) {
+            this.dwell = null;
+            return;
+        }
+        const seconds = (this.dwell && sameToilet(this.dwell.toilet, toilet) ? this.dwell.seconds : 0) + dt;
         if (seconds < KIOSKS.useDwellSeconds) {
-            this.dwell = { toilet: { kind: 'kiosk', index: at }, seconds };
+            this.dwell = { toilet, seconds };
             return;
         }
         this.dwell = null;
-        this.relief = { toilet: { kind: 'kiosk', index: at }, secondsLeft: KIOSKS.reliefSeconds };
-        this.kiosks[at] = occupyAfterUse(this.kioskRng, this.time);
+        this.relief = { toilet, secondsLeft: KIOSKS.reliefSeconds };
+        if (toilet.kind === 'kiosk') {
+            this.kiosks[toilet.index] = occupyAfterUse(this.kioskRng, this.time);
+        } else {
+            const id = toilet.id;
+            this.popups = this.popups.filter((p) => p.id !== id);
+            this.events.push('popupGone');
+        }
         this.events.push('reliefStart');
     }
 }

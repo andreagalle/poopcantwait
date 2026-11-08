@@ -34,3 +34,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Toilet kiosks cycle between free (green beacon, light beam) and occupied (red beacon, rattling door), longer
   occupied as the run goes on. Half a second at the door of a free one gives relief ("Phew!") and a fresh countdown;
   at an occupied one a ring shows how long until it frees up.
+- Pop-up toilets: teal cabins that pop out of the ground where Benny can go, more often as he grows (every 25 s
+  slim, 6 s at maximum weight), for 20 s each; and the mercy rule, which puts one within reach at once when no free
+  toilet is, once per countdown.

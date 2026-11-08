@@ -177,6 +177,11 @@ the HUD:
 - They spawn only where Benny can go at his current girth, at a path distance of 25 to 80 m from him.
 - **Mercy rule:** if no free toilet is reachable within 80% of the remaining time at Benny's current speed, one pop-up
   toilet spawns within reach immediately. At most once per countdown cycle.
+- _Initial_ details: a mercy pop-up appears at a path distance between 30% and 60% of the distance Benny can still
+  cover (at least 5 m), replacing the oldest pop-up if four are already out. Pop-ups are 1.4 m cabins, always free and
+  not solid: Benny steps into one and stays half a second to use it, and it is gone once used.
+- Path distances from Benny at his current girth are recomputed every 0.5 s of game time, up to 200 m along the paths;
+  toilets farther than that count as out of reach.
 
 ### Finding them
 
