@@ -14,3 +14,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   coverage and an end-to-end smoke test; a seeded random generator, the initial tuning values from the game design,
   and a greybox scene: ground, a capsule standing in for Benny, the camera at the design angle and a work-in-progress
   banner.
+- The development roadmap (`docs/ROADMAP.md`), milestones M0 to M8.

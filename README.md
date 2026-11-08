@@ -40,6 +40,7 @@ The build uses relative paths, so `dist/` runs from any folder, including the Gi
 - [Contributing](CONTRIBUTING.md): branches, commits, pull requests, releases
 - [Asset pipeline](docs/ASSET_PIPELINE.md)
 - [Agent instructions](AGENTS.md)
+- [Roadmap](docs/ROADMAP.md): milestones and their status
 - [Changelog](CHANGELOG.md)
 
 ## License
