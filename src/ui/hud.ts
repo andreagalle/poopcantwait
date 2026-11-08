@@ -92,8 +92,10 @@ export class Hud {
         }
     }
 
-    update(game: Game, score = 0, combo = 1): void {
+    update(game: Game): void {
         const { urgency, player } = game;
+        const score = game.score.points;
+        const combo = game.score.multiplier;
         const share = urgency.secondsLeft / urgency.countdownSeconds;
         this.set('seconds', String(Math.ceil(urgency.secondsLeft)), (v) => (this.seconds.textContent = v));
         this.set('bar', share.toFixed(3), (v) => {

@@ -374,3 +374,9 @@
         translate: -50% -180%;
     }
 }
+
+/* Author display rules beat the user agent's [hidden] rule: restate it for elements that set a display */
+.toilet-indicator[hidden],
+.hud-combo[hidden] {
+    display: none;
+}

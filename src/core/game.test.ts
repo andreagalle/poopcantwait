@@ -412,3 +412,47 @@ describe('Game food', () => {
         expect(game.player.weight).toBe(0);
     });
 });
+
+describe('Game score', () => {
+    const city = generateCity(42);
+
+    it('scores junk food with the combo, and relief with the clutch bonus', () => {
+        const game = new Game(city);
+        const at = (dx: number) => ({ x: game.player.x + dx, z: game.player.z });
+        game.food.push({ id: 3001, kind: { category: 'junk', id: 'burger' }, ...at(0.5), secondsLeft: 10 });
+        game.step({ x: 0, z: 0 });
+        game.food.push({ id: 3002, kind: { category: 'junk', id: 'fries' }, ...at(-0.5), secondsLeft: 10 });
+        game.step({ x: 0, z: 0 });
+        // 100 for the burger, then 50 × 1.5 for the fries within the combo window
+        expect(game.score.points).toBe(175);
+        expect(game.score.multiplier).toBe(1.5);
+        expect(game.drainGains().map((g) => g.points)).toEqual([100, 75]);
+
+        // A free toilet right here: relief scores 250 plus 20 per second left
+        game.popups.push({ id: 77, x: game.player.x, z: game.player.z + 1, secondsLeft: 20 });
+        while (game.phase === 'playing') {
+            game.step({ x: 0, z: 0 });
+        }
+        const [relief] = game.drainGains();
+        expect(relief.points).toBeGreaterThan(250 + 20 * 39);
+        expect(relief.points).toBeLessThanOrEqual(250 + 20 * 40);
+        expect(game.score.points).toBe(175 + relief.points);
+    });
+
+    it('lets the combo run out after three seconds', () => {
+        const game = new Game(city);
+        game.food.push({
+            id: 4001,
+            kind: { category: 'junk', id: 'donut' },
+            x: game.player.x,
+            z: game.player.z + 0.5,
+            secondsLeft: 10
+        });
+        game.step({ x: 0, z: 0 });
+        for (let i = 0; i < 60 * 3 + 2; i++) {
+            game.step({ x: 0, z: 0 });
+        }
+        expect(game.score.multiplier).toBe(1);
+        expect(game.score.comboSecondsLeft).toBe(0);
+    });
+});

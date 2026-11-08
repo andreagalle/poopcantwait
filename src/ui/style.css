@@ -68,3 +68,24 @@ canvas {
     margin: 0;
     font-size: 16px;
 }
+
+.game-over-score {
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.game-over-best {
+    color: #e65100;
+    font-weight: 900;
+}
+
+.game-over-table {
+    margin: 10px auto 12px;
+    padding: 0;
+    list-style: decimal inside;
+    font-weight: 700;
+}
+
+.game-over-table li.is-new {
+    color: #e65100;
+}

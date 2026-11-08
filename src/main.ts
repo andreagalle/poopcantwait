@@ -29,6 +29,7 @@ import { CityView } from './render/city-view';
 import { addSunlight } from './render/lighting';
 import { floatText } from './ui/float-text';
 import { showGameOver } from './ui/game-over';
+import { recordHighScore } from './ui/high-score-store';
 import { Hud } from './ui/hud';
 import { showRelief } from './ui/relief-pop';
 import { ToiletIndicators } from './ui/toilet-indicators';
@@ -94,6 +95,9 @@ const onUpdate = (dt: number) => {
     for (let i = 0; i < steps; i++) {
         game.step(input.direction());
     }
+    for (const gain of game.drainGains()) {
+        floatText(document.body, camera.camera!, gain.x, gain.z, `+${gain.points}`, 'good');
+    }
     for (const bite of game.drainEaten()) {
         if (bite.kind.category === 'vegetable') {
             const seconds = FOOD.vegetables[bite.kind.id].countdownPenaltySeconds;
@@ -106,7 +110,8 @@ const onUpdate = (dt: number) => {
         }
         if (event === 'gameOver') {
             // A new run: the same city with ?seed, a new one otherwise
-            showGameOver(document.body, () => window.location.reload());
+            const record = recordHighScore(game.score.points);
+            showGameOver(document.body, { score: game.score.points, ...record }, () => window.location.reload());
         }
     }
     bennyView.update(game, stepper.alpha);
