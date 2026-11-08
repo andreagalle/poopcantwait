@@ -253,10 +253,17 @@ test('runs out of underpants after five accidents, and Enter starts again', asyn
     // ?countdown=1 shortens the fuse so five accidents fit in a smoke test: 12.5 s of game time, which software
     // rendering stretches to a minute or more
     test.setTimeout(240_000);
+    // Best scores from earlier runs in this browser
+    await page.addInitScript(() => window.localStorage.setItem('gotta-go.high-scores', '[900, 400]'));
     const errors = await openGame(page, '?seed=42&countdown=1&debug=1');
     const gameOver = page.locator('.game-over');
     await expect(gameOver).toBeVisible({ timeout: 200_000 });
     await expect(gameOver).toContainText('Out of underpants!');
+    await expect(gameOver.locator('.game-over-score')).toHaveText(/^Score \d+$/);
+    // A run that scored nothing keeps the old table as it was
+    await expect(gameOver.locator('.game-over-table li')).toHaveText(['900', '400']);
+    // The toilet indicators go away with the run
+    await expect(page.locator('.toilet-indicator:visible')).toHaveCount(0);
     await expect(page.locator('.debug-readout')).toContainText('underpants 0');
     await page.screenshot({ path: `${SCREENSHOT_DIR}/smoke-game-over.png` });
 

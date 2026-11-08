@@ -9,6 +9,8 @@ import type { MoveInput, PlayerState } from './player/movement';
 import { stepPlayer } from './player/movement';
 import { clampWeight, diameterAt, girthTierAt, topSpeedAt } from './player/weight';
 import { Rng } from './rng';
+import type { ScoreState } from './score/score';
+import { initialScore, scoreJunk, scoreRelief, tickScore } from './score/score';
 import type { KioskState } from './toilets/kiosks';
 import { circleNearRect, initialKiosks, occupyAfterUse, tickKiosks } from './toilets/kiosks';
 import type { PopupToilet } from './toilets/popups';
@@ -49,6 +51,13 @@ export type GameEvent =
 /** Something Benny ate, for the views to show where and what. */
 export interface Eaten {
     readonly kind: FoodKind;
+    readonly x: number;
+    readonly z: number;
+}
+
+/** Points scored, and where, for the views to show them. */
+export interface Gain {
+    readonly points: number;
     readonly x: number;
     readonly z: number;
 }
@@ -94,6 +103,8 @@ export class Game {
     private foodTimer: number = FOOD.spawnIntervalSeconds;
     private nextFoodId = 1;
     private readonly eaten: Eaten[] = [];
+    score: ScoreState = initialScore();
+    private readonly gains: Gain[] = [];
     private popupTimer: number;
     private nextPopupId = 1;
     private mercyUsed = false;
@@ -218,6 +229,11 @@ export class Game {
         return this.relief ? 'relief' : 'playing';
     }
 
+    /** Returns the points scored since the last call and forgets them. */
+    drainGains(): Gain[] {
+        return this.gains.splice(0);
+    }
+
     /** Returns what Benny ate since the last call and forgets it. */
     drainEaten(): Eaten[] {
         return this.eaten.splice(0);
@@ -253,6 +269,7 @@ export class Game {
             }
         }
 
+        this.score = tickScore(this.score, dt);
         const urgency = tickUrgency(this.urgency, dt, phase === 'relief');
         this.urgency = urgency.state;
         for (const event of urgency.events) {
@@ -355,6 +372,9 @@ export class Game {
             this.eaten.push({ kind: item.kind, x: item.x, z: item.z });
             if (item.kind.category === 'junk') {
                 this.events.push('ateJunk');
+                const scored = scoreJunk(this.score, FOOD.junk[item.kind.id].points);
+                this.score = scored.state;
+                this.gains.push({ points: scored.gained, x: item.x, z: item.z });
                 this.addWeight(FOOD.junk[item.kind.id].weight);
             } else {
                 this.events.push('ateVegetable');
@@ -407,6 +427,10 @@ export class Game {
         }
         this.dwell = null;
         this.relief = { toilet, secondsLeft: KIOSKS.reliefSeconds };
+        // The clutch bonus counts the seconds he had left when he made it
+        const scored = scoreRelief(this.score, this.urgency.secondsLeft);
+        this.score = scored.state;
+        this.gains.push({ points: scored.gained, x: this.player.x, z: this.player.z });
         if (toilet.kind === 'kiosk') {
             this.kiosks[toilet.index] = occupyAfterUse(this.kioskRng, this.time);
         } else {

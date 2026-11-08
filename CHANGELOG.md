@@ -44,3 +44,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Food: junk food and vegetables appear around Benny (one every 1.2 s, at most 25, for 30 s each, vegetables rising
   from 20% to 40% of them over eight minutes), hovering and spinning over a gold or green glow. Junk food makes him
   heavier; vegetables take seconds off the countdown.
+- Scoring: junk food points times a combo that grows by 0.5 for every item eaten within 3 s (up to ×3), relief worth
+  250 plus 20 per second left on the countdown, "+points" rising where they were scored, and the best five scores
+  kept in the browser and shown at game over.
