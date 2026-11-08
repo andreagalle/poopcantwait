@@ -37,3 +37,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Pop-up toilets: teal cabins that pop out of the ground where Benny can go, more often as he grows (every 25 s
   slim, 6 s at maximum weight), for 20 s each; and the mercy rule, which puts one within reach at once when no free
   toilet is, once per countdown.
+- Toilet indicators: the three nearest free toilets by path distance at Benny's girth, with the distance in metres and
+  the nearest highlighted, as labels in view or arrows at the screen edges; the ones he is too wide for show grey.

@@ -8,17 +8,17 @@ could not verify, and the branches it proposes next.
 
 Gameplay comes first, in greybox; art comes later (M6), so no generation credits are spent on things that may change.
 
-| Milestone                     | Status        |
-| ----------------------------- | ------------- |
-| M0: scaffold and toolchain    | Done (#3)     |
-| M1: the city                  | Done (#5, #6) |
-| M2: Benny moves               | Done (#7, #8) |
-| M3: the clock and the toilets | Not started   |
-| M4: food, weight and score    | Not started   |
-| M5: traffic                   | Not started   |
-| M6: art pass                  | Not started   |
-| M7: game feel and flow        | Not started   |
-| M8: hardening                 | Not started   |
+| Milestone                     | Status           |
+| ----------------------------- | ---------------- |
+| M0: scaffold and toolchain    | Done (#3)        |
+| M1: the city                  | Done (#5, #6)    |
+| M2: Benny moves               | Done (#7, #8)    |
+| M3: the clock and the toilets | Done (#9 to #13) |
+| M4: food, weight and score    | Not started      |
+| M5: traffic                   | Not started      |
+| M6: art pass                  | Not started      |
+| M7: game feel and flow        | Not started      |
+| M8: hardening                 | Not started      |
 
 ## M0: scaffold and toolchain
 
