@@ -31,3 +31,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   fuse for testing.
 - First HUD: the urgency gauge (tummy icon, seconds, a bar from green to red that shakes in the last ten seconds),
   the score, five pairs of boxer shorts that stain one by one, and the weight bar with the girth tier.
+- Toilet kiosks cycle between free (green beacon, light beam) and occupied (red beacon, rattling door), longer
+  occupied as the run goes on. Half a second at the door of a free one gives relief ("Phew!") and a fresh countdown;
+  at an occupied one a ring shows how long until it frees up.

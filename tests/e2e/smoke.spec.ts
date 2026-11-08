@@ -101,10 +101,18 @@ test('loads without console errors and renders the city around Benny', async ({ 
             yawOffAxis: Math.abs(forward.x),
             fovDegrees: camera.camera!.fov,
             distanceMetres: camera.getPosition().distance(benny.getPosition()),
-            cityVertices: solids.render!.meshInstances[0]!.mesh!.vertexBuffer!.numVertices
+            cityVertices: solids.render!.meshInstances[0]!.mesh!.vertexBuffer!.numVertices,
+            kiosks: app.root.find((e) => e.name.startsWith('kiosk-beacon-')).length,
+            beams: app.root.find((e) => e.name.startsWith('kiosk-beam-') && (e as Entity).enabled).length,
+            freeBeacons: app.root
+                .find((e) => e.name.startsWith('kiosk-beacon-'))
+                .filter((e) => (e as Entity).render!.meshInstances[0]!.material!.name === 'beacon-free').length
         };
     });
     expect(view.cityVertices).toBeGreaterThan(1000);
+    expect(view.kiosks).toBe(8);
+    // Every free kiosk sends a light beam up; occupied ones do not
+    expect(view.beams).toBe(view.freeBeacons);
     expect(view.pitchDegrees).toBeCloseTo(CAMERA.pitchDegrees, 3);
     expect(view.yawOffAxis).toBeCloseTo(0, 6);
     expect(view.fovDegrees).toBe(CAMERA.fovDegrees);
