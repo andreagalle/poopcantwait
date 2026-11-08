@@ -9,7 +9,7 @@ import {
     createGraphicsDevice
 } from 'playcanvas';
 
-import { SIMULATION } from './config/tuning';
+import { FOOD, SIMULATION } from './config/tuning';
 import { BuildingIndex } from './core/camera';
 import { generateCity } from './core/city/generate';
 import { Game } from './core/game';
@@ -18,6 +18,7 @@ import { FixedStepper } from './core/sim/fixed-step';
 import { mountCityDebugMap } from './debug/city-map';
 import { PlayerDebug } from './debug/player-debug';
 import { BennyView } from './game/benny-view';
+import { FoodView } from './game/food-view';
 import { addBennyStandIn } from './game/greybox';
 import { KioskView } from './game/kiosk-view';
 import { PopupView } from './game/popup-view';
@@ -26,6 +27,7 @@ import { createGameCamera } from './render/camera';
 import { CameraRig } from './render/camera-rig';
 import { CityView } from './render/city-view';
 import { addSunlight } from './render/lighting';
+import { floatText } from './ui/float-text';
 import { showGameOver } from './ui/game-over';
 import { Hud } from './ui/hud';
 import { showRelief } from './ui/relief-pop';
@@ -75,6 +77,7 @@ const cityView = new CityView(app, city);
 const bennyView = new BennyView(addBennyStandIn(app));
 const kioskView = new KioskView(app, city);
 const popupView = new PopupView(app);
+const foodView = new FoodView(app);
 const camera = createGameCamera(app);
 const cameraRig = new CameraRig(camera, cityView, new BuildingIndex(city.buildings));
 
@@ -91,6 +94,12 @@ const onUpdate = (dt: number) => {
     for (let i = 0; i < steps; i++) {
         game.step(input.direction());
     }
+    for (const bite of game.drainEaten()) {
+        if (bite.kind.category === 'vegetable') {
+            const seconds = FOOD.vegetables[bite.kind.id].countdownPenaltySeconds;
+            floatText(document.body, camera.camera!, bite.x, bite.z, `-${seconds} s`, 'bad');
+        }
+    }
     for (const event of game.drainEvents()) {
         if (event === 'reliefStart') {
             showRelief(document.body);
@@ -105,6 +114,7 @@ const onUpdate = (dt: number) => {
     cameraRig.update(game, { x: position.x, z: position.z }, dt);
     kioskView.update(game);
     popupView.update(game);
+    foodView.update(game);
     hud.update(game);
     waitRing.update(game, camera.camera!);
     indicators.update(game, camera.camera!);

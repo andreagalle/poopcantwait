@@ -267,7 +267,12 @@ export const FOOD = {
     /** How long an item stays before fading out, in seconds. */
     lifetimeSeconds: 30,
     /** Share of spawns that are vegetables: `start` at the beginning of a run, rising linearly to `end`. */
-    vegetableShare: { start: 0.2, end: 0.4, rampSeconds: 8 * 60 }
+    vegetableShare: { start: 0.2, end: 0.4, rampSeconds: 8 * 60 },
+    /**
+     * Items appear on walkable ground this far from Benny, in a straight line, in metres. Spread over the whole city,
+     * 25 items would hardly ever be on screen.
+     */
+    spawnDistanceMetres: { min: 6, max: 40 } satisfies Range
 } as const;
 
 /** Vehicles (design: *Traffic*). Cars use streets, avenues and boulevards; buses only avenues and boulevards. */

@@ -317,3 +317,16 @@ test('points to the nearest free toilets by path distance, greying the ones Benn
     await expect(page.locator('.toilet-indicator.is-unreachable').first()).toContainText('too wide');
     expect(errors).toEqual([]);
 });
+
+test('spawns food around Benny', async ({ page }) => {
+    const errors = await openGame(page, '?seed=42');
+    await page.waitForFunction(
+        () => {
+            const app = [...globalThis.__playcanvasApps!.keys()][0]!;
+            return app.root.find((e) => /^food-\d+$/.test(e.name) && (e as Entity).enabled).length >= 2;
+        },
+        undefined,
+        { timeout: 80_000, polling: 200 }
+    );
+    expect(errors).toEqual([]);
+});

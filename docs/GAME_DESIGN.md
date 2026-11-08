@@ -226,6 +226,9 @@ With these values Benny reaches maximum weight after roughly 35 to 45 items.
 
 - Items appear at random walkable points, including alleys, which tempt a slim Benny into routes he will lose later.
 - _Initial_: one spawn every 1.2 s, at most 25 items in the city, each lasting 30 s before it fades out.
+- Items appear on walkable ground 6 to 40 m from Benny in a straight line (_initial_), so some are always on screen;
+  spread over the whole city, 25 items would hardly ever be in view. Junk food kinds are equally likely, and so are
+  vegetable kinds.
 - Vegetables are 20% of spawns at the start, rising to 40% over eight minutes.
 
 ## Traffic

@@ -1,6 +1,8 @@
-import { KIOSKS, NAVIGATION, POPUP_TOILETS, SIMULATION } from '../config/tuning';
+import { FOOD, KIOSKS, NAVIGATION, POPUP_TOILETS, SIMULATION } from '../config/tuning';
 
 import type { City, Point } from './city/types';
+import type { FoodItem, FoodKind } from './food/food';
+import { chooseFoodSpot, chooseKind, touchesFood } from './food/food';
 import type { CollisionWorld } from './player/collision';
 import { buildCollisionWorld, overlapDepth } from './player/collision';
 import type { MoveInput, PlayerState } from './player/movement';
@@ -12,7 +14,7 @@ import { circleNearRect, initialKiosks, occupyAfterUse, tickKiosks } from './toi
 import type { PopupToilet } from './toilets/popups';
 import { choosePopupSpot, popupIntervalAt, touchesPopup } from './toilets/popups';
 import type { UrgencyState } from './urgency/urgency';
-import { initialUrgency, isOut, relieve, tickUrgency } from './urgency/urgency';
+import { initialUrgency, isOut, penalize, relieve, tickUrgency } from './urgency/urgency';
 
 /** Extra clearance around Benny where he is placed, so he starts clear of every wall, in metres. */
 const PLACEMENT_MARGIN = 0.25;
@@ -40,7 +42,16 @@ export type GameEvent =
     | 'popupGone'
     | 'mercy'
     | 'tierChanged'
-    | 'squeezed';
+    | 'squeezed'
+    | 'ateJunk'
+    | 'ateVegetable';
+
+/** Something Benny ate, for the views to show where and what. */
+export interface Eaten {
+    readonly kind: FoodKind;
+    readonly x: number;
+    readonly z: number;
+}
 
 /** A toilet Benny can use: one of the city's kiosks (by index) or a pop-up toilet (by id). */
 export type ToiletRef =
@@ -78,11 +89,17 @@ export class Game {
      */
     field!: { readonly time: number; readonly diameter: number; readonly distances: Float64Array };
     private fieldAge = 0;
+    /** Food on the streets. */
+    food: FoodItem[] = [];
+    private foodTimer: number = FOOD.spawnIntervalSeconds;
+    private nextFoodId = 1;
+    private readonly eaten: Eaten[] = [];
     private popupTimer: number;
     private nextPopupId = 1;
     private mercyUsed = false;
     private readonly kioskRng: Rng;
     private readonly popupRng: Rng;
+    private readonly foodRng: Rng;
     private readonly events: GameEvent[] = [];
 
     constructor(city: City, options: GameOptions = {}) {
@@ -99,6 +116,7 @@ export class Game {
         const runRng = new Rng((city.seed ^ RUN_SALT) >>> 0);
         this.kioskRng = runRng.fork();
         this.popupRng = runRng.fork();
+        this.foodRng = runRng.fork();
         this.kiosks = initialKiosks(city.kioskSpots.length, this.kioskRng);
         this.popupTimer = popupIntervalAt(weight);
         this.refreshField();
@@ -200,6 +218,11 @@ export class Game {
         return this.relief ? 'relief' : 'playing';
     }
 
+    /** Returns what Benny ate since the last call and forgets it. */
+    drainEaten(): Eaten[] {
+        return this.eaten.splice(0);
+    }
+
     /** Returns the events since the last call and forgets them. */
     drainEvents(): GameEvent[] {
         return this.events.splice(0);
@@ -245,8 +268,10 @@ export class Game {
             this.refreshField();
         }
         this.updatePopups(dt, refreshed);
+        this.updateFood(dt);
 
         if (this.phase === 'playing') {
+            this.eat();
             this.useToilets(dt);
         } else {
             this.dwell = null;
@@ -295,6 +320,46 @@ export class Game {
         this.mercyUsed = true;
         if (spawned) {
             this.events.push('mercy');
+        }
+    }
+
+    /** Items fade out when their time is up, and a new one appears on the spawn timer near Benny, up to the cap. */
+    private updateFood(dt: number): void {
+        this.food = this.food
+            .map((item) => ({ ...item, secondsLeft: item.secondsLeft - dt }))
+            .filter((item) => item.secondsLeft > 0);
+        this.foodTimer -= dt;
+        if (this.foodTimer > 0) {
+            return;
+        }
+        this.foodTimer += FOOD.spawnIntervalSeconds;
+        if (this.food.length >= FOOD.maxActive) {
+            return;
+        }
+        const spot = chooseFoodSpot(this.city.nav, this.player, this.food, this.foodRng);
+        if (spot) {
+            const kind = chooseKind(this.foodRng, this.time);
+            this.food.push({ id: this.nextFoodId++, kind, ...spot, secondsLeft: FOOD.lifetimeSeconds });
+        }
+    }
+
+    /** Benny eats everything he touches: junk food fattens him, vegetables cost him seconds. */
+    private eat(): void {
+        const radius = diameterAt(this.player.weight) / 2;
+        const touched = this.food.filter((item) => touchesFood(this.player.x, this.player.z, radius, item));
+        if (touched.length === 0) {
+            return;
+        }
+        this.food = this.food.filter((item) => !touched.includes(item));
+        for (const item of touched) {
+            this.eaten.push({ kind: item.kind, x: item.x, z: item.z });
+            if (item.kind.category === 'junk') {
+                this.events.push('ateJunk');
+                this.addWeight(FOOD.junk[item.kind.id].weight);
+            } else {
+                this.events.push('ateVegetable');
+                this.urgency = penalize(this.urgency, FOOD.vegetables[item.kind.id].countdownPenaltySeconds);
+            }
         }
     }
 

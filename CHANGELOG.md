@@ -41,3 +41,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   the nearest highlighted, as labels in view or arrows at the screen edges; the ones he is too wide for show grey.
 - Weight gain: Benny grows wider and slower and the camera pulls back as his weight rises; if he grows too wide for an
   alley or a street, he is squeezed out along it to the nearest spot where he fits.
+- Food: junk food and vegetables appear around Benny (one every 1.2 s, at most 25, for 30 s each, vegetables rising
+  from 20% to 40% of them over eight minutes), hovering and spinning over a gold or green glow. Junk food makes him
+  heavier; vegetables take seconds off the countdown.
