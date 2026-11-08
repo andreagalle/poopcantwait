@@ -109,7 +109,7 @@ _Initial_ generation parameters:
 | Alley distance from block corners | at least 6 m                              |
 | Lot width along the street        | 8 to 16 m                                 |
 | Blocks with two rows of buildings | at least 24 m deep                        |
-| Building height                   | 5 to 16 m; the clock tower 30 m           |
+| Building height                   | 4 to 12 m; the clock tower 24 m           |
 | Fountain radius                   | 3 m                                       |
 | Park trees                        | every 9 m, trunk radius 0.8 m, 3 m margin |
 | River sides                       | 1 or 2 (the others are parkland)          |

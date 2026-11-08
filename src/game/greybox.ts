@@ -1,25 +1,10 @@
 import { CapsuleGeometry, Color, Entity, Mesh, MeshInstance } from 'playcanvas';
 import type { AppBase } from 'playcanvas';
 
-import { BENNY, CITY, WEIGHT } from '../config/tuning';
+import { BENNY, WEIGHT } from '../config/tuning';
 import { createFlatMaterial } from '../render/materials';
 
-const GROUND_COLOR = new Color(0.8, 0.78, 0.72);
 const BENNY_COLOR = new Color(0.98, 0.72, 0.58);
-
-/** A flat ground plane the size of the city. Milestone M1 replaces it with the generated streets and blocks. */
-export function addGround(app: AppBase): Entity {
-    const ground = new Entity('ground');
-    ground.addComponent('render', {
-        type: 'plane',
-        material: createFlatMaterial('ground', GROUND_COLOR),
-        castShadows: false,
-        receiveShadows: true
-    });
-    ground.setLocalScale(CITY.sizeMetres, 1, CITY.sizeMetres);
-    app.root.addChild(ground);
-    return ground;
-}
 
 /**
  * A peach capsule standing in for Benny at his slim size: as wide as his collision circle at `w = 0`, as tall as the
