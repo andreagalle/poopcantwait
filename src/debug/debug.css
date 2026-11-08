@@ -52,8 +52,8 @@
 }
 
 .debug-readout {
+    max-width: 366px;
     margin: 0 0 6px;
-    white-space: nowrap;
 }
 
 .debug-map-cell {

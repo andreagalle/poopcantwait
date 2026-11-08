@@ -32,7 +32,8 @@ export class PlayerDebug {
         const text =
             `x ${p.x.toFixed(1)} z ${p.z.toFixed(1)} · ${Math.hypot(p.vx, p.vz).toFixed(1)} m/s · ` +
             `w ${p.weight.toFixed(2)} ${girthTierAt(p.weight)} · d ${diameter.toFixed(2)} m · ` +
-            `clearance ${game.city.nav.clearanceAt(p.x, p.z).toFixed(1)} m`;
+            `clearance ${game.city.nav.clearanceAt(p.x, p.z).toFixed(1)} m · ` +
+            `${game.phase} · ${game.urgency.secondsLeft.toFixed(1)} s · underpants ${game.urgency.cleanUnderpants}`;
         if (text !== this.lastText) {
             this.readout.textContent = text;
             this.lastText = text;

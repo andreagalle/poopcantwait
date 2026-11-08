@@ -34,6 +34,15 @@ hierarchy, assets, materials, textures and frame graph: press the backquote key 
 
 The build uses relative paths, so `dist/` runs from any folder, including the GitHub Pages project subpath.
 
+URL parameters for testing (they change nothing when absent):
+
+| Parameter        | Effect                                                            |
+| ---------------- | ----------------------------------------------------------------- |
+| `?seed=<n>`      | Fixes the run: the same city, the same events.                    |
+| `?debug=1`       | Shows the debug panel: zone and girth maps, Benny's live numbers. |
+| `?weight=<0..1>` | Starts Benny at that weight, to try the girth tiers.              |
+| `?countdown=<s>` | Sets the urgency countdown to that many seconds (1 to 600).       |
+
 ## Documentation
 
 - [Game design](docs/GAME_DESIGN.md)

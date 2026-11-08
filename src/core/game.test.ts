@@ -82,3 +82,46 @@ describe('NavGrid.nearestStandable', () => {
         expect(city.nav.nearestStandable(city.spawn, 100)).toBeNull();
     });
 });
+
+describe('Game phases', () => {
+    const city = generateCity(11);
+
+    it('freezes Benny during an accident and resumes afterwards', () => {
+        const game = new Game(city, { countdownSeconds: 1 });
+        const seen: string[] = [];
+        while (game.phase !== 'accident') {
+            game.step({ x: 0, z: 0 });
+            seen.push(...game.drainEvents());
+        }
+        expect(seen).toEqual(['accident']);
+        expect(game.urgency.cleanUnderpants).toBe(4);
+        const frozenAt = game.player;
+        for (let i = 0; i < 30; i++) {
+            game.step({ x: 1, z: 0 });
+        }
+        expect(game.player.x).toBe(frozenAt.x);
+        while (game.phase === 'accident') {
+            game.step({ x: 1, z: 0 });
+        }
+        expect(game.drainEvents()).toEqual(['accidentOver']);
+        game.step({ x: 1, z: 0 });
+        game.step({ x: 1, z: 0 });
+        expect(game.player.x).toBeGreaterThan(frozenAt.x);
+    });
+
+    it('ends the run after five accidents and stops there', () => {
+        const game = new Game(city, { countdownSeconds: 1 });
+        const events: string[] = [];
+        for (let i = 0; i < 60 * 20 && game.phase !== 'over'; i++) {
+            game.step({ x: 0, z: 0 });
+            events.push(...game.drainEvents());
+        }
+        expect(game.phase).toBe('over');
+        expect(events.filter((e) => e === 'accident')).toHaveLength(5);
+        expect(events.at(-1)).toBe('gameOver');
+        const at = game.time;
+        game.step({ x: 1, z: 0 });
+        expect(game.time).toBe(at);
+        expect(game.drainEvents()).toEqual([]);
+    });
+});

@@ -4,13 +4,28 @@ import { parseLaunchParams } from './params';
 
 describe('parseLaunchParams', () => {
     it('defaults to a random seed and no debug aids', () => {
-        expect(parseLaunchParams('')).toEqual({ seed: null, debug: false, weight: null });
+        expect(parseLaunchParams('')).toEqual({ seed: null, debug: false, weight: null, countdownSeconds: null });
     });
 
     it('reads the seed and the debug flag', () => {
-        expect(parseLaunchParams('?seed=42&debug=1')).toEqual({ seed: 42, debug: true, weight: null });
-        expect(parseLaunchParams('?debug=true')).toEqual({ seed: null, debug: true, weight: null });
-        expect(parseLaunchParams('?seed=%2012%20')).toEqual({ seed: 12, debug: false, weight: null });
+        expect(parseLaunchParams('?seed=42&debug=1')).toEqual({
+            seed: 42,
+            debug: true,
+            weight: null,
+            countdownSeconds: null
+        });
+        expect(parseLaunchParams('?debug=true')).toEqual({
+            seed: null,
+            debug: true,
+            weight: null,
+            countdownSeconds: null
+        });
+        expect(parseLaunchParams('?seed=%2012%20')).toEqual({
+            seed: 12,
+            debug: false,
+            weight: null,
+            countdownSeconds: null
+        });
     });
 
     it('wraps seeds into 32 bits', () => {
@@ -24,6 +39,13 @@ describe('parseLaunchParams', () => {
         expect(parseLaunchParams('?weight=1').weight).toBe(1);
         expect(parseLaunchParams('?weight=7').weight).toBe(1);
         expect(parseLaunchParams('?weight=0').weight).toBe(0);
+    });
+
+    it('reads a countdown length for testing, between 1 s and 10 minutes', () => {
+        expect(parseLaunchParams('?countdown=5').countdownSeconds).toBe(5);
+        expect(parseLaunchParams('?countdown=0.2').countdownSeconds).toBe(1);
+        expect(parseLaunchParams('?countdown=9999').countdownSeconds).toBe(600);
+        expect(parseLaunchParams('?countdown=soon').countdownSeconds).toBeNull();
     });
 
     it('ignores malformed values', () => {
