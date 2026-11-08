@@ -236,6 +236,9 @@ With these values Benny reaches maximum weight after roughly 35 to 45 items.
 - Cars drive on streets, avenues and boulevards; buses only on avenues and boulevards. Nothing drives in alleys.
 - Vehicles follow lanes and pick a random direction at each intersection. They do not brake for Benny and they honk
   when he is close ahead.
+- _Initial_ details: one lane each way, a quarter of the road width from its centre line (right-hand traffic); a
+  vehicle turns back only where there is no other way; new vehicles join at least 45 m from Benny; a vehicle honks
+  when he is within 12 m ahead of it in its lane, at most every 2.5 s. Cars are 4.2 by 1.9 m, buses 11 by 2.6 m.
 - _Initial_ speeds: cars 9 to 14 m/s, buses 7 to 9 m/s. _Initial_ density: 12 cars and 3 buses, growing 15% per minute
   up to three times that.
 

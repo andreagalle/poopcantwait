@@ -47,3 +47,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Scoring: junk food points times a combo that grows by 0.5 for every item eaten within 3 s (up to ×3), relief worth
   250 plus 20 per second left on the countdown, "+points" rising where they were scored, and the best five scores
   kept in the browser and shown at game over.
+- Traffic: 12 cars and 3 buses drive the streets, avenues and boulevards (buses only the wide ones) in right-hand
+  lanes, picking a way at every intersection; their number grows 15% a minute up to three times, and they honk at Benny
+  when he stands in their way.

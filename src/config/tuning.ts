@@ -287,7 +287,20 @@ export const TRAFFIC = {
     /** Density growth per minute (0.15 = 15% more vehicles each minute). */
     densityGrowthPerMinute: 0.15,
     /** Density stops growing at this multiple of the initial count. */
-    maxDensityFactor: 3
+    maxDensityFactor: 3,
+    /** Vehicle footprints and heights, in metres. */
+    size: {
+        car: { length: 4.2, width: 1.9, height: 1.5 },
+        bus: { length: 11, width: 2.6, height: 3.2 }
+    },
+    /** Each direction drives in one lane, centred this share of the road width from its centre line (right-hand traffic). */
+    laneOffsetShare: 0.25,
+    /** New vehicles appear at least this far from Benny, in metres, so they never pop in on screen. */
+    spawnMinDistanceMetres: 45,
+    /** Vehicles honk when Benny is this close ahead of them in their lane, in metres... */
+    honkDistanceMetres: 12,
+    /** ...at most once in this many seconds each. */
+    honkCooldownSeconds: 2.5
 } as const;
 
 /** Benny against vehicles (design: *Collisions*). */
