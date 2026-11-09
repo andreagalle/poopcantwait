@@ -1,5 +1,7 @@
-import { URGENCY, WEIGHT } from '../config/tuning';
+import { URGENCY } from '../config/tuning';
 import type { Game } from '../core/game';
+import type { WeightMarker } from '../core/player/markers';
+import { passed, weightMarkers } from '../core/player/markers';
 import { girthTierAt } from '../core/player/weight';
 import { isLow } from '../core/urgency/urgency';
 
@@ -27,6 +29,30 @@ function element<K extends keyof HTMLElementTagNameMap>(tag: K, className: strin
     return el;
 }
 
+/** What each weight marker says, and what it means once passed (for screen readers and the tooltip). */
+const MARKER_TEXT: Readonly<Record<WeightMarker['id'], { label: string; passed: string; ahead: string }>> = {
+    alleys: { label: 'alleys', passed: 'Too wide for alleys', ahead: 'Alleys stop fitting here' },
+    streets: { label: 'streets', passed: 'Too wide for streets', ahead: 'Streets stop fitting here' },
+    cars: { label: 'cars', passed: 'Heavy enough to crumple cars', ahead: 'Cars crumple from here' },
+    buses: { label: 'buses', passed: 'Heavy enough to crumple buses', ahead: 'Buses crumple from here' }
+};
+
+/** Short "something changed" animations on HUD parts (skipped when the system asks for reduced motion). */
+const BUMPS = {
+    score: { keyframes: [{ scale: 1 }, { scale: 1.25 }, { scale: 1 }], duration: 250 },
+    combo: { keyframes: [{ scale: 1 }, { scale: 1.45 }, { scale: 1 }], duration: 300 },
+    soiled: {
+        keyframes: [
+            { scale: 1, rotate: '0deg' },
+            { scale: 1.35, rotate: '-14deg' },
+            { scale: 1.2, rotate: '12deg' },
+            { scale: 1, rotate: '0deg' }
+        ],
+        duration: 600
+    },
+    tier: { keyframes: [{ scale: 1 }, { scale: 1.3, color: '#e65100' }, { scale: 1 }], duration: 500 }
+} satisfies Record<string, { keyframes: Keyframe[]; duration: number }>;
+
 /** Gauge colour from green (plenty of time) through yellow to red (empty). */
 export function gaugeColor(share: number): string {
     const s = Math.min(1, Math.max(0, share));
@@ -48,7 +74,9 @@ export class Hud {
     private readonly underpants: HTMLElement[];
     private readonly weightFill: HTMLElement;
     private readonly tier: HTMLElement;
+    private readonly markers: { marker: WeightMarker; label: HTMLElement; tick: HTMLElement }[];
     private readonly shown = new Map<string, string>();
+    private readonly reducedMotion: boolean;
 
     constructor(parent: HTMLElement) {
         this.root = element('div', 'hud', parent);
@@ -75,12 +103,27 @@ export class Hud {
         const weight = element('div', 'hud-weight', this.root);
         weight.setAttribute('aria-label', 'Weight');
         this.tier = element('span', 'hud-tier', weight);
-        const weightTrack = element('span', 'hud-weight-bar', weight);
+        // The bar, with where alleys and streets stop fitting above it and where vehicles start crumpling below it
+        const scale = element('span', 'hud-weight-scale', weight);
+        const above = element('span', 'hud-weight-labels is-fit', scale);
+        const weightTrack = element('span', 'hud-weight-bar', scale);
+        const below = element('span', 'hud-weight-labels is-crush', scale);
         this.weightFill = element('span', 'hud-weight-fill', weightTrack);
-        // Where each girth tier ends, as ticks on the weight bar
-        for (const tier of WEIGHT.tiers.slice(0, -1)) {
-            const tick = element('span', 'hud-weight-tick', weightTrack);
-            tick.style.left = `${tier.maxWeight * 100}%`;
+        this.markers = weightMarkers().map((marker) => {
+            const tick = element('span', `hud-weight-tick is-${marker.kind}`, weightTrack);
+            tick.style.left = `${marker.weight * 100}%`;
+            const label = element('span', `hud-weight-marker is-${marker.kind}`, marker.kind === 'fit' ? above : below);
+            label.style.left = `${marker.weight * 100}%`;
+            label.textContent = MARKER_TEXT[marker.id].label;
+            label.dataset.marker = marker.id;
+            return { marker, label, tick };
+        });
+        this.reducedMotion = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    }
+
+    private bump(el: Element, which: keyof typeof BUMPS): void {
+        if (!this.reducedMotion && typeof el.animate === 'function') {
+            el.animate(BUMPS[which].keyframes, { duration: BUMPS[which].duration, easing: 'ease-out' });
         }
     }
 
@@ -104,20 +147,47 @@ export class Hud {
         });
         this.set('low', String(isLow(urgency)), (v) => this.gauge.classList.toggle('is-low', v === 'true'));
 
-        this.set('score', String(score), (v) => (this.score.textContent = v));
+        this.set('score', String(score), (v) => {
+            const gained = Number(v) > Number(this.score.textContent || 0);
+            this.score.textContent = v;
+            if (gained) {
+                this.bump(this.score, 'score');
+            }
+        });
         this.set('combo', combo > 1 ? `×${combo.toFixed(1)}` : '', (v) => {
             this.combo.textContent = v;
             this.combo.hidden = v === '';
+            if (v !== '') {
+                this.bump(this.combo, 'combo');
+            }
         });
 
         const soiled = URGENCY.underpants - urgency.cleanUnderpants;
         this.set('underpants', String(soiled), (v) => {
-            this.underpants.forEach((icon, i) =>
-                icon.classList.toggle('is-soiled', i >= URGENCY.underpants - Number(v))
-            );
+            this.underpants.forEach((icon, i) => {
+                const now = i >= URGENCY.underpants - Number(v);
+                if (now && !icon.classList.contains('is-soiled')) {
+                    this.bump(icon, 'soiled');
+                }
+                icon.classList.toggle('is-soiled', now);
+            });
         });
 
-        this.set('weight', player.weight.toFixed(3), (v) => (this.weightFill.style.width = `${Number(v) * 100}%`));
-        this.set('tier', girthTierAt(player.weight), (v) => (this.tier.textContent = v));
+        this.set('weight', player.weight.toFixed(3), (v) => {
+            this.weightFill.style.width = `${Number(v) * 100}%`;
+            for (const { marker, label, tick } of this.markers) {
+                const done = passed(marker, Number(v));
+                label.classList.toggle('is-passed', done);
+                tick.classList.toggle('is-passed', done);
+                label.title = MARKER_TEXT[marker.id][done ? 'passed' : 'ahead'];
+            }
+        });
+        this.set('tier', girthTierAt(player.weight), (v) => {
+            const changed = this.tier.textContent !== '' && this.tier.textContent !== v;
+            this.tier.textContent = v;
+            if (changed) {
+                this.bump(this.tier, 'tier');
+            }
+        });
     }
 }

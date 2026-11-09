@@ -36,3 +36,15 @@ export function girthTierAt(w: number): GirthTier {
 export function heightScaleAt(w: number): number {
     return 1 + (BENNY.maxHeightScale - 1) * clampWeight(w);
 }
+
+/**
+ * The heaviest weight at which Benny still fits through a gap `widthMetres` wide (the inverse of `diameterAt`): 0 if
+ * even a slim Benny is too wide, 1 if he always fits.
+ */
+export function maxWeightFitting(widthMetres: number): number {
+    const { baseMetres, gainMetres, exponent } = WEIGHT.diameter;
+    if (widthMetres <= baseMetres) {
+        return 0;
+    }
+    return clampWeight(Math.pow((widthMetres - baseMetres) / gainMetres, 1 / exponent));
+}
