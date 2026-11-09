@@ -111,6 +111,8 @@ const goTo = (next: Screen | 'restart') => {
     }
     screen = next;
     screens.show(screen);
+    // The music stops or starts with the screen at once, not at the next frame (frames can be slow)
+    audio.setMusic(isSimulating(screen) && game.phase !== 'over', musicTempo(game.urgency));
 };
 const menuKeys = new MenuKeys(window, (action) => {
     if (action === 'mute') {

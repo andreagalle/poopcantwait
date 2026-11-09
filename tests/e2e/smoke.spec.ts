@@ -446,6 +446,7 @@ test('plays sound only after a key press, with music during the run and silence 
 
     // Muted: nothing new is scheduled
     await page.keyboard.press('m');
+    await expect(page.locator('.mute-badge')).toBeVisible();
     await page.waitForTimeout(400);
     const muted = await sources();
     await page.waitForTimeout(1500);
@@ -456,6 +457,8 @@ test('plays sound only after a key press, with music during the run and silence 
     const unmuted = await sources();
     await expect.poll(sources, { timeout: 5000 }).toBeGreaterThan(unmuted);
     await page.keyboard.press('Escape');
+    await expect(page.locator('.screen-pause')).toBeVisible();
+    // Notes already scheduled ahead (a fraction of a second) may still start
     await page.waitForTimeout(400);
     const paused = await sources();
     await page.waitForTimeout(1500);
