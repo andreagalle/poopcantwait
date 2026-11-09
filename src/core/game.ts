@@ -196,10 +196,12 @@ export class Game {
         const nav = this.city.nav;
         const here: Point = { x: this.player.x, z: this.player.z };
         const start = nav.canStand(here.x, here.z, diameter) ? here : (nav.nearestStandable(here, diameter) ?? here);
+        // The search writes into the same array every time: twice a second, a fresh 3 MB array would feed the
+        // garbage collector for nothing (nothing keeps the previous distances)
         this.field = {
             time: this.time,
             diameter,
-            distances: nav.pathDistances(start, diameter, NAVIGATION.maxPathMetres)
+            distances: nav.pathDistances(start, diameter, NAVIGATION.maxPathMetres, this.field?.distances)
         };
         this.fieldAge = 0;
     }
