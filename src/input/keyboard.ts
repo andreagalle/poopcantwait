@@ -1,3 +1,4 @@
+import type { FlowAction } from '../core/flow';
 import type { MoveInput } from '../core/player/movement';
 
 /** Arrow keys, screen-relative (design: *Controls*): up moves up the screen (-z), right moves right (+x). */
@@ -56,5 +57,45 @@ export class KeyboardInput {
         this.target.removeEventListener('keyup', this.onKeyUp);
         this.target.removeEventListener('blur', this.onBlur);
         this.pressed.clear();
+    }
+}
+
+/** Menu actions (design: *Controls*): Enter or Space starts and confirms, Escape or P pauses, M mutes. */
+export type MenuAction = Exclude<FlowAction, 'away'> | 'mute';
+
+const MENU_KEYS: Readonly<Record<string, MenuAction>> = {
+    Enter: 'start',
+    ' ': 'start',
+    Escape: 'pause',
+    p: 'pause',
+    P: 'pause',
+    m: 'mute',
+    M: 'mute'
+};
+
+/** Listens for the menu keys only; held keys do not repeat an action, and Space never scrolls the page. */
+export class MenuKeys {
+    private readonly target: Window;
+    private readonly onKeyDown = (event: KeyboardEvent) => {
+        const action = MENU_KEYS[event.key];
+        if (!action) {
+            return;
+        }
+        event.preventDefault();
+        if (!event.repeat) {
+            this.onAction(action);
+        }
+    };
+
+    private readonly onAction: (action: MenuAction) => void;
+
+    constructor(target: Window, onAction: (action: MenuAction) => void) {
+        this.target = target;
+        this.onAction = onAction;
+        target.addEventListener('keydown', this.onKeyDown);
+    }
+
+    dispose(): void {
+        this.target.removeEventListener('keydown', this.onKeyDown);
     }
 }
