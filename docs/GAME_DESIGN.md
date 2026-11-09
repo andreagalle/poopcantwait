@@ -298,6 +298,23 @@ remembered.
 - Volumes (_initial_): master 0.8, effects 0.9, music 0.4. The same effect does not restart within 0.08 s, so a burst
   of honks plays once.
 
+## Game feel
+
+Effects show what happened; they never change the run, and they freeze with the pause.
+
+- **Squash and stretch.** Benny hops once per footstep (_initial_ a step every 0.75 m when slim, 1.1 m at maximum
+  weight): stretched 9% at the top of the hop, squashed 9% as he lands, 0.12 m off the ground, waddling 7 degrees side
+  to side, all at full speed and scaled down as he slows. Standing still he breathes (2.5% at 1.6 Hz); on a low
+  countdown he jiggles nervously (3.5% at 9 Hz). Each bite stretches him 16% for 0.25 s. He keeps his volume (width
+  scale is the inverse square root of the height scale), and never goes below 70% or above 135% of his height.
+- **Camera shake.** Hits add "trauma" (knocked over 0.75, crumpling a vehicle 0.6, an accident 0.4, capped at 1) that
+  drains at 1.8 per second; the camera moves by up to 0.7 m times trauma squared, at about 17 Hz. No shake when the
+  system asks for reduced motion.
+- **Puffs.** Gold crumbs burst out of junk food and green leaves out of vegetables (8 each, 0.4 m); light grey smoke
+  billows from the top of a crumpled vehicle (10 puffs, 1.8 m); dust rises where a vehicle knocks Benny over; during an
+  accident a stink cloud rises around him (a puff every 0.07 s) and a thinner trail follows him for 4 s after. At most
+  40 puffs at once.
+
 ## Art direction
 
 A toy-town diorama: chunky rounded shapes, soft pastel buildings with saturated accents, warm afternoon light, soft

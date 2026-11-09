@@ -377,3 +377,56 @@ export const AUDIO = {
     /** The same sound effect does not start again within this many seconds (a burst of honks plays once). */
     repeatGuardSeconds: 0.08
 } as const;
+
+/**
+ * Game feel (design: *Game feel*): camera shake, Benny's squash and stretch, and puffs of smoke and crumbs. None of it
+ * changes the simulation; it only shows what happened.
+ */
+export const EFFECTS = {
+    shake: {
+        /** Largest camera offset at full trauma, in metres; the offset grows with trauma squared. */
+        maxOffsetMetres: 0.7,
+        /** Trauma lost per second. */
+        decayPerSecond: 1.8,
+        /** How fast the camera shakes, in cycles per second. */
+        frequencyHz: 17,
+        /** Trauma (0 to 1) each event adds. */
+        trauma: { knocked: 0.75, crumple: 0.6, accident: 0.4 }
+    },
+    squash: {
+        /** One hop per footstep: Benny takes a step every this many metres, a little longer when heavy. */
+        stepMetres: { slim: 0.75, heavy: 1.1 },
+        /** Stretch at the top of a hop and squash at the landing, at full speed (share of his height). */
+        runAmplitude: 0.09,
+        /** Hop height at full speed, in metres. */
+        hopMetres: 0.12,
+        /** Side-to-side waddle at full speed, in degrees. */
+        waddleDegrees: 7,
+        /** Breathing jiggle when standing still: share of his height and cycles per second. */
+        idle: { amplitude: 0.025, frequencyHz: 1.6 },
+        /** The nervous jiggle while the countdown is low, standing or running. */
+        nervous: { amplitude: 0.035, frequencyHz: 9 },
+        /** A quick stretch when he eats: how long, in seconds, and how much (share of his height). */
+        eat: { seconds: 0.25, stretch: 0.16 },
+        /** Squash and stretch never go beyond these height shares. */
+        limits: { min: 0.7, max: 1.35 }
+    },
+    puffs: {
+        /** Most puffs on screen at once. */
+        pool: 40,
+        /** Crumbs and leaves fall with this pull, in m/s²; smoke, dust and stink float. */
+        gravity: 12,
+        /** Floating puffs slow down by `e^(-drag * t)` (air drag), per second. */
+        dragPerSecond: 2.5,
+        /** Crumbs bursting out of a bite: count, speed in m/s, size in metres, life in seconds. */
+        bite: { count: 8, speed: 3.5, size: 0.4, lifeSeconds: 0.5 },
+        /** Smoke from a crumpled vehicle. */
+        crumple: { count: 10, speed: 3, size: 1.8, lifeSeconds: 1.2 },
+        /** Dust where a vehicle knocks Benny over. */
+        knocked: { count: 6, speed: 2, size: 0.6, lifeSeconds: 0.6 },
+        /** The stink cloud around Benny during an accident: one puff every this many seconds, rising slowly. */
+        stink: { everySeconds: 0.07, speed: 0.9, size: 0.9, lifeSeconds: 1.3 },
+        /** After an accident a thinner stink trails behind him for this long, one puff every `everySeconds`. */
+        stinkTrail: { seconds: 4, everySeconds: 0.3 }
+    }
+} as const;

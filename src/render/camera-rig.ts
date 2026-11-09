@@ -28,8 +28,16 @@ export class CameraRig {
         this.buildings = buildings;
     }
 
-    /** `benny` is Benny's interpolated position on screen; `dt` the frame time. */
-    update(game: Game, benny: { x: number; z: number }, dt: number): void {
+    /**
+     * `benny` is Benny's interpolated position on screen; `dt` the frame time; `shake` an offset for the camera shake
+     * (the buildings fade for the steady camera, so they do not flicker with it).
+     */
+    update(
+        game: Game,
+        benny: { x: number; z: number },
+        dt: number,
+        shake: { x: number; y: number; z: number } = { x: 0, y: 0, z: 0 }
+    ): void {
         const player = game.player;
         const ahead = lookAhead(player.vx, player.vz);
         const targetX = benny.x + ahead.x;
@@ -48,7 +56,7 @@ export class CameraRig {
         }
 
         const position = cameraPosition({ x: this.focusX, z: this.focusZ }, this.distance);
-        this.camera.setPosition(position.x, position.y, position.z);
+        this.camera.setPosition(position.x + shake.x, position.y + shake.y, position.z + shake.z);
 
         // Lines of sight to Benny's middle, top and sides decide which buildings fade
         const radius = diameterAt(player.weight) / 2;
