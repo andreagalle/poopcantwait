@@ -68,6 +68,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   the score, combo, underpants and tier animate when they change.
 - An end-to-end test that plays a seeded run to a kiosk: it plans the way with the game's own navigation grid, steers
   Benny there with the arrow keys and checks the relief.
+- The GitHub Pages site: a landing page at the root with the idea of the game and of its agentic development, the
+  game under `/gottago/`, and under `/story/` the story of the development from the kickoff prompt on, as full-screen
+  stages that snap one at a time under a HUD (time since the kickoff, merged PRs, the maintainer's messages against
+  the agent's actions, milestones), with screenshots from each milestone.
 
 ### Changed
 

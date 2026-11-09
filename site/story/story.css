@@ -1,0 +1,1150 @@
+/* The story of the development: one full-screen stage at a time, snapped, under a HUD that borrows the game's */
+
+html {
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+}
+
+body.story {
+    overflow-x: hidden;
+}
+
+/* ---------- Stages ---------- */
+
+.stage {
+    --tone: var(--sky);
+
+    position: relative;
+    display: grid;
+    min-height: 100vh;
+    min-height: 100svh;
+    place-items: center;
+    padding: 96px 64px 88px;
+    overflow-x: clip;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    background-color: var(--tone);
+    /* City blocks seen from the camera: a faint street grid */
+    background-image:
+        linear-gradient(rgb(43 33 27 / 0.06) 2px, transparent 2px),
+        linear-gradient(90deg, rgb(43 33 27 / 0.06) 2px, transparent 2px);
+    background-size: 56px 56px;
+    background-position: center;
+}
+
+.tone-rose {
+    --tone: var(--rose);
+}
+.tone-butter {
+    --tone: var(--butter);
+}
+.tone-mint {
+    --tone: var(--mint);
+}
+.tone-sky {
+    --tone: var(--sky);
+}
+.tone-lilac {
+    --tone: var(--lilac);
+}
+.tone-peach {
+    --tone: var(--peach);
+}
+
+/* The human always speaks on pink, so the reader can count the human's turns at a glance */
+.stage--human {
+    --tone: var(--pink);
+}
+
+.stage--human.tone-peach {
+    --tone: var(--peach);
+}
+
+.stage--wait {
+    --tone: var(--night);
+
+    color: var(--night-ink);
+    background-image:
+        radial-gradient(circle at 18% 22%, rgb(255 255 255 / 0.5) 0 1.5px, transparent 2px),
+        radial-gradient(circle at 72% 14%, rgb(255 255 255 / 0.4) 0 1px, transparent 1.5px),
+        radial-gradient(circle at 84% 64%, rgb(255 255 255 / 0.35) 0 1.5px, transparent 2px),
+        radial-gradient(circle at 30% 80%, rgb(255 255 255 / 0.3) 0 1px, transparent 1.5px);
+    background-size: 340px 300px;
+}
+
+.stage-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: 56px;
+    align-items: center;
+    width: min(100%, 1140px);
+}
+
+.stage-inner--solo {
+    grid-template-columns: minmax(0, 1fr);
+    width: min(100%, 760px);
+    gap: 0;
+}
+
+.flip .shot {
+    order: -1;
+}
+
+/* ---------- Cards and text ---------- */
+
+.card {
+    padding: 28px 30px 30px;
+    border: var(--line);
+    border-radius: 22px;
+    background: var(--cream);
+    box-shadow: var(--shadow);
+}
+
+.kicker {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 14px;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.when {
+    color: var(--ink-soft);
+}
+
+.stage--wait .when {
+    color: var(--night-ink);
+}
+
+.tag {
+    display: inline-block;
+    padding: 2px 10px;
+    border: 2px solid var(--ink);
+    border-radius: 999px;
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.tag--agent {
+    background: var(--go);
+}
+
+.tag--human {
+    background: var(--human);
+    color: #ffffff;
+}
+
+.chip {
+    padding: 1px 8px;
+    border: 2px solid var(--ink);
+    border-radius: 8px;
+    background: #ffffff;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.chip:hover,
+.chip:focus-visible {
+    background: var(--gold);
+}
+
+h1,
+h2 {
+    margin: 0;
+    font-weight: 900;
+    letter-spacing: -0.01em;
+}
+
+h2 {
+    font-size: clamp(30px, 4.4vw, 52px);
+    line-height: 1.04;
+}
+
+h1,
+h2,
+.lede,
+.bubble,
+.cover-sub,
+.note {
+    text-wrap: balance;
+}
+
+/* A milestone badge in front of a title */
+.m {
+    display: inline-block;
+    margin-right: 12px;
+    padding: 0 9px;
+    border: 3px solid var(--ink);
+    border-radius: 12px;
+    background: var(--gold);
+    font-size: 0.55em;
+    line-height: 1.5;
+    vertical-align: 0.28em;
+}
+
+.lede {
+    margin: 12px 0 0;
+    font-size: clamp(17px, 1.6vw, 20px);
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.facts {
+    display: grid;
+    gap: 9px;
+    margin: 18px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.facts li {
+    position: relative;
+    padding-left: 28px;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.facts li::before {
+    position: absolute;
+    top: 0.42em;
+    left: 4px;
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--ink);
+    border-radius: 3px;
+    background: var(--go);
+    content: '';
+    rotate: 45deg;
+}
+
+.note {
+    margin: 18px 0 0;
+    color: var(--ink-soft);
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+code,
+kbd {
+    padding: 1px 5px;
+    border-radius: 6px;
+    background: rgb(43 33 27 / 0.08);
+    font-family: var(--mono);
+    font-size: 0.86em;
+}
+
+kbd {
+    border: 2px solid var(--ink);
+    background: #ffffff;
+    font-weight: 800;
+}
+
+sup {
+    font-size: 0.65em;
+}
+
+/* ---------- Screenshots ---------- */
+
+.shot {
+    margin: 0;
+    rotate: 1.4deg;
+}
+
+.flip .shot {
+    rotate: -1.4deg;
+}
+
+.shot img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: var(--line);
+    border-radius: 16px;
+    background: var(--paper);
+    box-shadow: 0 8px 0 var(--ink);
+}
+
+.shot figcaption {
+    width: fit-content;
+    margin: 18px auto 0;
+    padding: 4px 14px;
+    border: 2px solid var(--ink);
+    border-radius: 999px;
+    background: var(--paper);
+    font-size: 14px;
+    font-weight: 800;
+}
+
+/* ---------- The human's words ---------- */
+
+.bubble {
+    position: relative;
+    margin: 0 0 30px;
+    padding: 24px 30px;
+    border: var(--line);
+    border-radius: 30px;
+    background: #ffffff;
+    box-shadow: var(--shadow);
+    font-size: clamp(24px, 3.6vw, 42px);
+    font-weight: 900;
+    line-height: 1.14;
+}
+
+/* The tail of the speech bubble */
+.bubble::after {
+    position: absolute;
+    bottom: -17px;
+    left: 54px;
+    width: 26px;
+    height: 26px;
+    border-right: var(--line);
+    border-bottom: var(--line);
+    background: #ffffff;
+    content: '';
+    rotate: 45deg;
+}
+
+.bubble--big {
+    font-size: clamp(32px, 5.8vw, 72px);
+    line-height: 1.04;
+}
+
+.bubble--small {
+    width: fit-content;
+    margin-left: 12%;
+    font-size: clamp(18px, 2.2vw, 26px);
+}
+
+.reply {
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+    margin: 6px 0 0 auto;
+    padding: 12px 18px;
+    border: var(--line);
+    border-radius: 18px;
+    background: var(--cream);
+    box-shadow: 0 4px 0 var(--ink);
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.reply .tag {
+    margin-right: 10px;
+    vertical-align: 0.12em;
+}
+
+.reply--human {
+    margin: 26px auto 0 0;
+    background: #ffffff;
+}
+
+.chat {
+    display: grid;
+    gap: 14px;
+    margin: 22px 0 28px;
+    padding: 0;
+    list-style: none;
+}
+
+.chat li {
+    width: fit-content;
+    max-width: 100%;
+    padding: 12px 20px;
+    border: var(--line);
+    border-radius: 22px 22px 22px 6px;
+    background: #ffffff;
+    box-shadow: 0 4px 0 var(--ink);
+    font-size: clamp(18px, 2.4vw, 26px);
+    font-weight: 900;
+}
+
+.chat li:nth-child(2) {
+    margin-left: 6%;
+}
+
+.chat li:nth-child(3) {
+    margin-left: 12%;
+}
+
+.chat time {
+    margin-right: 12px;
+    color: var(--human);
+    font-family: var(--mono);
+    font-size: 0.6em;
+}
+
+/* ---------- Waiting ---------- */
+
+.stage--wait .stage-inner {
+    width: min(100%, 900px);
+}
+
+.big-time {
+    margin: 18px 0 8px;
+    color: var(--gold);
+    font-size: clamp(48px, 12vw, 136px);
+    white-space: nowrap;
+    font-weight: 900;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+}
+
+.stage--wait .lede {
+    max-width: 560px;
+}
+
+.stage--wait h2::after {
+    display: inline-block;
+    margin-left: 14px;
+    color: var(--gold);
+    content: 'z z z';
+    font-size: 0.5em;
+    letter-spacing: 0.1em;
+    animation: snore 2.4s ease-in-out infinite;
+}
+
+@keyframes snore {
+    50% {
+        opacity: 0.35;
+        transform: translateY(-8px);
+    }
+}
+
+/* ---------- Roadmap ---------- */
+
+.milestone-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 18px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.milestone-list li {
+    padding: 5px 12px;
+    border: 2px solid var(--ink);
+    border-radius: 999px;
+    background: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.milestone-list b {
+    margin-right: 4px;
+}
+
+/* ---------- Cover ---------- */
+
+.stage--cover {
+    text-align: center;
+}
+
+.stage--cover .stage-inner {
+    width: min(100%, 900px);
+    justify-items: center;
+}
+
+.stage--cover .sticker {
+    margin: 0 0 18px;
+    rotate: -4deg;
+}
+
+.stage--cover h1 {
+    font-size: clamp(60px, 10vw, 136px);
+    line-height: 0.95;
+}
+
+.go {
+    padding: 0 0.08em;
+    background: linear-gradient(transparent 58%, var(--go) 58%, var(--go) 90%, transparent 90%);
+}
+
+.cover-sub {
+    max-width: 640px;
+    margin: 18px 0 0;
+    font-size: clamp(19px, 2.2vw, 26px);
+    font-weight: 800;
+    line-height: 1.3;
+}
+
+.cover-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    width: 100%;
+    margin: 30px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.cover-stats li {
+    padding: 14px 10px;
+    border: var(--line);
+    border-radius: 18px;
+    background: var(--cream);
+    box-shadow: 0 5px 0 var(--ink);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.cover-stats b {
+    display: block;
+    font-size: clamp(30px, 4vw, 44px);
+    font-weight: 900;
+    line-height: 1.1;
+}
+
+.cover-stats li:first-child b {
+    color: var(--human);
+}
+
+.cover-stats li:nth-child(2) b {
+    color: var(--go-dark);
+}
+
+.cover-small {
+    max-width: 620px;
+    margin: 22px 0 0;
+    color: var(--ink-soft);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.scroll-hint {
+    margin: 26px 0 0;
+    font-size: 15px;
+    font-weight: 800;
+    animation: nudge 1.6s ease-in-out infinite;
+}
+
+@keyframes nudge {
+    50% {
+        transform: translateY(6px);
+    }
+}
+
+/* ---------- Totals ---------- */
+
+.stage--numbers h2 {
+    margin-bottom: 22px;
+    text-align: center;
+}
+
+.versus {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.side {
+    overflow: hidden;
+    border: var(--line);
+    border-radius: 20px;
+    background: var(--cream);
+    box-shadow: var(--shadow);
+}
+
+.side-title {
+    margin: 0;
+    padding: 8px 18px;
+    border-bottom: var(--line);
+    font-size: 15px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.side--human .side-title {
+    background: var(--human);
+    color: #ffffff;
+}
+
+.side--agent .side-title {
+    background: var(--go);
+}
+
+.side ul {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 16px 18px 18px;
+    list-style: none;
+}
+
+.side li {
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.side li b {
+    margin-right: 6px;
+    font-size: 26px;
+    font-weight: 900;
+}
+
+.ratio {
+    position: relative;
+    display: flex;
+    height: 34px;
+    margin-top: 26px;
+    overflow: hidden;
+    border: var(--line);
+    border-radius: 999px;
+    background: var(--go);
+}
+
+.ratio-human {
+    width: var(--human-share, 1.5%);
+    min-width: 6px;
+    border-right: var(--line);
+    background: var(--human);
+}
+
+.ratio-label {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.stage--numbers .note {
+    text-align: center;
+}
+
+/* ---------- The end ---------- */
+
+.stage--end .card {
+    text-align: left;
+}
+
+.end-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 26px;
+}
+
+/* ---------- HUD ---------- */
+
+.hud {
+    position: fixed;
+    right: 14px;
+    left: 14px;
+    z-index: 20;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    pointer-events: none;
+    transition:
+        transform 0.4s cubic-bezier(0.3, 1.3, 0.5, 1),
+        opacity 0.3s ease;
+}
+
+.hud--top {
+    top: 14px;
+}
+
+.hud--bottom {
+    bottom: 14px;
+    justify-content: flex-start;
+}
+
+.at-cover .hud--top {
+    opacity: 0;
+    transform: translateY(-130%);
+}
+
+.at-cover .hud--bottom {
+    opacity: 0;
+    transform: translateY(130%);
+}
+
+.hud-panel {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 12px;
+    border: var(--line);
+    border-radius: 16px;
+    background: var(--cream);
+    box-shadow: 0 4px 0 var(--ink);
+    color: var(--ink);
+    font-weight: 800;
+}
+
+.hud-icon {
+    width: 28px;
+    height: 28px;
+    flex: none;
+}
+
+.hud-clock-text {
+    display: grid;
+    min-width: 7.4em;
+}
+
+.hud-t {
+    font-size: 22px;
+    line-height: 1.05;
+    font-variant-numeric: tabular-nums;
+}
+
+.hud-when {
+    color: var(--ink-soft);
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.hud-bar {
+    width: 110px;
+    height: 14px;
+    overflow: hidden;
+    border: 2px solid var(--ink);
+    border-radius: 999px;
+    background: #ffffff;
+}
+
+.hud-bar-fill {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: var(--go);
+    transition: width 0.6s ease;
+}
+
+.hud-label {
+    color: var(--ink-soft);
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.hud-prs {
+    flex-direction: column;
+    gap: 0;
+    min-width: 64px;
+    padding: 4px 14px;
+}
+
+.hud-prs b {
+    font-size: 24px;
+    line-height: 1.05;
+    font-variant-numeric: tabular-nums;
+}
+
+.hud-who {
+    gap: 16px;
+}
+
+.hud-col {
+    display: grid;
+    gap: 2px;
+}
+
+.hud-human {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.hud-pips {
+    display: flex;
+    gap: 3px;
+}
+
+.pip {
+    width: 9px;
+    height: 14px;
+    border: 2px solid var(--ink);
+    border-radius: 3px;
+    background: #ffffff;
+    transition: background-color 0.3s ease;
+}
+
+.pip.on {
+    background: var(--human);
+}
+
+.hud-human-n,
+.hud-agent-n {
+    min-width: 2ch;
+    font-size: 22px;
+    line-height: 1.05;
+    font-variant-numeric: tabular-nums;
+}
+
+.hud-human-n {
+    color: var(--human);
+}
+
+.hud-agent-n {
+    min-width: 3ch;
+    color: var(--go-dark);
+}
+
+.hud-phase {
+    gap: 12px;
+}
+
+.hud-phase-name {
+    min-width: 11.5em;
+    font-size: 15px;
+    white-space: nowrap;
+}
+
+.hud-milestones {
+    display: flex;
+    gap: 3px;
+}
+
+.seg {
+    display: grid;
+    width: 28px;
+    height: 18px;
+    place-items: center;
+    border: 2px solid var(--ink);
+    border-radius: 5px;
+    background: #ffffff;
+    font-size: 9px;
+    font-weight: 900;
+    transition: background-color 0.3s ease;
+}
+
+.seg.done {
+    background: var(--go);
+}
+
+.seg.partial {
+    background: repeating-linear-gradient(45deg, var(--gold) 0 4px, #ffffff 4px 8px);
+}
+
+/* ---------- Stage dots ---------- */
+
+.dots {
+    position: fixed;
+    top: 50%;
+    right: 16px;
+    z-index: 20;
+    display: grid;
+    gap: 7px;
+    translate: 0 -50%;
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    padding: 0;
+    border: 2px solid var(--ink);
+    border-radius: 50%;
+    background: var(--cream);
+    cursor: pointer;
+    transition: scale 0.2s ease;
+}
+
+.dot--human {
+    background: var(--human);
+}
+
+.dot--wait {
+    background: var(--night);
+}
+
+.dot:hover,
+.dot:focus-visible {
+    scale: 1.35;
+}
+
+.dot[aria-current='step'] {
+    background: var(--gold);
+    scale: 1.55;
+}
+
+/* ---------- Reveal ---------- */
+
+.js .stage .card,
+.js .stage .shot,
+.js .stage .bubble,
+.js .stage .reply,
+.js .stage .chat li,
+.js .stage .big-time,
+.js .stage .versus,
+.js .stage .ratio {
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+        opacity 0.5s ease,
+        transform 0.6s cubic-bezier(0.2, 1.25, 0.4, 1);
+}
+
+.js .stage .shot {
+    transition-delay: 0.12s;
+}
+
+.js .stage .bubble--small,
+.js .stage .reply,
+.js .stage .ratio {
+    transition-delay: 0.3s;
+}
+
+.js .stage .chat li {
+    transition-delay: calc(var(--i, 0) * 0.25s + 0.1s);
+}
+
+.js .stage .facts li {
+    opacity: 0;
+    transform: translateX(-12px);
+    transition:
+        opacity 0.4s ease,
+        transform 0.4s ease;
+    transition-delay: calc(var(--i, 0) * 0.07s + 0.2s);
+}
+
+.js .stage.is-seen .card,
+.js .stage.is-seen .shot,
+.js .stage.is-seen .bubble,
+.js .stage.is-seen .reply,
+.js .stage.is-seen .chat li,
+.js .stage.is-seen .big-time,
+.js .stage.is-seen .versus,
+.js .stage.is-seen .ratio,
+.js .stage.is-seen .facts li {
+    opacity: 1;
+    transform: none;
+}
+
+/* ---------- Smaller screens ---------- */
+
+@media (max-width: 1100px) {
+    .dots {
+        right: 8px;
+        gap: 5px;
+    }
+
+    .dot {
+        width: 9px;
+        height: 9px;
+    }
+}
+
+@media (max-width: 860px) {
+    .stage {
+        padding: 78px 16px 70px;
+        background-size: 40px 40px;
+    }
+
+    .stage-inner {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 24px;
+    }
+
+    .flip .shot {
+        order: 0;
+    }
+
+    .shot {
+        width: min(100%, 520px);
+        justify-self: center;
+    }
+
+    .card {
+        padding: 20px 18px 22px;
+    }
+
+    .facts li {
+        font-size: 15px;
+    }
+
+    .shot figcaption {
+        margin-top: 12px;
+        font-size: 13px;
+    }
+
+    .bubble {
+        padding: 18px 20px;
+        border-radius: 24px;
+    }
+
+    .bubble--small {
+        margin-left: 0;
+    }
+
+    .reply {
+        font-size: 15px;
+    }
+
+    .cover-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .versus {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px;
+    }
+
+    .side ul {
+        padding: 12px 16px 14px;
+        gap: 6px;
+    }
+
+    .side li b {
+        font-size: 22px;
+    }
+
+    .dots {
+        display: none;
+    }
+
+    .hud {
+        right: 10px;
+        left: 10px;
+        gap: 6px;
+    }
+
+    .hud--top {
+        top: 10px;
+    }
+
+    .hud--bottom {
+        bottom: 10px;
+    }
+
+    .hud-panel {
+        gap: 8px;
+        padding: 5px 9px;
+        border-radius: 13px;
+    }
+
+    .hud-when,
+    .hud-pips {
+        display: none;
+    }
+
+    .hud-clock-text {
+        min-width: 4.6em;
+    }
+
+    .hud-icon {
+        width: 22px;
+        height: 22px;
+    }
+
+    .hud-t,
+    .hud-prs b,
+    .hud-human-n,
+    .hud-agent-n {
+        font-size: 18px;
+    }
+
+    .hud-bar {
+        width: 54px;
+        height: 12px;
+    }
+
+    .hud-prs {
+        min-width: 48px;
+        padding: 3px 10px;
+    }
+
+    .hud-label {
+        font-size: 9px;
+    }
+
+    .hud-who {
+        gap: 10px;
+    }
+
+    .hud-phase-name {
+        min-width: 0;
+        font-size: 13px;
+    }
+
+    .seg {
+        width: 20px;
+        height: 15px;
+        font-size: 0;
+    }
+}
+
+@media (max-width: 400px) {
+    .hud-bar {
+        display: none;
+    }
+
+    .hud-phase {
+        flex-wrap: wrap;
+        row-gap: 4px;
+    }
+}
+
+/* Short desktop windows: tighten the type so a stage still fits one screen */
+@media (min-width: 861px) and (max-height: 760px) {
+    .stage {
+        padding-top: 84px;
+        padding-bottom: 72px;
+    }
+
+    h2 {
+        font-size: clamp(28px, 3.6vw, 42px);
+    }
+
+    .facts li {
+        font-size: 15px;
+    }
+
+    .bubble--big {
+        font-size: clamp(30px, 4.6vw, 58px);
+    }
+
+    .stage--cover h1 {
+        font-size: clamp(56px, 9vw, 112px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    .scroll-hint,
+    .stage--wait h2::after {
+        animation: none;
+    }
+
+    .js .stage *,
+    .hud {
+        transition: none !important;
+        transform: none !important;
+    }
+
+    .js .stage .card,
+    .js .stage .shot,
+    .js .stage .bubble,
+    .js .stage .reply,
+    .js .stage .chat li,
+    .js .stage .big-time,
+    .js .stage .versus,
+    .js .stage .ratio,
+    .js .stage .facts li {
+        opacity: 1;
+    }
+}
