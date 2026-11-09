@@ -1,49 +1,13 @@
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import type { AppBase, Entity } from 'playcanvas';
+import type { Entity } from 'playcanvas';
 
 import { CAMERA, WEIGHT } from '../../src/config/tuning';
 
-declare global {
-    // Filled by the devtools hook of the inspect-runtime skill: every live PlayCanvas app (engine 2.23+)
-    var __playcanvasApps: Map<AppBase, unknown> | undefined;
-    // Filled by the audio probe of the audio test: the audio contexts the page made and the sound sources it started
-    var __audioProbe: { contexts: AudioContext[]; sources: number } | undefined;
-}
+import { openGame, SCREENSHOT_DIR } from './helpers';
 
-const DEVTOOLS_HOOK = path.resolve(
-    path.dirname(fileURLToPath(import.meta.url)),
-    '../../.claude/skills/inspect-runtime/scripts/devtools-hook.js'
-);
-
-const SCREENSHOT_DIR = 'tmp/screenshots';
 /** AGENTS.md, Testing and verification: under 300 draw calls in a busy scene. */
 const DRAW_CALL_BUDGET = 300;
-
-/**
- * Opens the game, collects console errors and uncaught exceptions while the test runs, and starts the run from the
- * title screen unless `start` is false.
- */
-async function openGame(page: Page, query = '', start = true): Promise<string[]> {
-    const errors: string[] = [];
-    page.on('console', (message) => {
-        if (message.type() === 'error') {
-            errors.push(message.text());
-        }
-    });
-    page.on('pageerror', (error) => errors.push(error.message));
-    await page.addInitScript({ path: DEVTOOLS_HOOK });
-    await page.goto(`./${query}`);
-    await page.waitForFunction(() => (globalThis.__playcanvasApps?.size ?? 0) > 0);
-    if (start) {
-        await page.keyboard.press('Enter');
-        await expect(page.locator('.screen-title')).toBeHidden();
-    }
-    return errors;
-}
 
 /**
  * Copies the canvas right after a rendered frame, before the browser clears the WebGL drawing buffer, and measures how
