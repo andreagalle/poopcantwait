@@ -25,7 +25,7 @@ The maintainer tests `dev` locally and merges the release PR into `master` by ha
 Use it only when the maintainer asks for a versioned release.
 
 1. Follow `/feature` steps 1-2 with the branch `chore/release-v<x.y.z>`.
-2. In `CHANGELOG.md`, rename `## [Unreleased]` to `## [<x.y.z>] - <YYYY-MM-DD>` and add a new empty `## [Unreleased]` above it. Set `"version": "<x.y.z>"` in `package.json` with `npm version <x.y.z> --no-git-tag-version`.
+2. In `CHANGELOG.md`, rename `## [Unreleased]` to `## [<x.y.z>] - <YYYY-MM-DD>` and add a new empty `## [Unreleased]` above it. Set `"version": "<x.y.z>"` in `package.json` with `npm version <x.y.z> --no-git-tag-version`. Add a stage for the release to the story and refresh `site/stats.json` (`AGENTS.md`, _The story page_).
 3. Commit as `chore(release): v<x.y.z>`, push, open the PR into `dev`, wait for green checks, merge it with `--squash --delete-branch`.
 4. Run the default mode above with the title `release: v<x.y.z>`.
 5. Remind the maintainer to run the task *Release: tag master after merging* once the release PR is merged.

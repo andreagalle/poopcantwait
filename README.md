@@ -5,7 +5,9 @@ it is too late. Eat junk food for points, dodge vegetables, flatten traffic once
 
 Built with the [PlayCanvas Engine](https://playcanvas.com/) (TypeScript and Vite) and published on GitHub Pages.
 
-**Play:** <https://andreagalle.github.io/poopcantwait/> (available after the first release)
+**Play:** <https://andreagalle.github.io/poopcantwait/gottago/> · **The story of how an AI agent built it:**
+<https://andreagalle.github.io/poopcantwait/story/> · Both start from <https://andreagalle.github.io/poopcantwait/>
+(available after the first release)
 
 ## How to play
 
@@ -28,10 +30,11 @@ Elsewhere, you need Node.js 22.23.2 or later.
 
 ```sh
 npm ci
-npm run dev       # dev server on port 5173
+npm run dev       # the game's dev server on port 5173
+npm run dev:site  # the landing page and the story, on port 5174
 npm run check     # types, lint, format, unit tests
-npm run build     # production build into dist/
-npm run start     # serve dist/ on port 4173
+npm run build     # production build into dist/ (the game in dist/gottago/)
+npm run start     # serve dist/ on port 4173: landing at /, the game at /gottago/, the story at /story/
 npm run test:e2e  # end-to-end smoke tests (first run: npx playwright install chromium)
 ```
 

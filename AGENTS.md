@@ -7,7 +7,8 @@ Instructions for AI coding agents working in this repository. `CLAUDE.md` import
 **Gotta Go!** is a 3D arcade game for the browser. A plush toy man races through a city, seen from above in
 perspective, to reach a free public toilet before he has an accident, eating junk food for points on the way and
 growing fatter, slower and wider as he does. It is built with the **PlayCanvas Engine** used standalone (TypeScript,
-Vite, no PlayCanvas Editor) and published as a static site on **GitHub Pages** from `master`.
+Vite, no PlayCanvas Editor) and published as a static site on **GitHub Pages** from `master`: a landing page at the
+root, the game under `/gottago/` and the story of its development under `/story/` (see _The story page_).
 
 An AI agent does the development in a GitHub Codespace. The maintainer reviews, tests `dev` locally and releases.
 
@@ -52,8 +53,9 @@ CI, the VS Code tasks and the slash commands rely on these script names. Keep th
 | Script                      | What it does                                                                        |
 | --------------------------- | ----------------------------------------------------------------------------------- |
 | `npm run dev`               | Vite dev server with hot reload and the PlayCanvas Inspector (no browser auto-open) |
-| `npm run build`             | Production build into `dist/` (relative URLs, works under the Pages subpath)        |
-| `npm run start`             | Serves `dist/` with `vite preview` (no browser auto-open)                           |
+| `npm run dev:site`          | Vite dev server for the landing page and the story (port 5174, no game)             |
+| `npm run build`             | Production build: the site into `dist/`, then the game into `dist/gottago/`         |
+| `npm run start`             | Serves `dist/` with `vite preview`: landing at `/`, `/gottago/`, `/story/`          |
 | `npm run typecheck`         | `tsc --noEmit`                                                                      |
 | `npm run lint` / `lint:fix` | ESLint                                                                              |
 | `npm run fmt` / `fmt:fix`   | Prettier check / write                                                              |
@@ -62,6 +64,8 @@ CI, the VS Code tasks and the slash commands rely on these script names. Keep th
 | `npm run check`             | `typecheck`, `lint`, `fmt` and `test`, in that order                                |
 | `npm run assets:optimize`   | Optimizes a raw GLB or image into `public/assets/` (`scripts/assets/optimize.mjs`)  |
 | `npm run assets:image`      | Generates a 2D image through OpenRouter (`scripts/assets/gen-image.mjs`), paid      |
+| `npm run story:stats`       | Prints the story's numbers from the local session transcripts and `gh`              |
+| `npm run story:shot`        | Turns a screenshot into a WebP under `site/story/shots/`                            |
 
 Slash commands in `.claude/commands/`: `/feature`, `/release-pr`, `/asset`.
 
@@ -93,8 +97,13 @@ src/
   assets/registry.ts   typed asset ids mapped to relative URLs under ./assets/
   input/keyboard.ts    arrow keys for gameplay; Enter, Space, Escape, P and M for menus only
   debug/               ?debug=1 maps and readouts, and the dev-only PlayCanvas Inspector
-tests/e2e/             Playwright smoke tests and a scripted seeded run (shared helpers in helpers.ts)
+site/                  the Pages site around the game, its own Vite config (site/vite.config.ts)
+  index.html           landing page: the idea in two lines, Play and Read the story
+  story/               the story of the development: index.html (one section per stage), story.ts, shots/
+  stats.json           running totals both pages show ({{name}} placeholders in their HTML)
+tests/e2e/             Playwright smoke tests, a scripted seeded run, the site (shared helpers in helpers.ts)
 scripts/assets/        asset pipeline scripts (Node, no runtime dependency)
+scripts/site/          story helpers: story-stats.mjs (the numbers), shot.mjs (screenshots)
 art/                   asset provenance (manifest.json) and git-ignored raw generations (raw/)
 public/assets/         optimized, committed runtime assets
 ```
@@ -173,7 +182,8 @@ coding agents. Use them rather than recalling the engine API from memory:
   to start headless, launch Chromium with `--use-angle=swiftshader --enable-unsafe-swiftshader`.
 - Vite must accept the forwarded host: set `server.allowedHosts` and `preview.allowedHosts` to include
   `.app.github.dev`, and set `server.hmr.clientPort` to `443` when `process.env.CODESPACES` is set.
-- The maintainer previews on ports 5173 (dev) and 4173 (production preview) through the VS Code tasks.
+- The maintainer previews on ports 5173 (dev, the game only) and 4173 (production preview, which opens on the landing
+  page: the game is at `/gottago/`) through the VS Code tasks.
 
 ## Testing and verification
 
@@ -188,6 +198,31 @@ coding agents. Use them rather than recalling the engine API from memory:
 - **Performance budget.** 60 fps on a mid-range laptop; under 300 draw calls in a busy scene; initial download under
   15 MB (report the `dist/` size in the PR when it changes by more than 10%).
 
+## The story page
+
+`/story/` tells how the game is being built, from the kickoff prompt to the latest merge, as full-screen stages that
+snap one at a time under a HUD borrowed from the game: time since the kickoff, merged PRs, the maintainer's messages
+against the agent's actions, finished milestones. Its point is to show how agentic the development is and how little
+supervision it takes, so **keep it current as part of the work, not as an afterthought**:
+
+- **When to add a stage.** When a milestone (or a part of one) closes, when an asset set lands, when a release is cut,
+  and whenever the maintainer sends a message that changes what happens next. Routine fixes do not need one. Add it in
+  the PR that does the work, or in a `docs/story-*` PR right after, before reporting to the maintainer.
+- **Where.** `site/story/index.html`, one `<section class="stage">` per stage, in time order, just before the two
+  closing stages (`#who-did-what` and `#next`), which stay last and get updated. Copy the attributes of a neighbouring
+  stage: `id`, `data-when`, `data-t`, `data-human`, `data-agent`, `data-prs`, `data-phase`, `data-done` (the comment at
+  the top of the file explains them), and the `stage--agent` or `stage--human` class with a `tone-*` colour.
+- **The numbers.** Run `npm run story:stats` in the Codespace: it lists every maintainer message and merged PR with
+  the agent's tool calls up to that moment. Use its values in the stage, and update the totals in `site/stats.json`.
+  If the transcripts are not available (another machine), say so in the PR and leave the counts you cannot measure.
+- **The words.** English, short: a title of a few words, at most one line of lede, two to four facts with real numbers
+  (tuning values, timings, sizes). Quote the maintainer briefly, translated from Italian, never more than they wrote.
+  Never put secrets, keys, costs of the maintainer's account or anything private on the page.
+- **A picture.** For a visible change, capture a screenshot into `tmp/screenshots/`, convert it with
+  `npm run story:shot -- tmp/screenshots/<file>.png <name>` and add it as a `<figure class="shot">`. Check the page
+  at desktop and phone width, and run `npm run test:e2e` (`tests/e2e/site.spec.ts` checks the stages, the HUD and
+  every screenshot).
+
 ## Definition of done
 
 A change is done when all of these hold:
@@ -197,5 +232,7 @@ A change is done when all of these hold:
 - [ ] The game runs with no console errors or warnings you introduced.
 - [ ] Tuning values are in `src/config/tuning.ts` and `docs/GAME_DESIGN.md` agrees with them.
 - [ ] `CHANGELOG.md` has a line under `## [Unreleased]`.
+- [ ] If it closes a milestone, lands assets, cuts a release or answers a new request from the maintainer, the story
+      (`site/story/`) has a stage for it and `site/stats.json` is current (_The story page_).
 - [ ] New assets are in `art/manifest.json`, within budget, with their license noted.
 - [ ] The PR description says how to see the change in the game and lists anything you could not verify.

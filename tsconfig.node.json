@@ -4,5 +4,5 @@
         // Config files and end-to-end tests run in Node; their page.evaluate() callbacks run in the browser
         "types": ["node"]
     },
-    "include": ["vite.config.ts", "vitest.config.ts", "playwright.config.ts", "tests"]
+    "include": ["vite.config.ts", "site/vite.config.ts", "vitest.config.ts", "playwright.config.ts", "tests"]
 }
