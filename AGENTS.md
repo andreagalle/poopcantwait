@@ -80,13 +80,20 @@ src/
     food/              food spawner and effects
     traffic/           lanes, vehicles, collision outcomes
     score/             scoring, combos, high score
+    audio/             which event plays which sound, tummy rumble timing, music tempo
+    fx/                squash and stretch, camera shake, puffs (presentation rules, still pure)
+    sim/               the fixed-step accumulator
+    flow.ts            title, running, paused and game-over screens and their transitions
+    params.ts          URL parameters (?seed, ?debug, ?weight, ?countdown)
     game.ts            the simulation: fixed-step update of all systems, game states
+  audio/               Web Audio: synthesized sound effects, the music loop, mute
   game/                PlayCanvas glue: entities, scripts and views that mirror core state
   render/              camera rig, materials, lighting, effects, building occlusion fading
   ui/                  HUD and menus as a DOM overlay (HTML and CSS) above the canvas
   assets/registry.ts   typed asset ids mapped to relative URLs under ./assets/
   input/keyboard.ts    arrow keys for gameplay; Enter, Space, Escape, P and M for menus only
-tests/e2e/             Playwright smoke tests
+  debug/               ?debug=1 maps and readouts, and the dev-only PlayCanvas Inspector
+tests/e2e/             Playwright smoke tests and a scripted seeded run (shared helpers in helpers.ts)
 scripts/assets/        asset pipeline scripts (Node, no runtime dependency)
 art/                   asset provenance (manifest.json) and git-ignored raw generations (raw/)
 public/assets/         optimized, committed runtime assets
