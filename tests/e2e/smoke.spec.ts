@@ -10,6 +10,8 @@ import { CAMERA, WEIGHT } from '../../src/config/tuning';
 declare global {
     // Filled by the devtools hook of the inspect-runtime skill: every live PlayCanvas app (engine 2.23+)
     var __playcanvasApps: Map<AppBase, unknown> | undefined;
+    // Filled by the audio probe of the audio test: the audio contexts the page made and the sound sources it started
+    var __audioProbe: { contexts: AudioContext[]; sources: number } | undefined;
 }
 
 const DEVTOOLS_HOOK = path.resolve(
@@ -403,5 +405,60 @@ test('starts on the title screen, pauses with Escape and P, and remembers mute',
     await page.reload();
     await expect(page.locator('.mute-badge')).toBeVisible();
     await page.screenshot({ path: `${SCREENSHOT_DIR}/smoke-title.png` });
+    expect(errors).toEqual([]);
+});
+
+test('plays sound only after a key press, with music during the run and silence when muted or paused', async ({
+    page
+}) => {
+    // Count the audio contexts and the sound sources (oscillators and noise) the game creates
+    await page.addInitScript(() => {
+        const probe = { contexts: [] as AudioContext[], sources: 0 };
+        globalThis.__audioProbe = probe;
+        const Original = globalThis.AudioContext;
+        globalThis.AudioContext = class extends Original {
+            constructor(options?: AudioContextOptions) {
+                super(options);
+                probe.contexts.push(this);
+            }
+            override createOscillator(): OscillatorNode {
+                probe.sources++;
+                return super.createOscillator();
+            }
+            override createBufferSource(): AudioBufferSourceNode {
+                probe.sources++;
+                return super.createBufferSource();
+            }
+        };
+    });
+    const errors = await openGame(page, '?seed=42', false);
+    const sources = () => page.evaluate(() => globalThis.__audioProbe!.sources);
+
+    // Browser autoplay rules: no audio before the first key press
+    await page.waitForTimeout(500);
+    expect(await page.evaluate(() => globalThis.__audioProbe!.contexts.length)).toBe(0);
+
+    await page.keyboard.press('Enter');
+    await expect.poll(() => page.evaluate(() => globalThis.__audioProbe!.contexts[0]?.state)).toBe('running');
+    // The music loop plays during the run
+    const started = await sources();
+    await expect.poll(sources, { timeout: 5000 }).toBeGreaterThan(started + 4);
+
+    // Muted: nothing new is scheduled
+    await page.keyboard.press('m');
+    await page.waitForTimeout(400);
+    const muted = await sources();
+    await page.waitForTimeout(1500);
+    expect(await sources()).toBe(muted);
+
+    // Unmuted, the music comes back; paused, it stops again
+    await page.keyboard.press('m');
+    const unmuted = await sources();
+    await expect.poll(sources, { timeout: 5000 }).toBeGreaterThan(unmuted);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(400);
+    const paused = await sources();
+    await page.waitForTimeout(1500);
+    expect(await sources()).toBe(paused);
     expect(errors).toEqual([]);
 });

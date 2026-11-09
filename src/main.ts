@@ -9,7 +9,9 @@ import {
     createGraphicsDevice
 } from 'playcanvas';
 
+import { GameAudio } from './audio/game-audio';
 import { COLLISIONS, FOOD, SIMULATION } from './config/tuning';
+import { cueFor, initialRumble, musicTempo, tickRumble } from './core/audio/director';
 import { BuildingIndex } from './core/camera';
 import { generateCity } from './core/city/generate';
 import type { Screen } from './core/flow';
@@ -98,6 +100,9 @@ let screen: Screen = 'title';
 let muted = loadMuted();
 screens.show(screen);
 screens.showMuted(muted);
+// Sound starts with the first key press (browser autoplay rules); M mutes it
+const audio = new GameAudio(window, muted);
+let rumble = initialRumble();
 const goTo = (next: Screen | 'restart') => {
     if (next === 'restart') {
         // A new run: the same city with ?seed, a new one otherwise
@@ -112,6 +117,7 @@ const menuKeys = new MenuKeys(window, (action) => {
         muted = !muted;
         saveMuted(muted);
         screens.showMuted(muted);
+        audio.setMuted(muted);
     } else {
         goTo(nextScreen(screen, action));
     }
@@ -134,6 +140,13 @@ const onUpdate = (dt: number) => {
     for (let i = 0; i < steps; i++) {
         game.step(input.direction());
     }
+    if (steps > 0) {
+        const tummy = tickRumble(rumble, game.urgency, game.phase === 'playing', steps * game.stepSeconds);
+        rumble = tummy.state;
+        if (tummy.rumble) {
+            audio.play('rumble');
+        }
+    }
     for (const honk of game.drainHonks()) {
         floatText(document.body, camera.camera!, honk.x, honk.z, 'Honk!', 'bad');
     }
@@ -147,6 +160,10 @@ const onUpdate = (dt: number) => {
         }
     }
     for (const event of game.drainEvents()) {
+        const cue = cueFor(event);
+        if (cue) {
+            audio.play(cue);
+        }
         if (event === 'knocked') {
             const shock = COLLISIONS.shockCountdownPenaltySeconds;
             floatText(document.body, camera.camera!, game.player.x, game.player.z, `-${shock} s`, 'bad');
@@ -160,6 +177,7 @@ const onUpdate = (dt: number) => {
             showGameOver(document.body, { score: game.score.points, ...record });
         }
     }
+    audio.setMusic(isSimulating(screen) && game.phase !== 'over', musicTempo(game.urgency));
     bennyView.update(game, stepper.alpha);
     const position = bennyView.entity.getPosition();
     cameraRig.update(game, { x: position.x, z: position.z }, dt);
@@ -177,6 +195,7 @@ onUpdate(0);
 app.on('destroy', () => {
     input.dispose();
     menuKeys.dispose();
+    audio.dispose();
     window.removeEventListener('blur', onAway);
     document.removeEventListener('visibilitychange', onVisibility);
 });
