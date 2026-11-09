@@ -210,6 +210,19 @@ test('moves Benny with the arrow keys, diagonals included, without scrolling the
     expect(right.x - diagonal.x).toBeGreaterThan(1);
     expect(diagonal.z - right.z).toBeGreaterThan(1);
 
+    // He hops as he runs (squash and stretch on the benny-pose node; the benny entity keeps his true size)
+    await page.keyboard.down('ArrowUp');
+    await page.waitForFunction(
+        () => {
+            const app = [...globalThis.__playcanvasApps!.keys()][0]!;
+            const pose = app.root.findByName('benny-pose') as Entity;
+            return pose.getLocalPosition().y > 0.02 && Math.abs(pose.getLocalScale().y - 1) > 0.01;
+        },
+        null,
+        { timeout: 30_000, polling: 50 }
+    );
+    await page.keyboard.up('ArrowUp');
+
     const scrolled = await page.evaluate(() => window.scrollX + window.scrollY);
     expect(scrolled).toBe(0);
     await page.screenshot({ path: `${SCREENSHOT_DIR}/smoke-moved.png` });
@@ -265,6 +278,16 @@ test('runs out of underpants after five accidents, and Enter starts again', asyn
     // Best scores from earlier runs in this browser
     await page.addInitScript(() => window.localStorage.setItem('gotta-go.high-scores', '[900, 400]'));
     const errors = await openGame(page, '?seed=42&countdown=1&debug=1');
+    // An accident raises a stink cloud of puffs around Benny
+    await page.waitForFunction(
+        () => {
+            const app = [...globalThis.__playcanvasApps!.keys()][0]!;
+            return app.root.find((e) => e.name.startsWith('puff-') && (e as Entity).enabled).length >= 5;
+        },
+        null,
+        { timeout: 60_000, polling: 100 }
+    );
+    await page.screenshot({ path: `${SCREENSHOT_DIR}/smoke-stink.png` });
     const gameOver = page.locator('.game-over');
     await expect(gameOver).toBeVisible({ timeout: 200_000 });
     await expect(gameOver).toContainText('Out of underpants!');

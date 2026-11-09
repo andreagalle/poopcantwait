@@ -24,6 +24,7 @@ import { PlayerDebug } from './debug/player-debug';
 import { BennyView } from './game/benny-view';
 import { FoodView } from './game/food-view';
 import { addBennyStandIn } from './game/greybox';
+import { Juice } from './game/juice';
 import { KioskView } from './game/kiosk-view';
 import { PopupView } from './game/popup-view';
 import { VehicleView } from './game/vehicle-view';
@@ -86,6 +87,7 @@ const kioskView = new KioskView(app, city);
 const popupView = new PopupView(app);
 const foodView = new FoodView(app);
 const vehicleView = new VehicleView(app);
+const juice = new Juice(app);
 const camera = createGameCamera(app);
 const cameraRig = new CameraRig(camera, cityView, new BuildingIndex(city.buildings));
 
@@ -156,6 +158,8 @@ const onUpdate = (dt: number) => {
         floatText(document.body, camera.camera!, gain.x, gain.z, `+${gain.points}`, 'good');
     }
     for (const bite of game.drainEaten()) {
+        juice.onBite(bite);
+        bennyView.bite();
         if (bite.kind.category === 'vegetable') {
             const seconds = FOOD.vegetables[bite.kind.id].countdownPenaltySeconds;
             floatText(document.body, camera.camera!, bite.x, bite.z, `-${seconds} s`, 'bad');
@@ -166,6 +170,7 @@ const onUpdate = (dt: number) => {
         if (cue) {
             audio.play(cue);
         }
+        juice.onEvent(event, game);
         if (event === 'knocked') {
             const shock = COLLISIONS.shockCountdownPenaltySeconds;
             floatText(document.body, camera.camera!, game.player.x, game.player.z, `-${shock} s`, 'bad');
@@ -180,9 +185,10 @@ const onUpdate = (dt: number) => {
         }
     }
     audio.setMusic(isSimulating(screen) && game.phase !== 'over', musicTempo(game.urgency));
+    juice.update(game);
     bennyView.update(game, stepper.alpha);
     const position = bennyView.entity.getPosition();
-    cameraRig.update(game, { x: position.x, z: position.z }, dt);
+    cameraRig.update(game, { x: position.x, z: position.z }, dt, juice.shake(game));
     kioskView.update(game);
     popupView.update(game);
     foodView.update(game);

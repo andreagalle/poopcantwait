@@ -58,5 +58,12 @@ export const PALETTE = {
     riverbank: hex('#d7c79e'),
     river: hex('#5fa8d3'),
     hedge: hex('#558b2f'),
-    railing: hex('#e0e0e0')
+    railing: hex('#e0e0e0'),
+    puffs: {
+        crumb: hex('#ffcf4a'),
+        leaf: hex('#7cc84a'),
+        smoke: hex('#dadada'),
+        dust: hex('#e2d3b5'),
+        stink: hex('#a7b24a')
+    }
 } as const;
