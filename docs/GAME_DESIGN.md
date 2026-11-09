@@ -281,6 +281,7 @@ The HUD is an HTML and CSS overlay above the canvas.
 - Bottom left: the weight bar with the girth tier, and markers showing where alleys and streets stop fitting.
 - Screen edges: the toilet indicators.
 - Screens: title (with controls), pause, game over (score, best scores, "press Enter to play again").
+  Nothing moves on the title or pause screens, and leaving the page (another tab or window) pauses a run.
 
 ## Audio
 

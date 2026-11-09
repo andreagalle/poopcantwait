@@ -56,3 +56,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Asset pipeline: `npm run assets:optimize` (glTF Transform, meshoptimizer and sharp: triangle budgets per preset,
   WebP textures, metadata stripped), `npm run assets:image` (OpenRouter images, refuses to spend without `--yes`,
   never prints the key) and the typed asset registry.
+- Screens: a title screen with the controls and the best score (Enter or Space starts), pause with Escape or P (and
+  automatically when the page loses focus), a remembered mute toggle on M, and Enter to play again after a game over.

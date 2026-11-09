@@ -12,6 +12,8 @@ import {
 import { COLLISIONS, FOOD, SIMULATION } from './config/tuning';
 import { BuildingIndex } from './core/camera';
 import { generateCity } from './core/city/generate';
+import type { Screen } from './core/flow';
+import { isSimulating, nextScreen } from './core/flow';
 import { Game } from './core/game';
 import { parseLaunchParams } from './core/params';
 import { FixedStepper } from './core/sim/fixed-step';
@@ -23,7 +25,7 @@ import { addBennyStandIn } from './game/greybox';
 import { KioskView } from './game/kiosk-view';
 import { PopupView } from './game/popup-view';
 import { VehicleView } from './game/vehicle-view';
-import { KeyboardInput } from './input/keyboard';
+import { KeyboardInput, MenuKeys } from './input/keyboard';
 import { createGameCamera } from './render/camera';
 import { CameraRig } from './render/camera-rig';
 import { CityView } from './render/city-view';
@@ -33,6 +35,7 @@ import { showGameOver } from './ui/game-over';
 import { recordHighScore } from './ui/high-score-store';
 import { Hud } from './ui/hud';
 import { showRelief } from './ui/relief-pop';
+import { loadMuted, saveMuted, Screens } from './ui/screens';
 import { ToiletIndicators } from './ui/toilet-indicators';
 import { WaitRing } from './ui/wait-ring';
 
@@ -89,11 +92,45 @@ const waitRing = new WaitRing(document.body);
 const indicators = new ToiletIndicators(document.body);
 const playerDebug = params.debug ? new PlayerDebug(mountCityDebugMap(document.body, city), game) : null;
 
+// Screens: the title before the run, pause, game over. The simulation only runs while the run is on screen.
+const screens = new Screens(document.body);
+let screen: Screen = 'title';
+let muted = loadMuted();
+screens.show(screen);
+screens.showMuted(muted);
+const goTo = (next: Screen | 'restart') => {
+    if (next === 'restart') {
+        // A new run: the same city with ?seed, a new one otherwise
+        window.location.reload();
+        return;
+    }
+    screen = next;
+    screens.show(screen);
+};
+const menuKeys = new MenuKeys(window, (action) => {
+    if (action === 'mute') {
+        muted = !muted;
+        saveMuted(muted);
+        screens.showMuted(muted);
+    } else {
+        goTo(nextScreen(screen, action));
+    }
+});
+// Leaving the page (alt-tab, another tab) pauses the run
+const onAway = () => goTo(nextScreen(screen, 'away'));
+const onVisibility = () => {
+    if (document.hidden) {
+        onAway();
+    }
+};
+window.addEventListener('blur', onAway);
+document.addEventListener('visibilitychange', onVisibility);
+
 // Fixed-step simulation; rendering interpolates between the last two steps
 const input = new KeyboardInput(window);
 const stepper = new FixedStepper(game.stepSeconds, SIMULATION.maxStepsPerFrame);
 const onUpdate = (dt: number) => {
-    const steps = stepper.advance(dt);
+    const steps = isSimulating(screen) ? stepper.advance(dt) : 0;
     for (let i = 0; i < steps; i++) {
         game.step(input.direction());
     }
@@ -118,9 +155,9 @@ const onUpdate = (dt: number) => {
             showRelief(document.body);
         }
         if (event === 'gameOver') {
-            // A new run: the same city with ?seed, a new one otherwise
+            goTo('over');
             const record = recordHighScore(game.score.points);
-            showGameOver(document.body, { score: game.score.points, ...record }, () => window.location.reload());
+            showGameOver(document.body, { score: game.score.points, ...record });
         }
     }
     bennyView.update(game, stepper.alpha);
@@ -137,4 +174,9 @@ const onUpdate = (dt: number) => {
 };
 app.on('update', onUpdate);
 onUpdate(0);
-app.on('destroy', () => input.dispose());
+app.on('destroy', () => {
+    input.dispose();
+    menuKeys.dispose();
+    window.removeEventListener('blur', onAway);
+    document.removeEventListener('visibilitychange', onVisibility);
+});

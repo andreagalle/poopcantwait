@@ -1,12 +1,10 @@
 /**
  * The end of a run: Benny is out of clean underpants. The final score and the best scores kept in this browser, the
- * new one marked. A first version of the game-over screen (milestone M7 brings the full screens). Enter or Space starts
- * a new run.
+ * new one marked. Enter or Space starts a new run (handled with the other menu keys).
  */
 export function showGameOver(
     parent: HTMLElement,
-    result: { score: number; table: readonly number[]; rank: number },
-    onRestart: () => void
+    result: { score: number; table: readonly number[]; rank: number }
 ): HTMLElement {
     const panel = document.createElement('section');
     panel.className = 'game-over';
@@ -43,14 +41,5 @@ export function showGameOver(
     hint.textContent = 'Press Enter to play again';
     panel.append(hint);
     parent.append(panel);
-
-    const onKey = (event: KeyboardEvent) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            window.removeEventListener('keydown', onKey);
-            onRestart();
-        }
-    };
-    window.addEventListener('keydown', onKey);
     return panel;
 }

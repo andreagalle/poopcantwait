@@ -21,8 +21,11 @@ const SCREENSHOT_DIR = 'tmp/screenshots';
 /** AGENTS.md, Testing and verification: under 300 draw calls in a busy scene. */
 const DRAW_CALL_BUDGET = 300;
 
-/** Opens the game and collects console errors and uncaught exceptions while the test runs. */
-async function openGame(page: Page, query = ''): Promise<string[]> {
+/**
+ * Opens the game, collects console errors and uncaught exceptions while the test runs, and starts the run from the
+ * title screen unless `start` is false.
+ */
+async function openGame(page: Page, query = '', start = true): Promise<string[]> {
     const errors: string[] = [];
     page.on('console', (message) => {
         if (message.type() === 'error') {
@@ -33,6 +36,10 @@ async function openGame(page: Page, query = ''): Promise<string[]> {
     await page.addInitScript({ path: DEVTOOLS_HOOK });
     await page.goto(`./${query}`);
     await page.waitForFunction(() => (globalThis.__playcanvasApps?.size ?? 0) > 0);
+    if (start) {
+        await page.keyboard.press('Enter');
+        await expect(page.locator('.screen-title')).toBeHidden();
+    }
     return errors;
 }
 
@@ -359,5 +366,42 @@ test('drives 12 cars and 3 buses through the city', async ({ page }) => {
         before[0],
         { timeout: 30_000, polling: 100 }
     );
+    expect(errors).toEqual([]);
+});
+
+test('starts on the title screen, pauses with Escape and P, and remembers mute', async ({ page }) => {
+    const errors = await openGame(page, '?seed=42', false);
+    const title = page.locator('.screen-title');
+    await expect(title).toBeVisible();
+    await expect(title).toContainText('Gotta Go!');
+    await expect(title).toContainText('Press Enter or Space to start');
+    // Nothing runs on the title screen: the countdown stays full
+    const seconds = page.locator('.hud-seconds');
+    await page.waitForTimeout(1500);
+    await expect(seconds).toHaveText('40');
+
+    await page.keyboard.press('Space');
+    await expect(title).toBeHidden();
+    await expect(seconds).not.toHaveText('40', { timeout: 30_000 });
+
+    await page.keyboard.press('Escape');
+    const pause = page.locator('.screen-pause');
+    await expect(pause).toBeVisible();
+    const held = await seconds.textContent();
+    await page.waitForTimeout(2000);
+    await expect(seconds).toHaveText(held!);
+    await page.keyboard.press('p');
+    await expect(pause).toBeHidden();
+    // Leaving the page pauses the run too
+    await page.evaluate(() => window.dispatchEvent(new Event('blur')));
+    await expect(pause).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(pause).toBeHidden();
+
+    await page.keyboard.press('m');
+    await expect(page.locator('.mute-badge')).toBeVisible();
+    await page.reload();
+    await expect(page.locator('.mute-badge')).toBeVisible();
+    await page.screenshot({ path: `${SCREENSHOT_DIR}/smoke-title.png` });
     expect(errors).toEqual([]);
 });
