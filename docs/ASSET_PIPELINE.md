@@ -13,6 +13,9 @@ optimized, reviewed and committed. The shipped game never calls a generation API
 | Optimization and inspection                                                                                 | `@gltf-transform/core`, `@gltf-transform/functions`, `@gltf-transform/cli`, `sharp`, `meshoptimizer` | no   |
 | Filler props and sound effects                                                                              | CC0 packs (for example Kenney, Quaternius) downloaded by the maintainer into `art/raw/`              | no   |
 
+Version 1 needs no sound files: every sound effect and the music loop are synthesized in code with the Web Audio API
+(`src/audio/`). CC0 samples can still replace a cue later, through this pipeline.
+
 The agent cannot run `curl` or `wget`. Files from outside sources reach `art/raw/` through the maintainer or through a
 tool designed for it (the Meshy download tool, the OpenRouter script).
 

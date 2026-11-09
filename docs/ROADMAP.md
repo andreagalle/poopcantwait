@@ -83,9 +83,17 @@ Title, pause and game-over screens, CC0 audio with mute (the maintainer puts the
 asked), effects (eating pops, stink cloud, crumple smoke, camera shake, squash and stretch), HUD polish and the weight
 bar markers. Suggested branches: `feat/screens`, `feat/audio`, `feat/juice`, `feat/hud-polish`.
 
+As built: the sounds and the music loop are synthesized in code with Web Audio (`src/audio/`), so no sound packs were
+needed; CC0 samples can still replace any cue.
+
 ## M8: hardening
 
 Performance against the budgets (draw calls, frame time, download size), an end-to-end test that plays a seeded run to
 a relief and to a game over, documentation brought up to date. Then ask the maintainer whether to cut `0.1.0` with
 `/release-pr cut 0.1.0`. Suggested branches: `perf/draw-calls`, `perf/asset-size`, `test/e2e-full-run`,
 `docs/final-pass`.
+
+As built: draw calls (10 to 16 in a busy scene) and download size (1.2 MB) were far inside their budgets, so
+`perf/draw-calls` and `perf/asset-size` had nothing to do; the one hot spot was the twice-a-second path search, sped up
+in `perf/path-field`. The game-over run was already covered by the smoke tests; `test/e2e-full-run` adds the run to a
+relief. M8 can be closed again after M6, since the art changes the budgets.

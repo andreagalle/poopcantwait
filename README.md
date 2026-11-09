@@ -7,9 +7,19 @@ Built with the [PlayCanvas Engine](https://playcanvas.com/) (TypeScript and Vite
 
 **Play:** <https://andreagalle.github.io/poopcantwait/> (available after the first release)
 
+## How to play
+
+Benny has to go, and the countdown in the top left says how long he can hold it. Run him to a free toilet: kiosks
+with a green beacon, or the portable cabins that pop up as he grows. The signs at the screen edges point to the nearest
+free ones by walking distance. Junk food scores points (eat in quick succession for a combo) but makes him fatter,
+slower and wider: the bar in the bottom left shows when alleys and streets stop fitting him, and when he is heavy
+enough to crumple cars and buses instead of bouncing off them. Vegetables cost seconds. When the countdown runs out,
+a pair of underpants is gone; the run ends after five.
+
 ## Controls
 
-Arrow keys to run. Enter or Space to start, Escape or P to pause, M to mute.
+Arrow keys to run (two at once for diagonals). Enter or Space to start, Escape or P to pause (leaving the tab pauses
+too), M to mute. Sound starts with the first key press.
 
 ## Development
 
