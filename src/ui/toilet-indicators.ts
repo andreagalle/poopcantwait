@@ -7,7 +7,7 @@ import type { Game, ToiletRef } from '../core/game';
 /** Height of the label above a toilet on screen, in metres. */
 const LABEL_HEIGHT = 3.6;
 /** Distance kept from the screen edges, in pixels (leaves room for the HUD corners). */
-const EDGE_MARGIN = { side: 46, top: 96, bottom: 70 };
+const EDGE_MARGIN = { side: 46, top: 96, bottom: 86 };
 
 interface Indicator {
     readonly toilet: ToiletRef;

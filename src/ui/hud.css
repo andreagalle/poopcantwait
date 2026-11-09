@@ -193,12 +193,62 @@
     background: #f39c4a;
 }
 
+.hud-weight-scale {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    width: 180px;
+}
+
+.hud-weight-scale .hud-weight-bar {
+    width: 100%;
+}
+
 .hud-weight-tick {
     position: absolute;
     top: 0;
     bottom: 0;
     width: 2px;
     background: #2b211b;
+    translate: -1px 0;
+}
+
+/* Marker labels: where alleys and streets stop fitting (above), where vehicles start crumpling (below) */
+.hud-weight-labels {
+    position: relative;
+    display: block;
+    height: 12px;
+}
+
+.hud-weight-marker {
+    position: absolute;
+    top: 0;
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 12px;
+    white-space: nowrap;
+    translate: -50% 0;
+}
+
+.hud-weight-marker.is-fit {
+    color: #2e7d32;
+}
+
+.hud-weight-marker.is-fit.is-passed {
+    color: #9e9e9e;
+    text-decoration: line-through;
+}
+
+.hud-weight-marker.is-crush {
+    color: #8d6e63;
+}
+
+.hud-weight-marker.is-crush.is-passed {
+    color: #e65100;
+}
+
+.hud-weight-tick.is-crush {
+    background: #8d6e63;
 }
 
 /* Waiting at an occupied kiosk: a ring that empties until it frees up */

@@ -278,7 +278,12 @@ The HUD is an HTML and CSS overlay above the canvas.
 - Top left: the urgency gauge (a tummy icon, the seconds left, a bar from green through yellow to red).
 - Top centre: the score and the current combo multiplier.
 - Top right: five boxer-short icons, clean or stained.
-- Bottom left: the weight bar with the girth tier, and markers showing where alleys and streets stop fitting.
+- Bottom left: the weight bar with the girth tier, and markers showing where alleys and streets stop fitting (above
+  the bar, struck through once Benny is too wide) and where cars and buses start crumpling (below it, lit once he is
+  heavy enough). The fit markers follow from the street widths and the diameter formula, the crush markers from the
+  crumple thresholds.
+- Changes draw the eye: the score bumps when it grows, the combo pops when it rises, a pair of underpants wobbles as it
+  stains, and the tier name pops when it changes (no animation when the system asks for reduced motion).
 - Screen edges: the toilet indicators.
 - Screens: title (with controls), pause, game over (score, best scores, "press Enter to play again").
   Nothing moves on the title or pause screens, and leaving the page (another tab or window) pauses a run.

@@ -239,6 +239,8 @@ test('starts a massive Benny with ?weight=1', async ({ page }) => {
     // The camera pulls back to its farthest distance
     expect(massive.cameraDistance).toBeCloseTo(CAMERA.distance.maxWeightMetres, 1);
     await expect(page.locator('.debug-readout')).toContainText('massive');
+    // Too wide for alleys and streets, heavy enough to crumple cars and buses
+    await expect(page.locator('.hud-weight-marker.is-passed')).toHaveCount(4);
 
     await page.screenshot({ path: `${SCREENSHOT_DIR}/smoke-massive.png` });
     expect(errors).toEqual([]);
@@ -315,6 +317,10 @@ test('shows the countdown, five pairs of underpants, the score and the girth in 
     expect(seconds).toBeLessThanOrEqual(2);
     await expect(hud.locator('.hud-score')).toHaveText('0');
     await expect(hud.locator('.hud-tier')).toHaveText('slim');
+    // The weight bar marks where alleys and streets stop fitting and where cars and buses start crumpling
+    await expect(hud.locator('.hud-weight-labels.is-fit .hud-weight-marker')).toHaveText(['alleys', 'streets']);
+    await expect(hud.locator('.hud-weight-labels.is-crush .hud-weight-marker')).toHaveText(['cars', 'buses']);
+    await expect(hud.locator('.hud-weight-marker.is-passed')).toHaveCount(0);
     await expect(hud.locator('.underpants')).toHaveCount(5);
     // Two seconds is below the low warning: the gauge turns red and shakes
     await expect(hud.locator('.hud-gauge')).toHaveClass(/is-low/);

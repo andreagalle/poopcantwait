@@ -64,3 +64,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Game feel: Benny hops, waddles, breathes, jiggles nervously on a low countdown and stretches on each bite (squash
   and stretch); the camera shakes on hits, crumples and accidents (not with reduced motion); puffs of crumbs, leaves,
   smoke, dust and a stink cloud show what happened.
+- HUD polish: the weight bar marks where alleys and streets stop fitting and where cars and buses start crumpling, and
+  the score, combo, underpants and tier animate when they change.
