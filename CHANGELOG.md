@@ -66,3 +66,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   smoke, dust and a stink cloud show what happened.
 - HUD polish: the weight bar marks where alleys and streets stop fitting and where cars and buses start crumpling, and
   the score, combo, underpants and tier animate when they change.
+
+### Changed
+
+- Faster path distances: the twice-a-second search for the walking distances from Benny no longer allocates per cell
+  or per call, which takes about 40% off the periodic hitch it caused (from about 11 ms to 7 ms for a slim Benny, on
+  the Codespace).

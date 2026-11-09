@@ -82,6 +82,8 @@ export class NavGrid {
     readonly size: number;
     readonly zone: Uint8Array;
     readonly clearance: Float32Array;
+    /** The search heap of `pathDistances`, kept between calls so it grows once instead of on every search. */
+    private readonly heap = new CellHeap(1024);
 
     /** Builds the clearance field of `zone` (a `size` by `size` grid, row-major from the north-west corner). */
     constructor(halfSize: number, zone: Uint8Array) {
@@ -135,20 +137,24 @@ export class NavGrid {
      * Shortest walking distance, in metres, from `from` to every cell for a Benny of diameter `diameter`, moving
      * between neighbouring cells (diagonals cost √2 and may not cut corners). Unreachable cells, and every cell when
      * Benny does not fit at `from`, get `Infinity`. Stops expanding beyond `maxDistance`.
+     *
+     * The game calls this twice a second, so it allocates nothing per cell: pass `out` (a grid-sized array) to reuse
+     * it, and the search heap lives on the grid between calls.
      */
-    pathDistances(from: Point, diameter: number, maxDistance = Infinity): Float64Array {
+    pathDistances(from: Point, diameter: number, maxDistance = Infinity, out?: Float64Array): Float64Array {
         const count = this.size * this.size;
-        const distance = new Float64Array(count).fill(Infinity);
+        const distance = out && out.length === count ? out : new Float64Array(count);
+        distance.fill(Infinity);
         const radius = diameter / 2;
         const start = this.cellAt(from.x, from.z);
-        if (start < 0 || !(this.clearance[start] > radius)) {
+        const clearance = this.clearance;
+        if (start < 0 || !(clearance[start] > radius)) {
             return distance;
         }
 
         const size = this.size;
-        const clearance = this.clearance;
-        const fits = (cell: number) => clearance[cell] > radius;
-        const heap = new CellHeap(1024);
+        const heap = this.heap;
+        heap.size = 0;
         distance[start] = 0;
         heap.push(start, 0);
 
@@ -159,46 +165,52 @@ export class NavGrid {
                 continue;
             }
             const col = cell % size;
-            const row = (cell - col) / size;
-            const west = col > 0;
-            const east = col < size - 1;
-            const north = row > 0;
-            const south = row < size - 1;
-            const fitsW = west && fits(cell - 1);
-            const fitsE = east && fits(cell + 1);
-            const fitsN = north && fits(cell - size);
-            const fitsS = south && fits(cell + size);
-
-            const relax = (next: number, step: number) => {
-                const nd = d + step;
-                if (nd < distance[next] && nd <= maxDistance) {
-                    distance[next] = nd;
-                    heap.push(next, nd);
+            const fitsW = col > 0 && clearance[cell - 1] > radius;
+            const fitsE = col < size - 1 && clearance[cell + 1] > radius;
+            const fitsN = cell >= size && clearance[cell - size] > radius;
+            const fitsS = cell < count - size && clearance[cell + size] > radius;
+            const straight = d + 1;
+            if (straight <= maxDistance) {
+                if (fitsW && straight < distance[cell - 1]) {
+                    distance[cell - 1] = straight;
+                    heap.push(cell - 1, straight);
                 }
-            };
-            if (fitsW) {
-                relax(cell - 1, 1);
+                if (fitsE && straight < distance[cell + 1]) {
+                    distance[cell + 1] = straight;
+                    heap.push(cell + 1, straight);
+                }
+                if (fitsN && straight < distance[cell - size]) {
+                    distance[cell - size] = straight;
+                    heap.push(cell - size, straight);
+                }
+                if (fitsS && straight < distance[cell + size]) {
+                    distance[cell + size] = straight;
+                    heap.push(cell + size, straight);
+                }
             }
-            if (fitsE) {
-                relax(cell + 1, 1);
-            }
-            if (fitsN) {
-                relax(cell - size, 1);
-            }
-            if (fitsS) {
-                relax(cell + size, 1);
-            }
-            if (fitsN && fitsW && fits(cell - size - 1)) {
-                relax(cell - size - 1, SQRT2);
-            }
-            if (fitsN && fitsE && fits(cell - size + 1)) {
-                relax(cell - size + 1, SQRT2);
-            }
-            if (fitsS && fitsW && fits(cell + size - 1)) {
-                relax(cell + size - 1, SQRT2);
-            }
-            if (fitsS && fitsE && fits(cell + size + 1)) {
-                relax(cell + size + 1, SQRT2);
+            const diagonal = d + SQRT2;
+            if (diagonal <= maxDistance) {
+                // A diagonal step needs both side cells free too, so Benny never cuts a corner
+                let next = cell - size - 1;
+                if (fitsN && fitsW && clearance[next] > radius && diagonal < distance[next]) {
+                    distance[next] = diagonal;
+                    heap.push(next, diagonal);
+                }
+                next = cell - size + 1;
+                if (fitsN && fitsE && clearance[next] > radius && diagonal < distance[next]) {
+                    distance[next] = diagonal;
+                    heap.push(next, diagonal);
+                }
+                next = cell + size - 1;
+                if (fitsS && fitsW && clearance[next] > radius && diagonal < distance[next]) {
+                    distance[next] = diagonal;
+                    heap.push(next, diagonal);
+                }
+                next = cell + size + 1;
+                if (fitsS && fitsE && clearance[next] > radius && diagonal < distance[next]) {
+                    distance[next] = diagonal;
+                    heap.push(next, diagonal);
+                }
             }
         }
         return distance;

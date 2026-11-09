@@ -140,6 +140,29 @@ describe('NavGrid', () => {
         expect(distances[nav.cellAt(10, 0)]).toBe(Infinity);
     });
 
+    it('reuses an output array, with the same distances as a fresh one', () => {
+        const half = 40;
+        const zone = walledGrid(half);
+        block(zone, half, -10, -20, 10, 5);
+        const nav = new NavGrid(half, zone);
+        const fresh = nav.pathDistances({ x: -20, z: 0 }, 0.9);
+        // Fill the array with another search first: nothing of it may leak into the next one
+        const out = nav.pathDistances({ x: 25, z: 25 }, 2.5, 12);
+        const reused = nav.pathDistances({ x: -20, z: 0 }, 0.9, Infinity, out);
+        expect(reused).toBe(out);
+        expect(Array.from(reused)).toEqual(Array.from(fresh));
+        // An array of the wrong size is not used
+        const wrong = new Float64Array(10);
+        expect(nav.pathDistances({ x: -20, z: 0 }, 0.9, Infinity, wrong)).not.toBe(wrong);
+    });
+
+    it('gives the same answers when the search runs again on the same grid (its queue is reused)', () => {
+        const nav = new NavGrid(30, walledGrid(30));
+        const first = Array.from(nav.pathDistances({ x: 3, z: -7 }, 0.9));
+        nav.pathDistances({ x: -20, z: 20 }, 0.9, 8);
+        expect(Array.from(nav.pathDistances({ x: 3, z: -7 }, 0.9))).toEqual(first);
+    });
+
     it('grows its queue past the initial capacity', () => {
         // A 121 by 121 open grid pushes far more than 1024 cells
         const nav = new NavGrid(60, walledGrid(60));
