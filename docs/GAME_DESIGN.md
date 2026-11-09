@@ -289,6 +289,15 @@ Royalty-free (CC0) sound effects: chomp, "ew" for vegetables, tummy rumble, flus
 light comedic music loop. Audio starts after the first key press (browser autoplay rules). M mutes, and the choice is
 remembered.
 
+- Version 1 synthesizes every sound in code with the Web Audio API (oscillators and filtered noise), so the game ships
+  no audio files; CC0 samples can replace any cue later. A "bonk" plays when a vehicle knocks Benny over.
+- The music plays only during a run (not on the title, pause or game-over screens). It is an original four-bar loop,
+  _initial_ 128 beats per minute, 1.25 times faster while the countdown is low.
+- While the countdown is low, the tummy rumbles at once, then every 2.6 s, the interval shrinking to 1.1 s at 0
+  (_initial_); never inside a toilet or during an accident.
+- Volumes (_initial_): master 0.8, effects 0.9, music 0.4. The same effect does not restart within 0.08 s, so a burst
+  of honks plays once.
+
 ## Art direction
 
 A toy-town diorama: chunky rounded shapes, soft pastel buildings with saturated accents, warm afternoon light, soft

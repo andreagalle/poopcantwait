@@ -356,3 +356,24 @@ export const DIFFICULTY = {
     /** Kiosk occupied times stop growing at this multiple of their initial range. */
     kioskOccupiedMaxFactor: 2
 } as const;
+
+/** Sound (design: *Audio*). Every sound is synthesized in code with the Web Audio API; none plays before a key press. */
+export const AUDIO = {
+    /** Overall volume, 0 to 1. */
+    masterVolume: 0.8,
+    /** Sound effects volume, 0 to 1, under the master volume. */
+    effectsVolume: 0.9,
+    /** Music loop volume, 0 to 1, under the master volume. */
+    musicVolume: 0.4,
+    /**
+     * While the countdown is low (`URGENCY.lowWarningSeconds`), the tummy rumbles at once and then every `max` seconds,
+     * the interval shrinking linearly to `min` as the countdown reaches 0.
+     */
+    rumbleIntervalSeconds: { min: 1.1, max: 2.6 },
+    /** Music tempo, in beats per minute. */
+    musicBeatsPerMinute: 128,
+    /** The music plays this many times faster while the countdown is low. */
+    urgentTempoFactor: 1.25,
+    /** The same sound effect does not start again within this many seconds (a burst of honks plays once). */
+    repeatGuardSeconds: 0.08
+} as const;

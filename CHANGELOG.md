@@ -58,3 +58,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   never prints the key) and the typed asset registry.
 - Screens: a title screen with the controls and the best score (Enter or Space starts), pause with Escape or P (and
   automatically when the page loses focus), a remembered mute toggle on M, and Enter to play again after a game over.
+- Sound, synthesized in code with Web Audio (no audio files): chomp, "ew", a tummy rumble that quickens on a low
+  countdown, flush, crunch, horn, a bonk when knocked over, the accident sting, and an original music loop that speeds
+  up when time is short. It starts with the first key press and respects mute.
