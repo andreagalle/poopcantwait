@@ -66,6 +66,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   smoke, dust and a stink cloud show what happened.
 - HUD polish: the weight bar marks where alleys and streets stop fitting and where cars and buses start crumpling, and
   the score, combo, underpants and tier animate when they change.
+- An end-to-end test that plays a seeded run to a kiosk: it plans the way with the game's own navigation grid, steers
+  Benny there with the arrow keys and checks the relief.
 
 ### Changed
 
