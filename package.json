@@ -31,7 +31,7 @@
         "@gltf-transform/extensions": "^4.5.1",
         "@gltf-transform/functions": "^4.5.1",
         "@playcanvas/eslint-config": "3.0.0",
-        "@playcanvas/inspector": "^0.4.0",
+        "@playcanvas/inspector": "^0.5.0",
         "@playwright/test": "^1.65.0",
         "@types/node": "^24.19.2",
         "@vitest/coverage-v8": "^5.1.0",
