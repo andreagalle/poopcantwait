@@ -426,6 +426,11 @@ test('plays sound only after a key press, with music during the run and silence 
     });
     const errors = await openGame(page, '?seed=42', false);
     const sources = () => page.evaluate(() => globalThis.__audioProbe!.sources);
+    // The music scheduler runs on a 30 ms main-thread timer and skips notes that are already late. Under software
+    // rendering the first frames of a run block the main thread for several seconds (about 7 s measured in the
+    // Codespace), so no note is scheduled until they are done. The checks that wait for new notes allow for that; on
+    // real hardware the music schedules about eight sources a second from the start.
+    const MUSIC_TIMEOUT_MS = 20_000;
 
     // Browser autoplay rules: no audio before the first key press
     await page.waitForTimeout(500);
@@ -435,7 +440,7 @@ test('plays sound only after a key press, with music during the run and silence 
     await expect.poll(() => page.evaluate(() => globalThis.__audioProbe!.contexts[0]?.state)).toBe('running');
     // The music loop plays during the run
     const started = await sources();
-    await expect.poll(sources, { timeout: 5000 }).toBeGreaterThan(started + 4);
+    await expect.poll(sources, { timeout: MUSIC_TIMEOUT_MS }).toBeGreaterThan(started + 4);
 
     // Muted: nothing new is scheduled
     await page.keyboard.press('m');
@@ -448,7 +453,7 @@ test('plays sound only after a key press, with music during the run and silence 
     // Unmuted, the music comes back; paused, it stops again
     await page.keyboard.press('m');
     const unmuted = await sources();
-    await expect.poll(sources, { timeout: 5000 }).toBeGreaterThan(unmuted);
+    await expect.poll(sources, { timeout: MUSIC_TIMEOUT_MS }).toBeGreaterThan(unmuted);
     await page.keyboard.press('Escape');
     await expect(page.locator('.screen-pause')).toBeVisible();
     // Notes already scheduled ahead (a fraction of a second) may still start
