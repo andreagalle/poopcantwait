@@ -217,4 +217,13 @@ function onScroll(): void {
 
 window.addEventListener('scroll', onScroll, { passive: true });
 window.addEventListener('resize', onScroll);
-activate(stageAtCenter());
+
+// A link to a stage (from a side story, or shared) opens on it: go there before activating, or the first activation
+// would rewrite the address to the top stage before the browser scrolls to the anchor
+const linked = stages.findIndex((stage) => window.location.hash === `#${stage.id}`);
+if (linked > 0) {
+    stages[linked].scrollIntoView({ behavior: 'auto' });
+    activate(linked);
+} else {
+    activate(stageAtCenter());
+}

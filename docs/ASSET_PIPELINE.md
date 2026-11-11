@@ -70,11 +70,12 @@ across views). The model comes from `--model` or `OPENROUTER_IMAGE_MODEL`; list 
 parameters, references, date, cost if reported) into `art/raw/images/<asset-id>/`, never prints the key, and refuses
 to run without `--yes` so every paid call is deliberate.
 
-**Model choice (agreed with the maintainer).** `openai/gpt-image-1` is the default: it follows prompts closely, keeps a
-character consistent through reference images, and is the only candidate with transparent backgrounds (HUD icons,
-title art). Pricing at the time of writing is per token, roughly $0.01, $0.04 or $0.17 for a 1024 px image at low,
-medium or high quality. Any other model, even for a single asset (for example `black-forest-labs/flux.2-pro` for
-detailed facade or road textures), is proposed in chat and agreed with the maintainer before the call.
+**Model choice (agreed with the maintainer).** `openai/gpt-image-2` is the default: it follows prompts closely and keeps
+a character consistent through reference images (up to 16). It has no transparent backgrounds, so HUD icons stay
+hand-drawn SVG. At the time of writing it costs about $0.04 per 1024×1536 image at medium quality (the first round of
+four sketches of Benny cost $0.17). `openai/gpt-image-1`, the first choice, is no longer served by OpenAI. Any other
+model, even for a single asset (for example `black-forest-labs/flux.2-pro` for detailed facade or road textures), is
+proposed in chat and agreed with the maintainer before the call.
 
 **Sketches first.** Before any asset is built on an image (a 3D model, a texture, an icon), the sketches are shown to
 the maintainer and the style is chosen together. Every round, rejected and accepted, is kept in

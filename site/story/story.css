@@ -1148,3 +1148,8 @@ sup {
         opacity: 1;
     }
 }
+
+/* A link from a stage to its side story */
+.side-link {
+    margin: 24px 0 0;
+}

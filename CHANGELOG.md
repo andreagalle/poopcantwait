@@ -74,6 +74,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   the agent's actions, milestones), with screenshots from each milestone.
 - `npm run assets:image` sends only the options given (`--quality`, `--background transparent`, `--resolution`,
   `--format`) and takes up to four `--reference` images to keep a character consistent across views.
+- The story's first side story, _Benny's look_ (`/story/benny/`): every round of sketches for the hero, the ones
+  set aside and the one kept, with the prompt, linked from a stage of the main story. The default image model is now
+  `openai/gpt-image-2` (`gpt-image-1` is no longer served).
 
 ### Changed
 
@@ -85,3 +88,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - The end-to-end audio test no longer fails on slow CI runners: it gives the music up to 20 s to start, since software
   rendering blocks the main thread for several seconds at the start of a run.
+- A link to a stage of the story (`/story/#<stage>`) opens on that stage on a fresh load; it used to land on the
+  cover.
