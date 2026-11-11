@@ -1,0 +1,172 @@
+/* The landing page: one screen, the game in two lines, two ways in */
+.landing {
+    display: grid;
+    min-height: 100svh;
+    place-items: center;
+    padding: 28px 16px 64px;
+    overflow-x: hidden;
+}
+
+/* The generated city from above, softened so the card reads first */
+.backdrop {
+    position: fixed;
+    inset: -24px;
+    z-index: -1;
+    background:
+        radial-gradient(ellipse at center, rgb(255 246 224 / 0.15) 0%, rgb(179 229 252 / 0.55) 75%),
+        url('./backdrop.webp') center / cover no-repeat;
+    filter: blur(2px) saturate(1.05);
+    animation: drift 40s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+    from {
+        transform: scale(1.04) translate(-1%, -1%);
+    }
+    to {
+        transform: scale(1.12) translate(1.5%, 1%);
+    }
+}
+
+.card {
+    position: relative;
+    width: min(100%, 580px);
+    padding: 34px 32px 26px;
+    border: var(--line);
+    border-radius: 28px;
+    background: var(--cream);
+    box-shadow: 0 8px 0 var(--ink);
+    text-align: center;
+    animation: pop-in 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+@keyframes pop-in {
+    from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.96);
+    }
+}
+
+.card-sticker {
+    position: absolute;
+    top: -18px;
+    right: -14px;
+    rotate: 7deg;
+}
+
+.logo {
+    display: block;
+    margin: 0 auto 6px;
+    animation: wobble 2.4s ease-in-out infinite;
+}
+
+@keyframes wobble {
+    0%,
+    100% {
+        rotate: -6deg;
+    }
+    50% {
+        rotate: 6deg;
+    }
+}
+
+h1 {
+    margin: 0;
+    font-size: clamp(52px, 13vw, 88px);
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.01em;
+}
+
+.go {
+    padding: 0 0.08em;
+    background: linear-gradient(transparent 58%, var(--go) 58%, var(--go) 90%, transparent 90%);
+}
+
+.pitch {
+    margin: 16px 0 0;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.45;
+}
+
+.made {
+    margin: 16px 0 0;
+    padding-top: 16px;
+    border-top: 3px dashed rgb(43 33 27 / 0.25);
+    color: var(--ink-soft);
+    font-size: 16px;
+    line-height: 1.45;
+}
+
+.made strong {
+    color: var(--ink);
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 24px;
+}
+
+.note {
+    margin: 20px 0 0;
+    color: var(--ink-soft);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.foot {
+    position: fixed;
+    right: 0;
+    bottom: 14px;
+    left: 0;
+    text-align: center;
+}
+
+.foot a {
+    padding: 4px 12px;
+    border: 2px solid var(--ink);
+    border-radius: 999px;
+    background: rgb(255 251 242 / 0.85);
+    font-size: 13px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.foot a:hover {
+    background: var(--paper);
+}
+
+@media (max-width: 520px) {
+    .card {
+        padding: 30px 20px 22px;
+    }
+
+    .card-sticker {
+        right: 8px;
+        font-size: 12px;
+    }
+
+    .pitch {
+        font-size: 16px;
+    }
+
+    .made {
+        font-size: 15px;
+    }
+
+    .actions .btn {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .backdrop,
+    .logo,
+    .card {
+        animation: none;
+    }
+}

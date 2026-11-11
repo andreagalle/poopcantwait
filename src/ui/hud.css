@@ -1,0 +1,432 @@
+/* The heads-up display (design: HUD and screens). Chunky, toy-like, readable over the city. */
+.hud {
+    position: fixed;
+    inset: 0;
+    z-index: 15;
+    color: #2b211b;
+    font-weight: 800;
+    pointer-events: none;
+}
+
+.hud-gauge,
+.hud-score-box,
+.hud-underpants,
+.hud-weight {
+    position: absolute;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 6px 12px;
+    border: 3px solid #2b211b;
+    border-radius: 16px;
+    background: #fff6e0;
+    box-shadow: 0 4px 0 #2b211b;
+}
+
+/* Top left: the urgency gauge */
+.hud-gauge {
+    top: 12px;
+    left: 12px;
+}
+
+.hud-tummy svg {
+    display: block;
+    width: 34px;
+    height: 34px;
+}
+
+.tummy-belly {
+    fill: #f7b48f;
+    stroke: #2b211b;
+    stroke-width: 3;
+}
+
+.tummy-navel,
+.tummy-rumble {
+    fill: none;
+    stroke: #2b211b;
+    stroke-linecap: round;
+    stroke-width: 3;
+}
+
+.tummy-rumble {
+    visibility: hidden;
+}
+
+.hud-seconds {
+    min-width: 2ch;
+    font-size: 26px;
+    text-align: right;
+}
+
+.hud-bar,
+.hud-weight-bar {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    width: 140px;
+    height: 14px;
+    border: 2px solid #2b211b;
+    border-radius: 8px;
+    background: #e8dcc4;
+}
+
+.hud-bar-fill,
+.hud-weight-fill {
+    display: block;
+    height: 100%;
+}
+
+.hud-gauge.is-low {
+    animation: hud-shake 0.25s linear infinite;
+}
+
+.hud-gauge.is-low .hud-seconds {
+    color: #c62828;
+}
+
+.hud-gauge.is-low .tummy-rumble {
+    visibility: visible;
+}
+
+@keyframes hud-shake {
+    0%,
+    100% {
+        translate: 0 0;
+    }
+
+    25% {
+        translate: -2px 1px;
+    }
+
+    75% {
+        translate: 2px -1px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hud-gauge.is-low {
+        animation: none;
+    }
+}
+
+/* Top centre: score and combo */
+.hud-score-box {
+    top: 12px;
+    left: 50%;
+    translate: -50% 0;
+}
+
+.hud-score {
+    min-width: 4ch;
+    font-size: 26px;
+    text-align: center;
+}
+
+.hud-combo {
+    padding: 0 8px;
+    border-radius: 8px;
+    background: #ffd54a;
+    font-size: 18px;
+}
+
+/* Top right: five pairs of boxer shorts */
+.hud-underpants {
+    top: 12px;
+    right: 12px;
+    gap: 4px;
+}
+
+.underpants svg {
+    display: block;
+    width: 34px;
+    height: 34px;
+}
+
+.boxers-cloth {
+    fill: #9be3c4;
+    stroke: #2b211b;
+    stroke-linejoin: round;
+    stroke-width: 3.5;
+}
+
+.boxers-band {
+    fill: #fff6e0;
+    stroke: #2b211b;
+    stroke-linejoin: round;
+    stroke-width: 3.5;
+}
+
+.boxers-print {
+    fill: none;
+    stroke: #ffd54a;
+    stroke-linecap: round;
+    stroke-width: 3;
+}
+
+.boxers-stain {
+    fill: #8d6e3f;
+    visibility: hidden;
+}
+
+.underpants.is-soiled .boxers-cloth {
+    fill: #c8c3a8;
+}
+
+.underpants.is-soiled .boxers-stain {
+    visibility: visible;
+}
+
+/* Bottom left: weight and girth tier */
+.hud-weight {
+    bottom: 12px;
+    left: 12px;
+}
+
+.hud-tier {
+    min-width: 7ch;
+    font-size: 16px;
+    text-transform: capitalize;
+}
+
+.hud-weight-fill {
+    background: #f39c4a;
+}
+
+.hud-weight-scale {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    width: 180px;
+}
+
+.hud-weight-scale .hud-weight-bar {
+    width: 100%;
+}
+
+.hud-weight-tick {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #2b211b;
+    translate: -1px 0;
+}
+
+/* Marker labels: where alleys and streets stop fitting (above), where vehicles start crumpling (below) */
+.hud-weight-labels {
+    position: relative;
+    display: block;
+    height: 12px;
+}
+
+.hud-weight-marker {
+    position: absolute;
+    top: 0;
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 12px;
+    white-space: nowrap;
+    translate: -50% 0;
+}
+
+.hud-weight-marker.is-fit {
+    color: #2e7d32;
+}
+
+.hud-weight-marker.is-fit.is-passed {
+    color: #9e9e9e;
+    text-decoration: line-through;
+}
+
+.hud-weight-marker.is-crush {
+    color: #8d6e63;
+}
+
+.hud-weight-marker.is-crush.is-passed {
+    color: #e65100;
+}
+
+.hud-weight-tick.is-crush {
+    background: #8d6e63;
+}
+
+/* Waiting at an occupied kiosk: a ring that empties until it frees up */
+.wait-ring {
+    position: fixed;
+    z-index: 14;
+    width: 52px;
+    height: 52px;
+    translate: -50% -50%;
+    pointer-events: none;
+}
+
+.wait-ring svg {
+    width: 100%;
+    height: 100%;
+    rotate: -90deg;
+}
+
+.wait-ring-track {
+    fill: #fff6e0e6;
+    stroke: #2b211b;
+    stroke-width: 6;
+}
+
+.wait-ring-arc {
+    fill: none;
+    stroke: #ff4d4d;
+    stroke-linecap: round;
+    stroke-width: 4;
+}
+
+.wait-ring-seconds {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: #2b211b;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+/* Relief */
+.relief-pop {
+    position: fixed;
+    top: 84px;
+    left: 50%;
+    z-index: 16;
+    margin: 0;
+    color: #2e7d32;
+    font-size: 40px;
+    font-weight: 900;
+    text-shadow:
+        0 3px 0 #fff6e0,
+        0 0 6px #fff6e0;
+    translate: -50% 0;
+    pointer-events: none;
+    animation: relief-pop 1.5s ease-out forwards;
+}
+
+@keyframes relief-pop {
+    0% {
+        opacity: 0;
+        scale: 0.5;
+    }
+
+    15% {
+        opacity: 1;
+        scale: 1.15;
+    }
+
+    70% {
+        opacity: 1;
+        scale: 1;
+    }
+
+    100% {
+        opacity: 0;
+        scale: 1;
+    }
+}
+
+/* Toilet indicators: labels over toilets in view, arrows at the edges for those out of view */
+.toilet-indicators {
+    position: fixed;
+    inset: 0;
+    z-index: 13;
+    pointer-events: none;
+}
+
+.toilet-indicator {
+    position: fixed;
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    padding: 3px 9px 3px 6px;
+    border: 2px solid #2b211b;
+    border-radius: 999px;
+    background: #e8f8ec;
+    color: #1b5e20;
+    font-size: 14px;
+    font-weight: 800;
+    white-space: nowrap;
+    translate: -50% -50%;
+}
+
+.toilet-indicator svg {
+    width: 18px;
+    height: 18px;
+    fill: currentcolor;
+}
+
+.toilet-indicator.is-nearest {
+    border-width: 3px;
+    background: #3ddc84;
+    color: #12361b;
+    font-size: 17px;
+    box-shadow: 0 3px 0 #2b211b;
+}
+
+.toilet-indicator.is-unreachable {
+    background: #d9d9d9;
+    color: #616161;
+}
+
+.toilet-arrow {
+    display: none;
+    width: 0;
+    height: 0;
+    border-top: 7px solid transparent;
+    border-bottom: 7px solid transparent;
+    border-left: 11px solid currentcolor;
+}
+
+.toilet-indicator.is-offscreen .toilet-arrow {
+    display: block;
+}
+
+/* Floating feedback over the spot where something happened */
+.float-text {
+    position: fixed;
+    z-index: 16;
+    margin: 0;
+    font-size: 22px;
+    font-weight: 900;
+    text-shadow:
+        0 2px 0 #fff6e0,
+        0 0 4px #fff6e0;
+    translate: -50% -50%;
+    pointer-events: none;
+    animation: float-text 1s ease-out forwards;
+}
+
+.float-text.is-good {
+    color: #e65100;
+}
+
+.float-text.is-bad {
+    color: #2e7d32;
+}
+
+@keyframes float-text {
+    0% {
+        opacity: 0;
+        translate: -50% -50%;
+    }
+
+    15% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+        translate: -50% -180%;
+    }
+}
+
+/* Author display rules beat the user agent's [hidden] rule: restate it for elements that set a display */
+.toilet-indicator[hidden],
+.hud-combo[hidden] {
+    display: none;
+}

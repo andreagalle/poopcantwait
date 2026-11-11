@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Gotta Go!</title>
+        <meta
+            name="description"
+            content="A 3D arcade game for the browser, coded by an AI agent from one kickoff prompt. Race Benny to a free toilet before it is too late."
+        />
+        <meta name="theme-color" content="#b3e5fc" />
+        <link rel="icon" type="image/svg+xml" href="./logo.svg" />
+        <link rel="stylesheet" href="./shared.css" />
+        <link rel="stylesheet" href="./landing.css" />
+    </head>
+    <body class="landing">
+        <div class="backdrop" aria-hidden="true"></div>
+
+        <main class="card">
+            <span class="sticker card-sticker">Built by an AI agent</span>
+            <img class="logo" src="./logo.svg" alt="" width="76" height="76" />
+            <h1>Gotta <span class="go">Go!</span></h1>
+            <p class="pitch">
+                Benny, a plush toy man, really has to go. Race him across the city to a free toilet before it is too
+                late. Junk food scores points, but it makes him fatter, slower and too wide for the alleys.
+            </p>
+            <p class="made">
+                The whole game was coded by an AI agent, <strong>Claude Code</strong>, from one kickoff prompt, in
+                {{pullRequests}} pull requests. Its human sent <strong>{{humanMessages}} messages</strong>, most of them
+                “go on”.
+            </p>
+            <nav class="actions" aria-label="Start here">
+                <a class="btn btn--go" href="./gottago/">
+                    <svg viewBox="0 0 20 20" aria-hidden="true">
+                        <path d="M5 3 L17 10 L5 17 Z" fill="currentColor" />
+                    </svg>
+                    Play now
+                </a>
+                <a class="btn" href="./story/">
+                    Read the story
+                    <svg viewBox="0 0 20 20" aria-hidden="true">
+                        <path
+                            d="M4 10 H15 M10 5 L15 10 L10 15"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="3"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        />
+                    </svg>
+                </a>
+            </nav>
+            <p class="note">
+                Best on a computer: Benny runs with the arrow keys. Greybox build, the art is on its way.
+            </p>
+        </main>
+
+        <footer class="foot">
+            <a href="https://github.com/andreagalle/poopcantwait">Source on GitHub</a>
+        </footer>
+    </body>
+</html>

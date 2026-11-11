@@ -1,0 +1,125 @@
+/* The look of the game's HUD and screens (src/ui/), shared by the landing page and the story: cream panels, ink
+   outlines, hard shadows and the pastel city palette (src/render/palette.ts). */
+:root {
+    color-scheme: light;
+
+    --ink: #2b211b;
+    --ink-soft: #5b4a3f;
+    --cream: #fff6e0;
+    --paper: #fffbf2;
+    --sky: #b3e5fc;
+    --water: #7cc4e8;
+    --rose: #f4c7c3;
+    --butter: #f9e0a8;
+    --mint: #c8e6c9;
+    --lilac: #d1c4e9;
+    --peach: #ffe0b2;
+    --pink: #f8bbd0;
+    --lime: #dcedc8;
+    --night: #1f2a44;
+    --night-ink: #e9e3d3;
+    --go: #3ddc84;
+    --go-dark: #1b5e20;
+    --human: #ec407a;
+    --gold: #ffd54a;
+
+    --font:
+        ui-rounded, 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Quicksand, Comfortaa, Manjari, 'Arial Rounded MT',
+        'Arial Rounded MT Bold', Calibri, system-ui, sans-serif;
+    --mono: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+
+    --line: 3px solid var(--ink);
+    --shadow: 0 6px 0 var(--ink);
+    --radius: 18px;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: var(--sky);
+    color: var(--ink);
+    font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
+}
+
+a {
+    color: inherit;
+}
+
+/* Chunky buttons, pressed down on click like a key */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 56px;
+    padding: 0 26px;
+    border: var(--line);
+    border-radius: 999px;
+    background: var(--paper);
+    box-shadow: var(--shadow);
+    color: var(--ink);
+    font-size: 19px;
+    font-weight: 900;
+    text-decoration: none;
+    transition:
+        transform 0.08s ease,
+        box-shadow 0.08s ease,
+        background-color 0.15s ease;
+}
+
+.btn:hover {
+    background: #ffffff;
+}
+
+.btn:active {
+    box-shadow: 0 2px 0 var(--ink);
+    transform: translateY(4px);
+}
+
+.btn:focus-visible {
+    outline: 4px solid var(--human);
+    outline-offset: 4px;
+}
+
+.btn--go {
+    background: var(--go);
+}
+
+.btn--go:hover {
+    background: #5fe89c;
+}
+
+.btn svg {
+    width: 20px;
+    height: 20px;
+    flex: none;
+}
+
+/* A round sticker slapped on a corner */
+.sticker {
+    display: inline-block;
+    padding: 6px 14px;
+    border: var(--line);
+    border-radius: 999px;
+    background: var(--gold);
+    box-shadow: 0 4px 0 var(--ink);
+    font-size: 14px;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}

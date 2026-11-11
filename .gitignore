@@ -1,0 +1,33 @@
+# Dependencies and builds
+node_modules
+dist
+dist-ssr
+*.local
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Tests and scratch output
+coverage
+playwright-report
+test-results
+tmp
+
+# Raw asset generations (only optimized assets in public/assets are committed)
+art/raw
+meshy_output
+
+# Secrets: API keys live in Codespaces secrets, never in files
+.env
+.env.*
+
+# Editors and OS
+.vscode/*
+!.vscode/extensions.json
+!.vscode/tasks.json
+.idea
+.DS_Store
+*.suo
+*.sw?

@@ -1,0 +1,101 @@
+/* Title and pause screens (design: HUD and screens) */
+.screen {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 30;
+    max-width: calc(100vw - 32px);
+    padding: 20px 32px;
+    border: 3px solid #2b211b;
+    border-radius: 18px;
+    background: #fff6e0;
+    box-shadow: 0 6px 0 #2b211b;
+    color: #2b211b;
+    text-align: center;
+    translate: -50% -50%;
+}
+
+.screen[hidden],
+.mute-badge[hidden] {
+    display: none;
+}
+
+.screen h1 {
+    margin: 0 0 6px;
+    font-size: 52px;
+    font-weight: 900;
+    letter-spacing: 0.02em;
+}
+
+.screen h2 {
+    margin: 0 0 8px;
+    font-size: 30px;
+}
+
+.screen p {
+    margin: 6px 0;
+}
+
+.screen-tagline {
+    font-size: 17px;
+}
+
+.screen-controls {
+    margin: 14px 0;
+    padding: 0;
+    list-style: none;
+    line-height: 1.4;
+}
+
+.screen-controls li {
+    margin: 8px 0;
+}
+
+.screen-best {
+    font-weight: 800;
+}
+
+.screen-start {
+    margin-top: 14px;
+    font-size: 20px;
+    font-weight: 800;
+    animation: screen-blink 1.2s ease-in-out infinite;
+}
+
+.screen kbd {
+    display: inline-block;
+    min-width: 1.6em;
+    margin: 0 2px;
+    padding: 1px 6px;
+    border: 2px solid #2b211b;
+    border-radius: 6px;
+    background: #ffffff;
+    font: inherit;
+    font-weight: 800;
+}
+
+@keyframes screen-blink {
+    50% {
+        opacity: 0.45;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .screen-start {
+        animation: none;
+    }
+}
+
+.mute-badge {
+    position: fixed;
+    right: 12px;
+    bottom: 12px;
+    z-index: 16;
+    margin: 0;
+    padding: 3px 10px;
+    border: 2px solid #2b211b;
+    border-radius: 999px;
+    background: #fff6e0d9;
+    font-size: 12px;
+    font-weight: 800;
+}

@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [dev, master]
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Detect the app
+        id: app
+        run: |
+          if [ -f package-lock.json ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No package-lock.json yet (project not scaffolded): skipping checks."
+          fi
+
+      - name: Set up Node.js
+        if: steps.app.outputs.present == 'true'
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        if: steps.app.outputs.present == 'true'
+        run: npm ci
+
+      - name: Typecheck, lint, format, unit tests
+        if: steps.app.outputs.present == 'true'
+        run: npm run check
+
+      - name: Build
+        if: steps.app.outputs.present == 'true'
+        run: npm run build
+
+      - name: Report build size
+        if: steps.app.outputs.present == 'true'
+        run: |
+          {
+            echo "### Build size"
+            echo
+            echo '```'
+            du -sh dist
+            du -sh dist/assets 2>/dev/null || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Install Playwright Chromium
+        if: steps.app.outputs.present == 'true' && hashFiles('playwright.config.*') != ''
+        run: npx playwright install --with-deps chromium
+
+      - name: End-to-end smoke tests
+        if: steps.app.outputs.present == 'true' && hashFiles('playwright.config.*') != ''
+        run: npm run test:e2e
+
+      - name: Upload test artifacts
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-report
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 7

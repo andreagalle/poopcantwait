@@ -1,0 +1,21 @@
+import { defineConfig } from 'vitest/config';
+
+// Unit tests for the engine-agnostic rules. Coverage is measured on src/core/, where AGENTS.md asks for at least 85%
+// line coverage.
+export default defineConfig({
+    test: {
+        include: ['src/**/*.test.ts', 'scripts/**/*.test.mjs'],
+        environment: 'node',
+        // Some tests simulate tens of seconds of play, path searches included: give them room on slower CI runners
+        testTimeout: 30_000,
+        coverage: {
+            provider: 'v8',
+            include: ['src/core/**/*.ts'],
+            exclude: ['src/**/*.test.ts'],
+            reporter: ['text', 'html'],
+            thresholds: {
+                lines: 85
+            }
+        }
+    }
+});
