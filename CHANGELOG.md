@@ -78,3 +78,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Faster path distances: the twice-a-second search for the walking distances from Benny no longer allocates per cell
   or per call, which takes about 40% off the periodic hitch it caused (from about 11 ms to 7 ms for a slim Benny, on
   the Codespace).
+
+### Fixed
+
+- The end-to-end audio test no longer fails on slow CI runners: it gives the music up to 20 s to start, since software
+  rendering blocks the main thread for several seconds at the start of a run.
