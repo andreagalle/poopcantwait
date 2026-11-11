@@ -33,6 +33,7 @@ import { createGameCamera } from './render/camera';
 import { CameraRig } from './render/camera-rig';
 import { CityView } from './render/city-view';
 import { addSunlight } from './render/lighting';
+import { touchOnlyDevice } from './ui/device';
 import { floatText } from './ui/float-text';
 import { showGameOver } from './ui/game-over';
 import { recordHighScore } from './ui/high-score-store';
@@ -97,7 +98,7 @@ const indicators = new ToiletIndicators(document.body);
 const playerDebug = params.debug ? new PlayerDebug(mountCityDebugMap(document.body, city), game) : null;
 
 // Screens: the title before the run, pause, game over. The simulation only runs while the run is on screen.
-const screens = new Screens(document.body);
+const screens = new Screens(document.body, touchOnlyDevice());
 let screen: Screen = 'title';
 let muted = loadMuted();
 screens.show(screen);
