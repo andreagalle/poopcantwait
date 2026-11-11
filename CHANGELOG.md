@@ -74,6 +74,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   the agent's actions, milestones), with screenshots from each milestone.
 - `npm run assets:image` sends only the options given (`--quality`, `--background transparent`, `--resolution`,
   `--format`) and takes up to four `--reference` images to keep a character consistent across views.
+- On a phone or a tablet without a mouse, the title screen says the game needs a keyboard for now and links to the
+  story, instead of listing keys there are none of; touch controls are planned as milestone M9.
 
 ### Changed
 

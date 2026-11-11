@@ -4,6 +4,9 @@
     top: 50%;
     left: 50%;
     z-index: 30;
+    box-sizing: border-box;
+    /* As wide as the content, up to the screen: with left at 50%, the automatic width would stop at half the screen */
+    width: max-content;
     max-width: calc(100vw - 32px);
     padding: 20px 32px;
     border: 3px solid #2b211b;
@@ -18,6 +21,39 @@
 .screen[hidden],
 .mute-badge[hidden] {
     display: none;
+}
+
+/* On a phone or a tablet: no keys to list, a note that the game needs a keyboard instead */
+.screen-title.is-touch .screen-controls,
+.screen-title.is-touch .screen-start {
+    display: none;
+}
+
+.screen-touch {
+    max-width: 30em;
+    margin: 14px auto 0;
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1.35;
+}
+
+.screen-touch-links a {
+    color: inherit;
+    font-weight: 800;
+}
+
+@media (max-width: 520px) {
+    .screen {
+        padding: 16px 18px;
+    }
+
+    .screen h1 {
+        font-size: 40px;
+    }
+
+    .screen-touch {
+        font-size: 16px;
+    }
 }
 
 .screen h1 {

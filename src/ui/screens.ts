@@ -33,16 +33,24 @@ function panel(className: string, label: string, html: string): HTMLElement {
     return el;
 }
 
-/** The title and pause screens and the mute badge, shown over the city. */
+/** What the title screen says on a phone or a tablet, where there are no arrow keys yet (design: *Controls*). */
+const TOUCH_NOTICE = `<p class="screen-touch">Gotta Go! needs a keyboard for now: Benny runs with the arrow keys.
+Play it on a computer. Touch controls are on the way.</p>
+<p class="screen-touch-links"><a href="../story/">Read how it was made</a></p>`;
+
+/**
+ * The title and pause screens and the mute badge, shown over the city. On a touch-only device (`touchOnly`) the title
+ * screen says the game needs a keyboard instead of listing the keys; a keyboard plugged into it still works.
+ */
 export class Screens {
     private readonly title: HTMLElement;
     private readonly pause: HTMLElement;
     private readonly mute: HTMLElement;
 
-    constructor(parent: HTMLElement) {
+    constructor(parent: HTMLElement, touchOnly = false) {
         const best = loadHighScores()[0];
         this.title = panel(
-            'screen-title',
+            touchOnly ? 'screen-title is-touch' : 'screen-title',
             'Title',
             `<h1>Gotta Go!</h1>
 <p class="screen-tagline">Benny really has to go. Get him to a free toilet before it is too late.</p>
@@ -52,7 +60,8 @@ export class Screens {
 <li><kbd>Esc</kbd> or <kbd>P</kbd> pause · <kbd>M</kbd> mute</li>
 </ul>
 ${best ? `<p class="screen-best">Best score ${best}</p>` : ''}
-<p class="screen-start">Press <kbd>Enter</kbd> or <kbd>Space</kbd> to start</p>`
+<p class="screen-start">Press <kbd>Enter</kbd> or <kbd>Space</kbd> to start</p>
+${touchOnly ? TOUCH_NOTICE : ''}`
         );
         this.pause = panel(
             'screen-pause',

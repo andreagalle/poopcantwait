@@ -936,9 +936,9 @@
                 id="this-page"
                 data-when="Mon 9 Nov · 23:05"
                 data-t="32:24"
-                data-human="{{humanMessages}}"
-                data-agent="{{agentActions}}"
-                data-prs="{{pullRequests}}"
+                data-human="12"
+                data-agent="762"
+                data-prs="26"
                 data-phase="This page"
                 data-done="M0 M1 M2 M3 M4 M5 M6~ M7 M8"
             >
@@ -954,6 +954,67 @@
                         <span class="tag tag--agent">Agent</span>So it wrote this page too, and adds a stage whenever
                         the game moves on.
                     </p>
+                </div>
+            </section>
+
+            <section
+                class="stage stage--human stage--quote"
+                id="phone-question"
+                data-when="Wed 11 Nov · 23:23"
+                data-t="80:42"
+                data-human="25"
+                data-agent="1007"
+                data-prs="30"
+                data-phase="Phones"
+                data-done="M0 M1 M2 M3 M4 M5 M6~ M7 M8"
+            >
+                <div class="stage-inner stage-inner--solo">
+                    <p class="kicker">
+                        <span class="tag tag--human">Human</span><span class="when">Messages 13 and 25 · 23:23</span>
+                    </p>
+                    <blockquote class="bubble">“Is the game playable on a phone too? Yes or no?”</blockquote>
+                    <p class="reply">
+                        <span class="tag tag--agent">Agent</span>No: arrow keys only, and a HUD made for 960 px. Of
+                        three options the human picked C: say so on phones now, touch controls later.
+                    </p>
+                </div>
+            </section>
+
+            <section
+                class="stage stage--agent tone-butter"
+                id="phone-notice"
+                data-when="Wed 11 Nov · 23:33"
+                data-t="80:52"
+                data-human="26"
+                data-agent="1120"
+                data-prs="31"
+                data-phase="Phones"
+                data-done="M0 M1 M2 M3 M4 M5 M6~ M7 M8"
+            >
+                <div class="stage-inner flip">
+                    <div class="card">
+                        <p class="kicker"><span class="tag tag--agent">Agent</span><span class="when">23:33</span></p>
+                        <h2>A note for phones</h2>
+                        <ul class="facts">
+                            <li>
+                                Only coarse pointers, no fine one: a phone. The title screen says “needs a keyboard”.
+                            </li>
+                            <li>A touchscreen laptop still counts as a computer; a plugged-in keyboard still works.</li>
+                            <li>Touch controls become milestone M9: a finger to steer, a compact HUD.</li>
+                            <li>Three sessions ran in parallel tonight, and agreed by message who did what.</li>
+                        </ul>
+                    </div>
+                    <figure class="shot">
+                        <img
+                            src="./shots/phone-notice.webp"
+                            alt="The title screen on a phone: Gotta Go! needs a keyboard for now"
+                            width="780"
+                            height="650"
+                            loading="lazy"
+                            decoding="async"
+                        />
+                        <figcaption>The title screen on a 390 px phone.</figcaption>
+                    </figure>
                 </div>
             </section>
 
@@ -1021,7 +1082,8 @@
                                 M6, the art: Benny in 3D, the food, the vehicles, the toilets. About 400 credits,
                                 waiting for a yes.
                             </li>
-                            <li>Version 0.1.0, merged into <code>master</code> by the human.</li>
+                            <li>Version 0.1.0, merged into <code>master</code> by the human, as a GitHub Release.</li>
+                            <li>M9, touch controls, so Benny can run on a phone.</li>
                             <li>And a new stage here for each of them.</li>
                         </ul>
                         <nav class="end-actions" aria-label="Where next">
