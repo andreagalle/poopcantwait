@@ -7,7 +7,9 @@
  *  - no plain force pushes (only --force-with-lease, and only on topic branches), no bulk or tag pushes;
  *  - `gh pr merge` only for PRs whose base is dev, never with --admin;
  *  - PRs into master only from dev, and every `gh pr create` must name its base explicitly;
- *  - no PR approvals, no mutating `gh api` calls, no secret, ruleset, repo, release or workflow admin;
+ *  - no PR approvals, no mutating `gh api` calls, no secret, ruleset, repo or workflow admin;
+ *  - releases only through `gh release create vX.Y.Z --target <commit on master>`, where package.json at that commit
+ *    has version X.Y.Z (the tag is created with the release); `gh release edit` without moving the tag; no deletions;
  *  - no edits, commits or pushes that touch the guardrail files listed in GUARDED_PATHS.
  *
  * Exit code 2 blocks the tool call and shows stderr to the agent. Unparseable input fails closed.
@@ -155,7 +157,39 @@ const currentBranch = run('git', ['rev-parse', '--abbrev-ref', 'HEAD']) ?? '';
 
 // Track the branch each segment runs on, following switch/checkout within the same command.
 let branch = currentBranch;
-const handled = { push: false, prMerge: false, ghApi: false };
+const handled = { push: false, prMerge: false, ghApi: false, release: false };
+
+/**
+ * A release ships a merge into master: `gh release create vX.Y.Z --target <commit>` creates the tag and the GitHub
+ * Release together, and is allowed only when the commit is on origin/master and its package.json says X.Y.Z.
+ */
+function checkReleaseCreate(args) {
+    const valueOptions = [
+        '-t', '--title', '-n', '--notes', '-F', '--notes-file', '--target', '--discussion-category',
+        '--notes-start-tag', '-R', '--repo'
+    ];
+    const tag = positionals(args, valueOptions)[0] ?? '';
+    if (!/^v\d+\.\d+\.\d+$/.test(tag)) block('release tags are vMAJOR.MINOR.PATCH, given as the first argument.');
+    const target = optionValue(args, ['--target']);
+    if (!target) block('pass --target with the full SHA of the merge into master that this release ships.');
+    if (run('git', ['rev-parse', '--verify', '--quiet', 'origin/master']) === null) {
+        block('origin/master is unknown here. Run "git fetch origin" first, then create the release again.');
+    }
+    const sha = run('git', ['rev-parse', '--verify', '--quiet', `${target}^{commit}`]);
+    if (!sha) block(`${target} is not a known commit. Run "git fetch origin" and pass the full SHA.`);
+    if (run('git', ['merge-base', '--is-ancestor', sha, 'origin/master']) === null) {
+        block(`${target} is not on master. A release ships a commit that the maintainer merged into master.`);
+    }
+    let version = null;
+    try {
+        version = JSON.parse(run('git', ['show', `${sha}:package.json`]) ?? '').version ?? null;
+    } catch {
+        version = null;
+    }
+    if (`v${version}` !== tag) {
+        block(`${tag} does not match package.json at ${sha.slice(0, 7)} (${version ?? 'unreadable'}). Version the release first (/release-pr).`);
+    }
+}
 
 for (const tokens of segments) {
     // Writes into guardrail files through the shell.
@@ -215,7 +249,7 @@ for (const tokens of segments) {
                     block('plain force pushes are not allowed. Use --force-with-lease on your own topic branch only.');
                 }
                 if (['--mirror', '--all', '--branches', '--prune', '--delete', '-d', '--tags'].includes(a)) {
-                    block(`git push ${a} is not allowed. Topic branches are deleted by "gh pr merge --delete-branch"; tags are pushed by the maintainer.`);
+                    block(`git push ${a} is not allowed. Topic branches are deleted by "gh pr merge --delete-branch"; tags are created by "gh release create".`);
                 }
             }
             for (const rs of refspecs) {
@@ -224,7 +258,9 @@ for (const tokens of segments) {
                 const dst = stripHeads(rs.includes(':') ? rs.split(':').pop() : rs);
                 const target = dst === 'HEAD' ? branch : dst;
                 if (PROTECTED_BRANCHES.includes(target)) block(`never push to ${target}. Open a pull request instead.`);
-                if (/^refs\/tags\//.test(rs) || /^v\d+\.\d+/.test(dst)) block('tags are pushed by the maintainer.');
+                if (/^refs\/tags\//.test(rs) || /^v\d+\.\d+/.test(dst)) {
+                    block('tags are not pushed. "gh release create vX.Y.Z --target <commit on master>" creates the tag with the release.');
+                }
             }
             if (refspecs.length === 0 && PROTECTED_BRANCHES.includes(branch)) {
                 block(`this would push ${branch}. Never push to protected branches; work on a topic branch.`);
@@ -250,7 +286,17 @@ for (const tokens of segments) {
             block(`gh repo ${action} is reserved for the maintainer.`);
         }
         if (group === 'workflow' && !['list', 'view'].includes(action)) block(`gh workflow ${action} is reserved for the maintainer.`);
-        if (group === 'release' && !['list', 'view', 'download'].includes(action)) block(`gh release ${action} is reserved for the maintainer.`);
+        if (group === 'release') {
+            if (['create', 'edit'].includes(action)) handled.release = true;
+            if (repo) block('gh release works on this repository only: do not pass --repo.');
+            if (action === 'create') {
+                checkReleaseCreate(args.slice(1));
+            } else if (action === 'edit') {
+                if (args.some((a) => /^--(tag|target)(=|$)/.test(a))) block('gh release edit may not move or rename the tag.');
+            } else if (!['list', 'view', 'download'].includes(action)) {
+                block(`gh release ${action} is reserved for the maintainer.`);
+            }
+        }
 
         if (group === 'api') {
             handled.ghApi = true;
@@ -297,8 +343,11 @@ for (const tokens of segments) {
 // Quoted text (commit messages, PR bodies) is ignored unless a nested shell could execute it.
 const unquoted = command.replace(/"(?:[^"\\]|\\.)*"|'[^']*'/g, '""');
 const nestedShell = /\b(bash|sh|zsh|dash)\s+-c\b|\beval\b|\bxargs\b|\bsource\b|(^|[\s;&|])\.\s/.test(unquoted);
-if (nestedShell && /\bgit\b[\s\S]*\bpush\b|\bgh\b[\s\S]*\bpr\s+merge\b|\bgh\s+api\b/.test(command)) {
-    block('run git push, gh pr merge and gh api as plain top-level commands so the policy can check them.');
+if (nestedShell && /\bgit\b[\s\S]*\bpush\b|\bgh\b[\s\S]*\bpr\s+merge\b|\bgh\s+api\b|\bgh\s+release\b/.test(command)) {
+    block('run git push, gh pr merge, gh api and gh release as plain top-level commands so the policy can check them.');
+}
+if (/\bgh\s+release\s+(create|edit)\b/.test(unquoted) && !handled.release) {
+    block('run gh release as a plain top-level command so the policy can check it.');
 }
 if (/\bgit\s+(-\S+\s+)*push\b/.test(unquoted) && !handled.push) {
     block('run git push as a plain top-level command so the policy can check it.');
