@@ -72,6 +72,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   game under `/gottago/`, and under `/story/` the story of the development from the kickoff prompt on, as full-screen
   stages that snap one at a time under a HUD (time since the kickoff, merged PRs, the maintainer's messages against
   the agent's actions, milestones), with screenshots from each milestone.
+- `npm run assets:image` sends only the options given (`--quality`, `--background transparent`, `--resolution`,
+  `--format`) and takes up to four `--reference` images to keep a character consistent across views.
 
 ### Changed
 
