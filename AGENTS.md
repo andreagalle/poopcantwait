@@ -10,7 +10,9 @@ growing fatter, slower and wider as he does. It is built with the **PlayCanvas E
 Vite, no PlayCanvas Editor) and published as a static site on **GitHub Pages** from `master`: a landing page at the
 root, the game under `/gottago/` and the story of its development under `/story/` (see _The story page_).
 
-An AI agent does the development in a GitHub Codespace. The maintainer reviews, tests `dev` locally and releases.
+An AI agent does the development in a GitHub Codespace. The maintainer reviews, tests `dev` locally and merges each
+release into `master`; every such merge is an official release, which the agent versions beforehand and publishes
+right after (`CONTRIBUTING.md`, _Releases_).
 
 Read these before changing anything:
 
