@@ -1,4 +1,4 @@
-import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -84,7 +84,11 @@ describe('assets:image', () => {
         expect(url).toBe(ENDPOINT);
         expect(init.headers.Authorization).toBe(`Bearer ${KEY}`);
         const body = JSON.parse(init.body);
-        expect(body).toMatchObject({ model: 'some/model', n: 1, aspect_ratio: '1:1', output_format: 'png' });
+        expect(body).toMatchObject({ model: 'some/model', n: 1, aspect_ratio: '1:1' });
+        // Only the options given are sent: a model may refuse a parameter it does not support
+        expect(body).not.toHaveProperty('resolution');
+        expect(body).not.toHaveProperty('output_format');
+        expect(body).not.toHaveProperty('quality');
         expect(body.prompt.startsWith(STYLE_BLOCK)).toBe(true);
 
         const files = (await readdir(path.join(outRoot, 'char.benny'))).sort();
@@ -93,6 +97,38 @@ describe('assets:image', () => {
         expect(JSON.parse(sidecar)).toMatchObject({ model: 'some/model', cost: 0.04, files: [files[0]] });
         expect(sidecar).not.toContain(KEY);
         expect(logs.join('\n')).not.toContain(KEY);
+    });
+
+    it('sends quality, a transparent background and reference images when asked', async () => {
+        capture();
+        const reference = path.join(outRoot, 'front.png');
+        await writeFile(reference, PNG);
+        const fetchImpl = vi.fn(async () => ({
+            ok: true,
+            json: async () => ({ data: [{ b64_json: PNG.toString('base64'), media_type: 'image/png' }] })
+        }));
+        const argv = ['char.benny', '--prompt', 'side view', '--model', 'openai/gpt-image-1', '--quality', 'medium'];
+        argv.push('--background', 'transparent', '--aspect', '2:3', '--reference', reference, '--yes');
+        expect(await main(argv, { env: { OPENROUTER_API_KEY: KEY }, fetchImpl, outRoot })).toBe(0);
+        const body = JSON.parse(fetchImpl.mock.calls[0][1].body);
+        expect(body).toMatchObject({ quality: 'medium', background: 'transparent', aspect_ratio: '2:3' });
+        expect(body.input_references).toEqual([
+            { type: 'image_url', image_url: { url: `data:image/png;base64,${PNG.toString('base64')}` } }
+        ]);
+        expect(logs.join('\n')).toContain('refs');
+    });
+
+    it('refuses unknown qualities, backgrounds, reference types and too many references', async () => {
+        capture();
+        const fetchImpl = vi.fn();
+        const base = ['char.benny', '--prompt', 'x', '--model', 'm'];
+        const run = (extra) => main([...base, ...extra], { env: {}, fetchImpl, outRoot });
+        expect(await run(['--quality', 'ultra'])).toBe(1);
+        expect(await run(['--background', 'clear'])).toBe(1);
+        expect(await run(['--reference', path.join(outRoot, 'notes.txt')])).toBe(1);
+        const many = Array.from({ length: 5 }, () => ['--reference', 'a.png']).flat();
+        expect(await run(many)).toBe(1);
+        expect(fetchImpl).not.toHaveBeenCalled();
     });
 
     it('reports API errors without saving anything', async () => {

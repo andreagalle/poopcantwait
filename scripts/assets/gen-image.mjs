@@ -2,15 +2,20 @@
 /**
  * Generates 2D images through the OpenRouter Images API (docs/ASSET_PIPELINE.md, 2D images through OpenRouter). Paid.
  *
- *   npm run assets:image -- <asset-id> --prompt "<description>" [--model <slug>] [--n 1] [--aspect 1:1]
- *                           [--resolution 1K] [--format png] [--raw] --yes
+ *   npm run assets:image -- <asset-id> --prompt "<description>" --model <slug> [--n 1] [--aspect 1:1]
+ *                           [--quality low|medium|high] [--background transparent|opaque] [--resolution 1K]
+ *                           [--format png|jpeg|webp] [--reference <image>]... [--raw] --yes
+ *
+ * Only the options given are sent: models support different parameters (gpt-image-1 takes quality and background but
+ * no resolution), and the aspect ratio defaults to 1:1. Each --reference image (PNG, JPEG or WebP, at most 4) goes
+ * along as an input reference, to keep a character the same from one view to the next.
  *
  * Without --yes it prints the plan and stops, so every paid call is deliberate. The model comes from --model or
  * OPENROUTER_IMAGE_MODEL. The prompt starts with the style block below unless --raw is given. Images and a JSON
  * sidecar (model, prompt, parameters, date, cost when reported) go to art/raw/images/<asset-id>/, which git ignores.
  * The API key comes from OPENROUTER_API_KEY and is never printed or written anywhere.
  */
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -24,6 +29,10 @@ export const STYLE_BLOCK =
 
 const ASSET_ID = /^[a-z]+(\.[a-z0-9-]+)+$/;
 const FORMATS = { png: 'png', jpeg: 'jpg', webp: 'webp' };
+const QUALITIES = new Set(['auto', 'low', 'medium', 'high']);
+const BACKGROUNDS = new Set(['auto', 'transparent', 'opaque']);
+const REFERENCE_TYPES = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp' };
+const MAX_REFERENCES = 4;
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
 function parseArgs(argv) {
@@ -33,6 +42,8 @@ function parseArgs(argv) {
         const arg = argv[i];
         if (arg === '--yes' || arg === '--raw') {
             options[arg.slice(2)] = true;
+        } else if (arg === '--reference') {
+            (options.reference ??= []).push(argv[++i]);
         } else if (arg.startsWith('--')) {
             options[arg.slice(2)] = argv[++i];
         } else {
@@ -42,16 +53,37 @@ function parseArgs(argv) {
     return { positional, options };
 }
 
-/** The request body for a plan: everything except the key. */
-export function buildRequest({ model, prompt, raw, n, aspect, resolution, format }) {
-    return {
-        model,
-        prompt: raw ? prompt : `${STYLE_BLOCK} ${prompt}`,
-        n,
-        aspect_ratio: aspect,
-        resolution,
-        output_format: format
-    };
+/**
+ * The request body for a plan, everything except the key. Optional fields are left out unless given, because a model
+ * may refuse a parameter it does not support.
+ */
+export function buildRequest({ model, prompt, raw, n, aspect, quality, background, resolution, format, references }) {
+    const request = { model, prompt: raw ? prompt : `${STYLE_BLOCK} ${prompt}`, n, aspect_ratio: aspect };
+    if (quality) {
+        request.quality = quality;
+    }
+    if (background) {
+        request.background = background;
+    }
+    if (resolution) {
+        request.resolution = resolution;
+    }
+    if (format) {
+        request.output_format = format;
+    }
+    if (references && references.length > 0) {
+        request.input_references = references.map((url) => ({ type: 'image_url', image_url: { url } }));
+    }
+    return request;
+}
+
+/** A reference image as a data URL; only PNG, JPEG and WebP files are read. */
+async function referenceUrl(file) {
+    const type = REFERENCE_TYPES[path.extname(file).toLowerCase()];
+    if (!type) {
+        throw new Error(`Reference ${file} is not a PNG, JPEG or WebP image.`);
+    }
+    return `data:${type};base64,${(await readFile(file)).toString('base64')}`;
 }
 
 /**
@@ -74,9 +106,29 @@ export async function main(
         console.error('List candidates and prices with GET https://openrouter.ai/api/v1/images/models.');
         return 1;
     }
-    const format = options.format ?? 'png';
-    if (!(format in FORMATS)) {
+    const format = options.format;
+    if (format !== undefined && !(format in FORMATS)) {
         console.error(`Unsupported format ${format}: use png, jpeg or webp.`);
+        return 1;
+    }
+    if (options.quality !== undefined && !QUALITIES.has(options.quality)) {
+        console.error(`Unsupported quality ${options.quality}: use auto, low, medium or high.`);
+        return 1;
+    }
+    if (options.background !== undefined && !BACKGROUNDS.has(options.background)) {
+        console.error(`Unsupported background ${options.background}: use auto, transparent or opaque.`);
+        return 1;
+    }
+    const referenceFiles = options.reference ?? [];
+    if (referenceFiles.length > MAX_REFERENCES) {
+        console.error(`At most ${MAX_REFERENCES} reference images.`);
+        return 1;
+    }
+    let references;
+    try {
+        references = await Promise.all(referenceFiles.map(referenceUrl));
+    } catch (error) {
+        console.error(error.message);
         return 1;
     }
     const n = Math.min(4, Math.max(1, Number(options.n ?? 1)));
@@ -86,13 +138,20 @@ export async function main(
         raw: options.raw === true,
         n,
         aspect: options.aspect ?? '1:1',
-        resolution: options.resolution ?? '1K',
-        format
+        quality: options.quality,
+        background: options.background,
+        resolution: options.resolution,
+        format,
+        references
     });
 
+    const extras = ['quality', 'background', 'resolution', 'output_format'].filter((k) => k in request);
     console.log(`asset   ${assetId}`);
     console.log(`model   ${model}`);
-    console.log(`images  ${n} (${request.aspect_ratio}, ${request.resolution}, ${format})`);
+    console.log(`images  ${n} at ${request.aspect_ratio}${extras.map((k) => `, ${k} ${request[k]}`).join('')}`);
+    if (referenceFiles.length > 0) {
+        console.log(`refs    ${referenceFiles.join(', ')}`);
+    }
     console.log(`prompt  ${request.prompt}`);
     if (options.yes !== true) {
         console.log('Not sent: this call costs credits. Add --yes once the maintainer has approved it.');
@@ -129,7 +188,7 @@ export async function main(
     await mkdir(dir, { recursive: true });
     const files = [];
     for (const [i, image] of images.entries()) {
-        const ext = FORMATS[image.media_type?.split('/')[1]] ?? FORMATS[format];
+        const ext = FORMATS[image.media_type?.split('/')[1]] ?? FORMATS[format ?? 'png'];
         const file = path.join(dir, `${stamp}-${i + 1}.${ext}`);
         await writeFile(file, Buffer.from(image.b64_json, 'base64'));
         files.push(path.basename(file));
@@ -140,7 +199,10 @@ export async function main(
         endpoint: ENDPOINT,
         model,
         prompt: request.prompt,
-        parameters: { n, aspect_ratio: request.aspect_ratio, resolution: request.resolution, output_format: format },
+        parameters: Object.fromEntries(
+            Object.entries(request).filter(([key]) => !['model', 'prompt', 'input_references'].includes(key))
+        ),
+        references: referenceFiles.map((file) => path.relative(REPO, path.resolve(file))),
         generatedAt: now().toISOString(),
         cost: result.usage?.cost ?? null,
         files
