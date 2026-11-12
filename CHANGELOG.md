@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-12
+
 ### Added
 
 - `npm run assets:image` sends only the options given (`--quality`, `--background transparent`, `--resolution`,
@@ -31,6 +33,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - A link to a stage of the story (`/story/#<stage>`) jumps straight to that stage, on a fresh load or from the story
   itself; it used to land on the cover, or scroll smoothly through every stage before it.
+- `npm run story:stats` no longer counts the summary Claude Code writes when a long conversation continues, or
+  messages from other agent sessions, as messages from the maintainer: the story counted 33 messages instead of 32.
 
 ## [0.1.0] - 2026-11-11
 
