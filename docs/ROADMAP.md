@@ -19,6 +19,7 @@ Gameplay comes first, in greybox; art comes later (M6), so no generation credits
 | M6: art pass                  | Pipeline done (#19); paid assets wait for the maintainer |
 | M7: game feel and flow        | Done (#20 to #23)                                        |
 | M8: hardening                 | Done (#24 to #26)                                        |
+| M9: touch controls            | Planned                                                  |
 
 ## M0: scaffold and toolchain
 
@@ -97,3 +98,13 @@ As built: draw calls (10 to 16 in a busy scene) and download size (1.2 MB) were 
 `perf/draw-calls` and `perf/asset-size` had nothing to do; the one hot spot was the twice-a-second path search, sped up
 in `perf/path-field`. The game-over run was already covered by the smoke tests; `test/e2e-full-run` adds the run to a
 relief. M8 can be closed again after M6, since the art changes the budgets.
+
+## M9: touch controls
+
+Asked by the maintainer on 2026-11-11 (option C: a keyboard notice on phones now, touch controls later). Until then
+the title screen tells touch-only devices that the game needs a keyboard (`feat/touch-notice`). The milestone:
+steering with a finger (drag anywhere, or an on-screen stick, quantized to the same eight directions as the arrow
+keys so the simulation does not change), a tap to start and confirm, pause and mute buttons, a compact HUD for narrow
+screens (the three top panels need about 700 px today), a hint to turn the phone sideways (the fixed vertical field of
+view shows little to the sides in portrait), and a frame-time check on a real mid-range phone, where the path search
+may take two to three times as long. Suggested branches: `feat/touch-input`, `feat/hud-compact`, `perf/mobile`.
