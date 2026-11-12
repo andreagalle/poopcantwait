@@ -430,3 +430,15 @@ export const EFFECTS = {
         stinkTrail: { seconds: 4, everySeconds: 0.3 }
     }
 } as const;
+
+/**
+ * Touch controls (design: *Controls*). A finger anywhere on the screen is a floating stick: the drag from where it
+ * landed picks the nearest of the arrow keys' eight directions, so the simulation sees exactly what the keys give.
+ * Distances are in CSS pixels.
+ */
+export const TOUCH = {
+    /** A drag shorter than this leaves Benny standing, so a resting thumb does not walk him. */
+    deadZonePixels: 14,
+    /** Dragging further than this from the stick's centre pulls the centre along, so turning back is quick. */
+    stickRadiusPixels: 56
+} as const;

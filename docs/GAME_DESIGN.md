@@ -43,8 +43,8 @@ clips gives the plush feel and can stand in for any clip that is not available.
 
 ## Controls
 
-- Gameplay uses **only the arrow keys**. Up moves up the screen, and so on; two keys together move diagonally (eight
-  directions). The camera never rotates, so the mapping is always screen-relative.
+- On a computer, gameplay uses **only the arrow keys**. Up moves up the screen, and so on; two keys together move
+  diagonally (eight directions). The camera never rotates, so the mapping is always screen-relative.
 - Movement has acceleration and deceleration that worsen with weight (a heavy Benny takes time to start and stop).
   Benny turns to face his direction of travel. _Initial_: 30 m/s² acceleration and 40 m/s² braking when slim (scaled
   by `1 - 0.6 * w`, see below), turning at 720° per second.
@@ -52,9 +52,16 @@ clips gives the plush feel and can stand in for any clip that is not available.
   along walls. A street narrower than his diameter simply does not let him in.
 - Menus only: Enter or Space to start and confirm, Escape or P to pause, M to mute.
 - The page must not scroll when arrow keys are pressed.
-- On a touch-only device (only coarse pointers: a phone, or a tablet without a mouse) the title screen says the game
-  needs a keyboard for now, instead of listing the keys, and links to the story of the game. A keyboard plugged into
-  it still works. Touch controls come later, as their own milestone (M9 in `docs/ROADMAP.md`).
+- On a touchscreen, a finger anywhere on the screen is a floating stick: the drag from where it landed picks the
+  nearest of the same eight directions, so Benny moves exactly as with the keys. Only the first finger steers; lifting
+  it stops him. A circle and a knob show the stick under the finger. _Initial_: a 14 px dead zone, so a resting thumb
+  does not walk him, and a 56 px stick radius, beyond which the stick's centre follows the finger (turning back is
+  quick).
+- On a touchscreen a tap starts the run, goes on from pause and plays again after a game over, like Enter; the finger
+  that was steering when a run ends does not count as a tap. Two round buttons in the bottom right corner mute (always)
+  and pause (during the run). Mouse clicks do nothing, so a computer plays with the keys as before.
+- On a touch-only device (only coarse pointers: a phone, or a tablet without a mouse) the screens speak of dragging and
+  tapping instead of keys. A keyboard plugged into it still works.
 
 ## Camera
 
@@ -331,5 +338,5 @@ green, toilets green or red, vehicles bright solid colors). No real brands, logo
 
 ## Out of scope for version 1
 
-Gamepad controls, online leaderboards, multiplayer, accounts, any runtime network call. Touch controls are not in the
-first version either; they are planned as milestone M9 (see _Controls_).
+Gamepad controls, online leaderboards, multiplayer, accounts, any runtime network call. Touch controls came after the
+first version, as milestone M9 (see _Controls_).

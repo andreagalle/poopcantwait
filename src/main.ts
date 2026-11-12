@@ -15,7 +15,7 @@ import { cueFor, initialRumble, musicTempo, tickRumble } from './core/audio/dire
 import { BuildingIndex } from './core/camera';
 import { generateCity } from './core/city/generate';
 import type { Screen } from './core/flow';
-import { isSimulating, nextScreen } from './core/flow';
+import { isSimulating, nextScreen, tapAction } from './core/flow';
 import { Game } from './core/game';
 import { parseLaunchParams } from './core/params';
 import { FixedStepper } from './core/sim/fixed-step';
@@ -28,12 +28,14 @@ import { Juice } from './game/juice';
 import { KioskView } from './game/kiosk-view';
 import { PopupView } from './game/popup-view';
 import { VehicleView } from './game/vehicle-view';
+import type { MenuAction } from './input/keyboard';
 import { KeyboardInput, MenuKeys } from './input/keyboard';
+import { combineDirections, TouchInput } from './input/touch';
 import { createGameCamera } from './render/camera';
 import { CameraRig } from './render/camera-rig';
 import { CityView } from './render/city-view';
 import { addSunlight } from './render/lighting';
-import { touchOnlyDevice } from './ui/device';
+import { touchDevice, touchOnlyDevice } from './ui/device';
 import { floatText } from './ui/float-text';
 import { showGameOver } from './ui/game-over';
 import { recordHighScore } from './ui/high-score-store';
@@ -41,6 +43,7 @@ import { Hud } from './ui/hud';
 import { showRelief } from './ui/relief-pop';
 import { loadMuted, saveMuted, Screens } from './ui/screens';
 import { ToiletIndicators } from './ui/toilet-indicators';
+import { TouchControls } from './ui/touch-controls';
 import { WaitRing } from './ui/wait-ring';
 
 import './ui/style.css';
@@ -97,13 +100,15 @@ const waitRing = new WaitRing(document.body);
 const indicators = new ToiletIndicators(document.body);
 const playerDebug = params.debug ? new PlayerDebug(mountCityDebugMap(document.body, city), game) : null;
 
-// Screens: the title before the run, pause, game over. The simulation only runs while the run is on screen.
-const screens = new Screens(document.body, touchOnlyDevice());
+// Screens: the title before the run, pause, game over. The simulation only runs while the run is on screen. On a phone
+// or a tablet they speak of taps instead of keys.
+const touchOnly = touchOnlyDevice();
+const screens = new Screens(document.body, touchOnly);
 let screen: Screen = 'title';
 let muted = loadMuted();
 screens.show(screen);
 screens.showMuted(muted);
-// Sound starts with the first key press (browser autoplay rules); M mutes it
+// Sound starts with the first key press or tap (browser autoplay rules); M or the mute button mutes it
 const audio = new GameAudio(window, muted);
 let rumble = initialRumble();
 const goTo = (next: Screen | 'restart') => {
@@ -117,16 +122,34 @@ const goTo = (next: Screen | 'restart') => {
     // The music stops or starts with the screen at once, not at the next frame (frames can be slow)
     audio.setMusic(isSimulating(screen) && game.phase !== 'over', musicTempo(game.urgency));
 };
-const menuKeys = new MenuKeys(window, (action) => {
+let touchControls: TouchControls | null = null;
+const onMenuAction = (action: MenuAction) => {
     if (action === 'mute') {
         muted = !muted;
         saveMuted(muted);
         screens.showMuted(muted);
+        touchControls?.showMuted(muted);
         audio.setMuted(muted);
     } else {
         goTo(nextScreen(screen, action));
     }
-});
+};
+const menuKeys = new MenuKeys(window, onMenuAction);
+// A touchscreen gets the pause and mute buttons; a finger steers during the run and taps through the other screens
+if (touchDevice()) {
+    touchControls = new TouchControls(document.body, onMenuAction);
+    touchControls.showMuted(muted);
+}
+const touch = new TouchInput(
+    window,
+    () => isSimulating(screen),
+    () => {
+        const action = tapAction(screen);
+        if (action) {
+            onMenuAction(action);
+        }
+    }
+);
 // Leaving the page (alt-tab, another tab) pauses the run
 const onAway = () => goTo(nextScreen(screen, 'away'));
 const onVisibility = () => {
@@ -143,7 +166,7 @@ const stepper = new FixedStepper(game.stepSeconds, SIMULATION.maxStepsPerFrame);
 const onUpdate = (dt: number) => {
     const steps = isSimulating(screen) ? stepper.advance(dt) : 0;
     for (let i = 0; i < steps; i++) {
-        game.step(input.direction());
+        game.step(combineDirections(input.direction(), touch.direction()));
     }
     if (steps > 0) {
         const tummy = tickRumble(rumble, game.urgency, game.phase === 'playing', steps * game.stepSeconds);
@@ -182,7 +205,7 @@ const onUpdate = (dt: number) => {
         if (event === 'gameOver') {
             goTo('over');
             const record = recordHighScore(game.score.points);
-            showGameOver(document.body, { score: game.score.points, ...record });
+            showGameOver(document.body, { score: game.score.points, ...record }, touchOnly);
         }
     }
     audio.setMusic(isSimulating(screen) && game.phase !== 'over', musicTempo(game.urgency));
@@ -197,12 +220,14 @@ const onUpdate = (dt: number) => {
     hud.update(game);
     waitRing.update(game, camera.camera!);
     indicators.update(game, camera.camera!);
+    touchControls?.update(touch.stick(), screen);
     playerDebug?.update(game);
 };
 app.on('update', onUpdate);
 onUpdate(0);
 app.on('destroy', () => {
     input.dispose();
+    touch.dispose();
     menuKeys.dispose();
     audio.dispose();
     window.removeEventListener('blur', onAway);

@@ -33,14 +33,18 @@ function panel(className: string, label: string, html: string): HTMLElement {
     return el;
 }
 
-/** What the title screen says on a phone or a tablet, where there are no arrow keys yet (design: *Controls*). */
-const TOUCH_NOTICE = `<p class="screen-touch">Gotta Go! needs a keyboard for now: Benny runs with the arrow keys.
-Play it on a computer. Touch controls are on the way.</p>
-<p class="screen-touch-links"><a href="../story/">Read how it was made</a></p>`;
+/** How to play, with the keys on a computer and with a finger on a phone or a tablet (design: *Controls*). */
+const KEY_CONTROLS = `<li><kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd> run (two at once for diagonals)</li>
+<li>Eat junk food for points, dodge vegetables, follow the green signs to a free toilet</li>
+<li><kbd>Esc</kbd> or <kbd>P</kbd> pause · <kbd>M</kbd> mute</li>`;
+
+const TOUCH_CONTROLS = `<li>Drag anywhere to run: Benny goes the way your finger points</li>
+<li>Eat junk food for points, dodge vegetables, follow the green signs to a free toilet</li>
+<li>Pause and mute with the buttons in the corner</li>`;
 
 /**
- * The title and pause screens and the mute badge, shown over the city. On a touch-only device (`touchOnly`) the title
- * screen says the game needs a keyboard instead of listing the keys; a keyboard plugged into it still works.
+ * The title and pause screens and the mute badge, shown over the city. On a touch-only device (`touchOnly`) they speak
+ * of taps and drags instead of keys; a keyboard plugged into it still works.
  */
 export class Screens {
     private readonly title: HTMLElement;
@@ -55,18 +59,15 @@ export class Screens {
             `<h1>Gotta Go!</h1>
 <p class="screen-tagline">Benny really has to go. Get him to a free toilet before it is too late.</p>
 <ul class="screen-controls">
-<li><kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd> run (two at once for diagonals)</li>
-<li>Eat junk food for points, dodge vegetables, follow the green signs to a free toilet</li>
-<li><kbd>Esc</kbd> or <kbd>P</kbd> pause · <kbd>M</kbd> mute</li>
+${touchOnly ? TOUCH_CONTROLS : KEY_CONTROLS}
 </ul>
 ${best ? `<p class="screen-best">Best score ${best}</p>` : ''}
-<p class="screen-start">Press <kbd>Enter</kbd> or <kbd>Space</kbd> to start</p>
-${touchOnly ? TOUCH_NOTICE : ''}`
+<p class="screen-start">${touchOnly ? 'Tap to start' : 'Press <kbd>Enter</kbd> or <kbd>Space</kbd> to start'}</p>`
         );
         this.pause = panel(
             'screen-pause',
             'Paused',
-            `<h2>Paused</h2><p>Press <kbd>Esc</kbd> or <kbd>P</kbd> to go on</p>`
+            `<h2>Paused</h2><p>${touchOnly ? 'Tap to go on' : 'Press <kbd>Esc</kbd> or <kbd>P</kbd> to go on'}</p>`
         );
         this.mute = document.createElement('p');
         this.mute.className = 'mute-badge';

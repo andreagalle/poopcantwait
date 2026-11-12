@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { FlowAction, Screen } from './flow';
-import { isSimulating, nextScreen } from './flow';
+import { isSimulating, nextScreen, tapAction } from './flow';
 
 describe('nextScreen', () => {
     it('starts the run from the title screen with Enter or Space', () => {
@@ -44,5 +44,14 @@ describe('isSimulating', () => {
     it('never leaves the game-over screen except to restart', () => {
         const actions: FlowAction[] = ['start', 'pause', 'away'];
         expect(actions.map((action) => nextScreen('over', action))).toEqual(['restart', 'over', 'over']);
+    });
+});
+
+describe('tapAction', () => {
+    it('starts, goes on and plays again like Enter, and does nothing during a run', () => {
+        expect(nextScreen('title', tapAction('title')!)).toBe('running');
+        expect(nextScreen('paused', tapAction('paused')!)).toBe('running');
+        expect(nextScreen('over', tapAction('over')!)).toBe('restart');
+        expect(tapAction('running')).toBeNull();
     });
 });

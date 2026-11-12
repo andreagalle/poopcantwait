@@ -16,6 +16,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - The story's first side story, _Benny's look_ (`/story/benny/`): every round of sketches for the hero, the ones
   set aside and the one kept, with the prompt, linked from a stage of the main story. The default image model is now
   `openai/gpt-image-2` (`gpt-image-1` is no longer served).
+- Touch controls (M9): on a phone or a tablet a finger anywhere steers Benny like a floating stick, in the same eight
+  directions as the arrow keys; a tap starts, goes on from pause and plays again; round buttons mute and pause. The
+  title, pause and game-over screens speak of taps and drags there, instead of saying the game needs a keyboard.
 
 ### Changed
 
