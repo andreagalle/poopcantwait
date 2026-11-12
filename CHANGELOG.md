@@ -17,6 +17,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   set aside and the one kept, with the prompt, linked from a stage of the main story. The default image model is now
   `openai/gpt-image-2` (`gpt-image-1` is no longer served).
 
+### Changed
+
+- Every merge into `master` is now an official release: the release PR is versioned before the merge, and the tag and
+  the GitHub Release are published right after it (`CONTRIBUTING.md`, _Releases_; `/release-pr publish`).
+
 ### Fixed
 
 - A link to a stage of the story (`/story/#<stage>`) jumps straight to that stage, on a fresh load or from the story
