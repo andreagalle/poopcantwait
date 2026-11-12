@@ -1,6 +1,6 @@
 {
     "name": "gotta-go",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "private": true,
     "description": "Gotta Go! A 3D arcade game for the browser, built with the PlayCanvas Engine",
     "type": "module",
