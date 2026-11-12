@@ -9,6 +9,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- `npm run assets:image` sends only the options given (`--quality`, `--background transparent`, `--resolution`,
+  `--format`) and takes up to four `--reference` images to keep a character consistent across views.
+- On a phone or a tablet without a mouse, the title screen says the game needs a keyboard for now and links to the
+  story, instead of listing keys there are none of; touch controls are planned as milestone M9.
+
+## [0.1.0] - 2026-11-11
+
+### Added
+
 - Repository bootstrap: dev container, agent guardrails, contribution rules, CI and GitHub Pages deployment.
 - Project scaffold (PlayCanvas Engine, TypeScript, Vite) with type checking, linting, formatting, unit tests with
   coverage and an end-to-end smoke test; a seeded random generator, the initial tuning values from the game design,
@@ -72,10 +81,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   game under `/gottago/`, and under `/story/` the story of the development from the kickoff prompt on, as full-screen
   stages that snap one at a time under a HUD (time since the kickoff, merged PRs, the maintainer's messages against
   the agent's actions, milestones), with screenshots from each milestone.
-- `npm run assets:image` sends only the options given (`--quality`, `--background transparent`, `--resolution`,
-  `--format`) and takes up to four `--reference` images to keep a character consistent across views.
-- On a phone or a tablet without a mouse, the title screen says the game needs a keyboard for now and links to the
-  story, instead of listing keys there are none of; touch controls are planned as milestone M9.
 
 ### Changed
 
