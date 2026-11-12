@@ -52,6 +52,9 @@ clips gives the plush feel and can stand in for any clip that is not available.
   along walls. A street narrower than his diameter simply does not let him in.
 - Menus only: Enter or Space to start and confirm, Escape or P to pause, M to mute.
 - The page must not scroll when arrow keys are pressed.
+- On a touch-only device (only coarse pointers: a phone, or a tablet without a mouse) the title screen says the game
+  needs a keyboard for now, instead of listing the keys, and links to the story of the game. A keyboard plugged into
+  it still works. Touch controls come later, as their own milestone (M9 in `docs/ROADMAP.md`).
 
 ## Camera
 
@@ -328,4 +331,5 @@ green, toilets green or red, vehicles bright solid colors). No real brands, logo
 
 ## Out of scope for version 1
 
-Touch and gamepad controls, online leaderboards, multiplayer, accounts, any runtime network call.
+Gamepad controls, online leaderboards, multiplayer, accounts, any runtime network call. Touch controls are not in the
+first version either; they are planned as milestone M9 (see _Controls_).

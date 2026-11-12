@@ -79,10 +79,40 @@ test('the story snaps from stage to stage and moves its HUD along', async ({ pag
     expect(errors).toEqual([]);
 });
 
+test('a stage opens its side story, which shows every sketch and leads back', async ({ page }) => {
+    const errors = collectErrors(page);
+    await page.goto('/story/#benny-look');
+    await expect(page.locator('#benny-look')).toHaveClass(/is-active/);
+    await page.getByRole('link', { name: /Side story: Benny's look/ }).click();
+    await expect(page).toHaveURL(/\/story\/benny\/$/);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText("Benny's look");
+
+    // Every round shows its sketches, and every one of them decodes
+    const sketches = page.locator('.round .sketch img');
+    expect(await sketches.count()).toBeGreaterThanOrEqual(4);
+    const broken = await sketches.evaluateAll(async (images) => {
+        const results = await Promise.allSettled(
+            images.map((image) => {
+                const img = image as HTMLImageElement;
+                img.loading = 'eager';
+                return img.decode();
+            })
+        );
+        return results.filter((result) => result.status === 'rejected').length;
+    });
+    expect(broken).toBe(0);
+    await page.screenshot({ path: `${SCREENSHOT_DIR}/site-side-benny.png`, fullPage: true });
+
+    await page.getByRole('link', { name: '← Back to the story' }).click();
+    await expect(page).toHaveURL(/\/story\/#benny-look$/);
+    await expect(page.locator('#benny-look')).toHaveClass(/is-active/);
+    expect(errors).toEqual([]);
+});
+
 test('the landing page and the story fit a phone screen', async ({ page }) => {
     const errors = collectErrors(page);
     await page.setViewportSize({ width: 375, height: 740 });
-    for (const path of ['/', '/story/', '/story/#m3-toilets']) {
+    for (const path of ['/', '/story/benny/', '/story/', '/story/#m3-toilets']) {
         await page.goto(path);
         const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
         expect(overflow, `horizontal overflow on ${path}`).toBeLessThanOrEqual(0);
