@@ -19,9 +19,12 @@ import path from 'node:path';
 const projectDir = path.join(os.homedir(), '.claude', 'projects', process.cwd().replace(/[^a-zA-Z0-9]/g, '-'));
 const files = readdirSync(projectDir).filter((f) => f.endsWith('.jsonl'));
 
-/** The text a person typed, or null for tool results, task notifications, slash-command wrappers and meta lines. */
+/**
+ * The text a person typed, or null for tool results, task notifications, slash-command wrappers, meta lines, the
+ * summary Claude Code writes when a long conversation continues, and messages from other agent sessions.
+ */
 function typedText(entry) {
-    if (entry.type !== 'user' || entry.isMeta) return null;
+    if (entry.type !== 'user' || entry.isMeta || entry.isCompactSummary) return null;
     const content = entry.message?.content;
     let text = '';
     if (typeof content === 'string') {
@@ -34,7 +37,11 @@ function typedText(entry) {
             .join('\n');
     }
     text = text.replace(/<ide_selection>[\s\S]*?<\/ide_selection>/g, '').trim();
-    if (!text || /^<(task-notification|command-|local-command|system-reminder)/.test(text)) return null;
+    if (!text || /^<(task-notification|command-|local-command|system-reminder|cross-session-message)/.test(text)) {
+        return null;
+    }
+    if (/^This session is being continued from a previous conversation/.test(text)) return null;
+    if (/^Another Claude session sent a message/.test(text)) return null;
     return text;
 }
 
