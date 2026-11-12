@@ -89,3 +89,10 @@ canvas {
 .game-over-table li.is-new {
     color: #e65100;
 }
+
+/* A narrow screen has no room for the banner between the weight bar and the touch buttons */
+@media (max-width: 720px) {
+    .wip-banner {
+        display: none;
+    }
+}

@@ -23,6 +23,20 @@
     display: none;
 }
 
+/* A phone held upright sees little of the city to the sides: a hint to turn it, only while it is upright */
+.screen-rotate {
+    display: none;
+    margin-top: 12px;
+    font-size: 15px;
+    font-weight: 800;
+}
+
+@media (orientation: portrait) {
+    .screen-title.is-touch .screen-rotate {
+        display: block;
+    }
+}
+
 @media (max-width: 520px) {
     .screen {
         padding: 16px 18px;

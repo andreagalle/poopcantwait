@@ -295,7 +295,13 @@ The HUD is an HTML and CSS overlay above the canvas.
 - Changes draw the eye: the score bumps when it grows, the combo pops when it rises, a pair of underpants wobbles as it
   stains, and the tier name pops when it changes (no animation when the system asks for reduced motion).
 - Screen edges: the toilet indicators.
-- Screens: title (with controls), pause, game over (score, best scores, "press Enter to play again").
+- Narrow screens (720 px or less, a phone held upright): the panels shrink and the score drops to a second row, centred
+  under the gauge and the underpants, which need about 700 px side by side otherwise; the toilet indicators keep
+  further from the top and bottom edges, and the work-in-progress banner is hidden. On a touchscreen the pause and mute
+  buttons sit in the bottom right corner, above the weight bar on a narrow screen.
+- Screens: title (with controls), pause, game over (score, best scores, "press Enter to play again"). On a touch-only
+  device they say "tap" instead, and the title suggests turning the phone sideways while it is held upright (the fixed
+  vertical field of view shows little of the city to the sides in portrait).
   Nothing moves on the title or pause screens, and leaving the page (another tab or window) pauses a run.
 
 ## Audio

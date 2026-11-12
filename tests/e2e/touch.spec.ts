@@ -40,6 +40,8 @@ test('a phone plays with a finger: tap to start, drag to run, buttons to pause a
     await expect(title).toHaveClass(/is-touch/);
     await expect(title).toContainText('Drag anywhere to run');
     await expect(title.locator('.screen-start')).toHaveText('Tap to start');
+    // Held upright, the title suggests turning the phone
+    await expect(title.locator('.screen-rotate')).toBeVisible();
     // The panel fits the screen
     const box = (await title.boundingBox())!;
     expect(box.x).toBeGreaterThanOrEqual(0);
@@ -80,8 +82,15 @@ test('a phone plays with a finger: tap to start, drag to run, buttons to pause a
     // A drag slightly off the horizontal still snaps to straight right, like the arrow key: no drift down the screen
     expect(Math.abs(moved.z - start.z)).toBeLessThan(0.05);
 
-    // The buttons stay clear of the weight bar
-    expect(await overlap(page, '.touch-buttons', '.hud-weight')).toBe(false);
+    // The compact HUD fits a phone held upright: no panel covers another, the buttons stay clear of the weight bar
+    for (const [a, b] of [
+        ['.hud-gauge', '.hud-underpants'],
+        ['.hud-gauge', '.hud-score-box'],
+        ['.hud-score-box', '.hud-underpants'],
+        ['.touch-buttons', '.hud-weight']
+    ]) {
+        expect(await overlap(page, a, b), `${a} and ${b}`).toBe(false);
+    }
 
     // The pause button pauses, and a tap goes on
     await page.getByRole('button', { name: 'Pause' }).tap();
@@ -100,6 +109,8 @@ test.describe('held sideways', () => {
 
     test('steers the same, with the buttons clear of the weight bar', async ({ page }) => {
         const errors = await openGame(page, '?seed=42', false);
+        // Already sideways: no hint to turn the phone
+        await expect(page.locator('.screen-rotate')).toBeHidden();
         await page.touchscreen.tap(422, 300);
         await expect(page.locator('.screen-title')).toBeHidden();
         const cdp = await page.context().newCDPSession(page);

@@ -19,6 +19,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Touch controls (M9): on a phone or a tablet a finger anywhere steers Benny like a floating stick, in the same eight
   directions as the arrow keys; a tap starts, goes on from pause and plays again; round buttons mute and pause. The
   title, pause and game-over screens speak of taps and drags there, instead of saying the game needs a keyboard.
+- A compact HUD for narrow screens such as a phone held upright: the panels shrink and the score moves to a second row,
+  so nothing overlaps at 390 px; the title suggests turning the phone sideways while it is upright.
 
 ### Changed
 

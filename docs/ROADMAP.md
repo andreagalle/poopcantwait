@@ -19,7 +19,7 @@ Gameplay comes first, in greybox; art comes later (M6), so no generation credits
 | M6: art pass                  | Pipeline done (#19); paid assets wait for the maintainer |
 | M7: game feel and flow        | Done (#20 to #23)                                        |
 | M8: hardening                 | Done (#24 to #26)                                        |
-| M9: touch controls            | In progress: touch input done                            |
+| M9: touch controls            | In progress: touch input and compact HUD done            |
 
 ## M0: scaffold and toolchain
 
@@ -111,5 +111,6 @@ may take two to three times as long. Suggested branches: `feat/touch-input`, `fe
 
 As built so far: `feat/touch-input` adds the floating stick (drag anywhere, eight directions, `TOUCH` in
 `src/config/tuning.ts`), taps through the screens and the pause and mute buttons, and replaces the keyboard notice with
-touch instructions. Held sideways, a phone shows the whole HUD; upright, the three top panels still overlap until
-`feat/hud-compact`.
+touch instructions. `feat/hud-compact` went into the same pull request: up to 720 px wide the HUD shrinks and the score
+drops to a second row, and the title suggests turning an upright phone sideways. Left: `perf/mobile`, the frame time
+on a real mid-range phone, which needs the maintainer's phone.

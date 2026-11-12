@@ -42,6 +42,9 @@ const TOUCH_CONTROLS = `<li>Drag anywhere to run: Benny goes the way your finger
 <li>Eat junk food for points, dodge vegetables, follow the green signs to a free toilet</li>
 <li>Pause and mute with the buttons in the corner</li>`;
 
+/** Shown only while a touch-only device is held upright (screens.css): the city is wider than tall. */
+const ROTATE_HINT = `<p class="screen-rotate">Turn your phone sideways to see more of the city</p>`;
+
 /**
  * The title and pause screens and the mute badge, shown over the city. On a touch-only device (`touchOnly`) they speak
  * of taps and drags instead of keys; a keyboard plugged into it still works.
@@ -62,7 +65,8 @@ export class Screens {
 ${touchOnly ? TOUCH_CONTROLS : KEY_CONTROLS}
 </ul>
 ${best ? `<p class="screen-best">Best score ${best}</p>` : ''}
-<p class="screen-start">${touchOnly ? 'Tap to start' : 'Press <kbd>Enter</kbd> or <kbd>Space</kbd> to start'}</p>`
+<p class="screen-start">${touchOnly ? 'Tap to start' : 'Press <kbd>Enter</kbd> or <kbd>Space</kbd> to start'}</p>
+${touchOnly ? ROTATE_HINT : ''}`
         );
         this.pause = panel(
             'screen-pause',
