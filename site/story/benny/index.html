@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Benny's look · The story of Gotta Go!</title>
+        <meta
+            name="description"
+            content="Every sketch of Benny, the ones set aside and the one kept: how the hero of Gotta Go! got his look."
+        />
+        <meta name="theme-color" content="#ffe0b2" />
+        <link rel="icon" type="image/svg+xml" href="../../logo.svg" />
+        <link rel="stylesheet" href="../../shared.css" />
+        <link rel="stylesheet" href="../side.css" />
+    </head>
+    <!--
+        A side story: one topic of the art pass told round by round, linked from a stage of the main story. Each
+        <section class="round"> is a round of sketches: what was asked, every image, and which one the human kept
+        (class is-kept) or set aside (class is-set-aside); is-pending while the human has not picked yet.
+        Never put costs, keys or anything private here (AGENTS.md, "The story page").
+    -->
+    <body class="side">
+        <header class="side-head">
+            <a class="back" href="../#benny-look">← Back to the story</a>
+            <p class="sticker">Side story</p>
+            <h1>Benny's look</h1>
+            <p class="lede">
+                Every sketch of Benny the agent drew, the ones set aside and the one kept, in the order they came. The
+                human picks; the agent draws the next round from the pick.
+            </p>
+            <ol class="how">
+                <li>The agent writes the prompt from the character sheet in the game design.</li>
+                <li>The human approves the paid call.</li>
+                <li>Four sketches, the same prompt each time.</li>
+                <li>The human picks one and says what to change.</li>
+                <li>The next round starts from the pick, then the 3D model.</li>
+            </ol>
+        </header>
+
+        <main>
+            <section class="round" id="round-1">
+                <div class="round-head">
+                    <h2><span class="round-n">Round 1</span>Front view</h2>
+                    <p class="meta">Wed 11 Nov · 23:24 · <code>gpt-image-2</code> · 4 sketches, 1024×1536</p>
+                    <p class="verdict is-pending">Waiting for the human's pick</p>
+                </div>
+                <div class="sketches">
+                    <figure class="sketch">
+                        <img
+                            src="../shots/benny-r1-1.webp"
+                            alt="Sketch 1: the roundest Benny, belly showing under the tank top"
+                            width="360"
+                            height="540"
+                            loading="lazy"
+                            decoding="async"
+                        />
+                        <figcaption><b>1</b> The roundest, belly peeking out</figcaption>
+                    </figure>
+                    <figure class="sketch">
+                        <img
+                            src="../shots/benny-r1-2.webp"
+                            alt="Sketch 2: a pear-shaped head and the softest face"
+                            width="360"
+                            height="540"
+                            loading="lazy"
+                            decoding="async"
+                        />
+                        <figcaption><b>2</b> The softest face</figcaption>
+                    </figure>
+                    <figure class="sketch">
+                        <img
+                            src="../shots/benny-r1-3.webp"
+                            alt="Sketch 3: the chunkiest Benny, wide belly and a wide stance"
+                            width="360"
+                            height="540"
+                            loading="lazy"
+                            decoding="async"
+                        />
+                        <figcaption><b>3</b> The chunkiest, wide stance</figcaption>
+                    </figure>
+                    <figure class="sketch">
+                        <img
+                            src="../shots/benny-r1-4.webp"
+                            alt="Sketch 4: a taller, slimmer Benny with open arms"
+                            width="360"
+                            height="540"
+                            loading="lazy"
+                            decoding="async"
+                        />
+                        <figcaption><b>4</b> Taller and slimmer</figcaption>
+                    </figure>
+                </div>
+                <details class="prompt">
+                    <summary>The prompt</summary>
+                    <p>
+                        <i>Style block, the same for every asset:</i> Stylized toy-town diorama game asset. Chunky,
+                        rounded, simple shapes with strong silhouettes, readable from a high top-down camera. Soft
+                        pastel palette with a few saturated accents, smooth shading, minimal fine detail. Single object,
+                        centered, neutral plain background. No text, no letters, no logos, no brand marks.
+                    </p>
+                    <p>
+                        <i>Benny, from the character sheet:</i> Character concept art of Benny, an original plush toy
+                        man, full body, front view, standing in an A-pose (arms held slightly away from the body, legs
+                        slightly apart), facing the viewer. About 1.6 m tall and pear-shaped, with a soft round belly
+                        and no visible neck. Warm peach felt skin with visible stitched seams; short, stubby arms and
+                        legs. Large round cartoon eyes with felt pupils, a small round nose and a wide, worried grin. A
+                        messy tuft of orange yarn hair on top of his head. Sky-blue tank top, mint-green boxer shorts
+                        with a small yellow banana print, mismatched sneakers: one red, one purple. Even soft lighting,
+                        light grey background, the whole figure in frame.
+                    </p>
+                </details>
+                <p class="note">
+                    The first model, <code>gpt-image-1</code>, turned out to be retired; the human agreed to its
+                    successor before the call. None of the four is in a true A-pose, which rigging needs: the next round
+                    asks for it.
+                </p>
+            </section>
+        </main>
+
+        <footer class="side-foot">
+            <a class="btn" href="../#benny-look">Back to the story</a>
+            <a class="btn btn--go" href="../../gottago/">Play Gotta Go!</a>
+        </footer>
+    </body>
+</html>
