@@ -34,6 +34,8 @@ function benny(page: Page) {
 }
 
 test('a phone plays with a finger: tap to start, drag to run, buttons to pause and mute', async ({ page }) => {
+    // A whole run in software rendering, a few frames per second: it takes about a minute on its own, more under load
+    test.slow();
     const errors = await openGame(page, '?seed=42', false);
     const title = page.locator('.screen-title');
     await expect(title).toBeVisible();
@@ -108,6 +110,7 @@ test.describe('held sideways', () => {
     test.use({ viewport: { width: 844, height: 390 } });
 
     test('steers the same, with the buttons clear of the weight bar', async ({ page }) => {
+        test.slow();
         const errors = await openGame(page, '?seed=42', false);
         // Already sideways: no hint to turn the phone
         await expect(page.locator('.screen-rotate')).toBeHidden();
