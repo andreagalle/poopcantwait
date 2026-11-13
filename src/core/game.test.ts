@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import { NAVIGATION } from '../config/tuning';
+
 import { generateCity } from './city/generate';
 import { Game } from './game';
 import { overlapDepth } from './player/collision';
@@ -553,5 +555,72 @@ describe('Game collisions', () => {
         massive.step({ x: 0, z: 0 });
         expect(massive.drainEvents()).toContain('crumple');
         expect(massive.score.points).toBe(800);
+    });
+});
+
+describe('Game path distances', () => {
+    const city = generateCity(42);
+    const still = { x: 0, z: 0 };
+    const stepsPerRefresh = Math.round(NAVIGATION.refreshSeconds * 60);
+
+    it('has them from the start, complete', () => {
+        const game = new Game(city);
+        const d = diameterAt(0);
+        expect(game.field.time).toBe(0);
+        expect(game.field.diameter).toBe(d);
+        expect(game.field.distances).toEqual(city.nav.pathDistances(city.spawn, d, NAVIGATION.maxPathMetres));
+    });
+
+    it('spreads each new search over several steps and swaps the distances in only when it is complete', () => {
+        const game = new Game(city);
+        const first = game.field;
+        let steps = 0;
+        // Run east, so the next search starts from somewhere else
+        while (game.field === first) {
+            game.step({ x: 1, z: 0 });
+            steps++;
+            expect(steps).toBeLessThan(3 * stepsPerRefresh);
+        }
+        // It started at the refresh time, and took more than one step: the old distances stayed whole meanwhile
+        expect(game.field.time).toBeCloseTo(NAVIGATION.refreshSeconds, 6);
+        expect(steps).toBeGreaterThan(stepsPerRefresh + 1);
+        expect(first.distances.some(Number.isFinite)).toBe(true);
+        // The two arrays take turns
+        expect(game.field.distances).not.toBe(first.distances);
+        expect(game.field.distances.some(Number.isFinite)).toBe(true);
+    });
+
+    it('searches again at once, for his new girth, when he grows', () => {
+        const game = new Game(city);
+        for (let i = 0; i < 10; i++) {
+            game.step(still);
+        }
+        game.addWeight(0.4);
+        const wider = diameterAt(game.player.weight);
+        let steps = 0;
+        while (game.field.diameter !== wider) {
+            game.step(still);
+            steps++;
+            expect(steps).toBeLessThan(stepsPerRefresh);
+        }
+        const from = game.player;
+        expect(game.field.distances).toEqual(city.nav.pathDistances(from, wider, NAVIGATION.maxPathMetres));
+    });
+
+    it('plays the same in two runs of the same seed, slice for slice', () => {
+        const a = new Game(generateCity(5));
+        const b = new Game(generateCity(5));
+        for (let i = 0; i < 300; i++) {
+            const input = { x: Math.sign(Math.sin(i / 40)), z: Math.sign(Math.cos(i / 55)) };
+            a.step(input);
+            b.step(input);
+            if (i % 45 === 0) {
+                a.addWeight(0.02);
+                b.addWeight(0.02);
+            }
+        }
+        expect(a.field.time).toBe(b.field.time);
+        expect(a.field.distances).toEqual(b.field.distances);
+        expect(a.popups).toEqual(b.popups);
     });
 });

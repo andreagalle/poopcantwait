@@ -430,3 +430,58 @@
 .hud-combo[hidden] {
     display: none;
 }
+
+/*
+ * A narrow screen (a phone held upright): the three top panels need about 700 px side by side, so they shrink and the
+ * score drops to a second row, centred under them. The toilet indicators keep clear of it (toilet-indicators.ts uses
+ * the same breakpoint).
+ */
+@media (max-width: 720px) {
+    .hud-gauge,
+    .hud-score-box,
+    .hud-underpants,
+    .hud-weight {
+        gap: 6px;
+        padding: 4px 8px;
+        border-radius: 12px;
+    }
+
+    .hud-tummy svg,
+    .underpants svg {
+        width: 24px;
+        height: 24px;
+    }
+
+    .hud-seconds,
+    .hud-score {
+        font-size: 20px;
+    }
+
+    .hud-bar {
+        width: 64px;
+    }
+
+    .hud-underpants {
+        gap: 2px;
+    }
+
+    .hud-score-box {
+        top: 58px;
+    }
+
+    .hud-combo {
+        font-size: 15px;
+    }
+
+    .hud-tier {
+        font-size: 14px;
+    }
+
+    .hud-weight-scale {
+        width: 150px;
+    }
+
+    .relief-pop {
+        top: 110px;
+    }
+}

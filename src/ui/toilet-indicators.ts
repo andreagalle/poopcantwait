@@ -8,6 +8,12 @@ import type { Game, ToiletRef } from '../core/game';
 const LABEL_HEIGHT = 3.6;
 /** Distance kept from the screen edges, in pixels (leaves room for the HUD corners). */
 const EDGE_MARGIN = { side: 46, top: 96, bottom: 86 };
+/**
+ * Up to this width (the breakpoint of hud.css) the HUD is compact: the score sits on a second row at the top, and the
+ * touch buttons above the weight bar at the bottom, so the indicators keep further from those edges.
+ */
+const COMPACT_WIDTH = 720;
+const COMPACT_EDGE_MARGIN = { side: 46, top: 124, bottom: 140 };
 
 interface Indicator {
     readonly toilet: ToiletRef;
@@ -71,6 +77,7 @@ export class ToiletIndicators {
     update(game: Game, camera: CameraComponent): void {
         const chosen = game.phase === 'over' ? [] : ToiletIndicators.choose(game);
         const width = window.innerWidth;
+        const margin = width <= COMPACT_WIDTH ? COMPACT_EDGE_MARGIN : EDGE_MARGIN;
         const height = window.innerHeight;
         const viewMatrix: Mat4 = camera.viewMatrix;
 
@@ -112,27 +119,19 @@ export class ToiletIndicators {
             }
             const inside =
                 this.view.z < 0 &&
-                x > EDGE_MARGIN.side &&
-                x < width - EDGE_MARGIN.side &&
-                y > EDGE_MARGIN.top &&
-                y < height - EDGE_MARGIN.bottom;
+                x > margin.side &&
+                x < width - margin.side &&
+                y > margin.top &&
+                y < height - margin.bottom;
             badge.classList.toggle('is-offscreen', !inside);
             if (!inside) {
                 // Slide along the ray from Benny until it meets the inset screen rectangle
                 const dx = x - originX;
                 const dy = y - originY;
                 const tx =
-                    dx > 0
-                        ? (width - EDGE_MARGIN.side - originX) / dx
-                        : dx < 0
-                          ? (EDGE_MARGIN.side - originX) / dx
-                          : Infinity;
+                    dx > 0 ? (width - margin.side - originX) / dx : dx < 0 ? (margin.side - originX) / dx : Infinity;
                 const ty =
-                    dy > 0
-                        ? (height - EDGE_MARGIN.bottom - originY) / dy
-                        : dy < 0
-                          ? (EDGE_MARGIN.top - originY) / dy
-                          : Infinity;
+                    dy > 0 ? (height - margin.bottom - originY) / dy : dy < 0 ? (margin.top - originY) / dy : Infinity;
                 const t = Math.max(0, Math.min(tx, ty, 1));
                 x = originX + dx * t;
                 y = originY + dy * t;

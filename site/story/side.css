@@ -145,6 +145,11 @@
     gap: 18px;
 }
 
+/* Wide sheets (a whole set on one image) need room to be read: two to a row at most */
+.sketches--wide {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+}
+
 .sketch {
     margin: 0;
     position: relative;

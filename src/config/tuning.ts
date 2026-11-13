@@ -214,6 +214,14 @@ export const POPUP_TOILETS = {
 export const NAVIGATION = {
     /** How often the distances are recomputed, in seconds of game time. */
     refreshSeconds: 0.5,
+    /**
+     * Cells the search settles per simulation step: one search is spread over several steps, so no frame pays for all
+     * of it. A slim Benny reaches about 37,000 cells: 10 steps (0.17 s) at about half a millisecond each on a laptop,
+     * instead of one 4 ms hitch twice a second, which a phone two to four times slower would feel. The new distances
+     * replace the old ones when the search is complete. A count of cells, not of milliseconds, so that a seeded run
+     * plays the same on every machine.
+     */
+    searchCellsPerStep: 4000,
     /** How far they reach along the paths, in metres; anything farther counts as out of reach. */
     maxPathMetres: 200
 } as const;
@@ -429,4 +437,16 @@ export const EFFECTS = {
         /** After an accident a thinner stink trails behind him for this long, one puff every `everySeconds`. */
         stinkTrail: { seconds: 4, everySeconds: 0.3 }
     }
+} as const;
+
+/**
+ * Touch controls (design: *Controls*). A finger anywhere on the screen is a floating stick: the drag from where it
+ * landed picks the nearest of the arrow keys' eight directions, so the simulation sees exactly what the keys give.
+ * Distances are in CSS pixels.
+ */
+export const TOUCH = {
+    /** A drag shorter than this leaves Benny standing, so a resting thumb does not walk him. */
+    deadZonePixels: 14,
+    /** Dragging further than this from the stick's centre pulls the centre along, so turning back is quick. */
+    stickRadiusPixels: 56
 } as const;

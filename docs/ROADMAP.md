@@ -19,7 +19,7 @@ Gameplay comes first, in greybox; art comes later (M6), so no generation credits
 | M6: art pass                  | Pipeline done (#19); paid assets wait for the maintainer |
 | M7: game feel and flow        | Done (#20 to #23)                                        |
 | M8: hardening                 | Done (#24 to #26)                                        |
-| M9: touch controls            | Planned                                                  |
+| M9: touch controls            | In progress: touch input and compact HUD done            |
 
 ## M0: scaffold and toolchain
 
@@ -108,3 +108,9 @@ keys so the simulation does not change), a tap to start and confirm, pause and m
 screens (the three top panels need about 700 px today), a hint to turn the phone sideways (the fixed vertical field of
 view shows little to the sides in portrait), and a frame-time check on a real mid-range phone, where the path search
 may take two to three times as long. Suggested branches: `feat/touch-input`, `feat/hud-compact`, `perf/mobile`.
+
+As built so far: `feat/touch-input` adds the floating stick (drag anywhere, eight directions, `TOUCH` in
+`src/config/tuning.ts`), taps through the screens and the pause and mute buttons, and replaces the keyboard notice with
+touch instructions. `feat/hud-compact` went into the same pull request: up to 720 px wide the HUD shrinks and the score
+drops to a second row, and the title suggests turning an upright phone sideways. Left: `perf/mobile`, the frame time
+on a real mid-range phone, which needs the maintainer's phone.

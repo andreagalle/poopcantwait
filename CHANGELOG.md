@@ -7,6 +7,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-13
+
+### Added
+
+- Touch controls (M9): on a phone or a tablet a finger anywhere steers Benny like a floating stick, in the same eight
+  directions as the arrow keys; a tap starts, goes on from pause and plays again; round buttons mute and pause. The
+  title, pause and game-over screens speak of taps and drags there, instead of saying the game needs a keyboard.
+- A compact HUD for narrow screens such as a phone held upright: the panels shrink and the score moves to a second row,
+  so nothing overlaps at 390 px; the title suggests turning the phone sideways while it is upright.
+- The story's second side story, _The food set_ (`/story/food/`): the first round of food sketches, all thirteen items
+  on one sheet in two materials (stitched felt like Benny, or glossy vinyl), waiting for the maintainer's pick.
+
+### Changed
+
+- Smoother frames on slower devices: the twice-a-second search for the walking distances from Benny is spread over
+  several simulation steps (4,000 cells a step, 10 steps for a slim Benny) instead of running in one, which cut the
+  slowest step from about 5.5 ms to about 2 ms on the Codespace. The distances change only when a search is complete,
+  and a seeded run still plays the same everywhere.
+- The story's milestone bar includes M9, touch controls.
+
 ## [0.2.0] - 2026-11-12
 
 ### Added

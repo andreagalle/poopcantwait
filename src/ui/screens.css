@@ -23,23 +23,18 @@
     display: none;
 }
 
-/* On a phone or a tablet: no keys to list, a note that the game needs a keyboard instead */
-.screen-title.is-touch .screen-controls,
-.screen-title.is-touch .screen-start {
+/* A phone held upright sees little of the city to the sides: a hint to turn it, only while it is upright */
+.screen-rotate {
     display: none;
+    margin-top: 12px;
+    font-size: 15px;
+    font-weight: 800;
 }
 
-.screen-touch {
-    max-width: 30em;
-    margin: 14px auto 0;
-    font-size: 18px;
-    font-weight: 800;
-    line-height: 1.35;
-}
-
-.screen-touch-links a {
-    color: inherit;
-    font-weight: 800;
+@media (orientation: portrait) {
+    .screen-title.is-touch .screen-rotate {
+        display: block;
+    }
 }
 
 @media (max-width: 520px) {
@@ -49,10 +44,6 @@
 
     .screen h1 {
         font-size: 40px;
-    }
-
-    .screen-touch {
-        font-size: 16px;
     }
 }
 

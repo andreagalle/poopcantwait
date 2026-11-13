@@ -15,7 +15,7 @@ interface StageState {
     readonly done: readonly string[];
 }
 
-const MILESTONES = ['M0', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8'];
+const MILESTONES = ['M0', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9'];
 const COUNT_MS = 700;
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
