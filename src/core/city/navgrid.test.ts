@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { Rng } from '../rng';
 
 import { distanceTransform } from './edt';
-import { NavGrid } from './navgrid';
+import { NavGrid, PathSearch } from './navgrid';
 import { ZONE } from './types';
 
 /** A walkable square grid of `2 * half + 1` cells per side, walled on its border. */
@@ -180,5 +180,71 @@ describe('NavGrid', () => {
         const zone = walledGrid(3);
         zone[3 * 7 + 3] = ZONE.unassigned;
         expect(new NavGrid(3, zone).clearanceAt(0, 0)).toBe(0);
+    });
+});
+
+describe('PathSearch', () => {
+    /** A walled grid with a few random blocks, so the paths bend. */
+    function city(seed: number): NavGrid {
+        const half = 30;
+        const zone = walledGrid(half);
+        const rng = new Rng(seed);
+        for (let i = 0; i < 25; i++) {
+            const x = rng.int(-25, 22);
+            const z = rng.int(-25, 22);
+            block(zone, half, x, z, x + rng.int(0, 4), z + rng.int(0, 4));
+        }
+        return new NavGrid(half, zone);
+    }
+
+    it('finds the same distances in slices as in one go, whatever the slice', () => {
+        for (const seed of [1, 2, 3]) {
+            const nav = city(seed);
+            const from = { x: 27, z: 27 };
+            const whole = nav.pathDistances(from, 1.2, 40);
+            for (const budget of [1, 7, 100, 5000]) {
+                const search = new PathSearch(nav);
+                search.begin(from, 1.2, 40);
+                let slices = 1;
+                while (!search.advance(budget)) {
+                    slices++;
+                }
+                expect(search.distances).toEqual(whole);
+                if (budget === 100) {
+                    expect(slices).toBeGreaterThan(1);
+                }
+            }
+        }
+    });
+
+    it('is not done until the last cell is settled, and stays done', () => {
+        const nav = city(5);
+        const search = new PathSearch(nav);
+        expect(search.done).toBe(true);
+        search.begin({ x: 0, z: 0 }, 1, Infinity);
+        expect(search.done).toBe(false);
+        expect(search.advance(10)).toBe(false);
+        expect(search.advance(Infinity)).toBe(true);
+        expect(search.advance(10)).toBe(true);
+    });
+
+    it('starting again drops the search in progress, and reuses the array it is given', () => {
+        const nav = city(6);
+        const out = new Float64Array(nav.size * nav.size);
+        const search = new PathSearch(nav);
+        search.begin({ x: -20, z: -20 }, 1, Infinity, out);
+        search.advance(50);
+        search.begin({ x: 20, z: 20 }, 2, 30, out);
+        search.advance(Infinity);
+        expect(search.distances).toBe(out);
+        expect(Array.from(out)).toEqual(Array.from(nav.pathDistances({ x: 20, z: 20 }, 2, 30)));
+    });
+
+    it('is done at once, with nothing reachable, when Benny does not fit where it starts', () => {
+        const nav = city(7);
+        const search = new PathSearch(nav);
+        search.begin({ x: 0, z: 0 }, 200, Infinity);
+        expect(search.done).toBe(true);
+        expect(search.distances.every((d) => d === Infinity)).toBe(true);
     });
 });

@@ -1,5 +1,6 @@
 import { COLLISIONS, FOOD, KIOSKS, MOVEMENT, NAVIGATION, POPUP_TOILETS, SIMULATION, TRAFFIC } from '../config/tuning';
 
+import { PathSearch } from './city/navgrid';
 import type { City, Point } from './city/types';
 import type { FoodItem, FoodKind } from './food/food';
 import { chooseFoodSpot, chooseKind, touchesFood } from './food/food';
@@ -101,11 +102,19 @@ export class Game {
     /** Pop-up toilets in the city, oldest first. */
     popups: PopupToilet[] = [];
     /**
-     * Path distances from Benny at his current girth (`NavGrid.pathDistances`), recomputed every
-     * `NAVIGATION.refreshSeconds`: pop-up placement, the mercy rule and the toilet indicators read them.
+     * Path distances from Benny at his girth (`NavGrid.pathDistances`), as of `time`: pop-up placement, the mercy rule
+     * and the toilet indicators read them. A new search starts every `NAVIGATION.refreshSeconds`, and when his girth
+     * changes; it runs `NAVIGATION.searchCellsPerStep` cells a step and replaces these distances when it is complete.
      */
     field!: { readonly time: number; readonly diameter: number; readonly distances: Float64Array };
     private fieldAge = 0;
+    private readonly search: PathSearch;
+    /** When the search in progress started, and for which diameter: the next field's `time` and `diameter`. */
+    private searchFrom = { time: 0, diameter: 0 };
+    /** The array the search in progress writes into; the field keeps the other one, so the two swap on completion. */
+    private searchInto: Float64Array | undefined;
+    private searching = false;
+    private girthChanged = false;
     /** Food on the streets. */
     food: FoodItem[] = [];
     private foodTimer: number = FOOD.spawnIntervalSeconds;
@@ -158,7 +167,11 @@ export class Game {
         }
         this.kiosks = initialKiosks(city.kioskSpots.length, this.kioskRng);
         this.popupTimer = popupIntervalAt(weight);
-        this.refreshField();
+        // The first distances are there from the start, in one go
+        this.search = new PathSearch(city.nav);
+        this.startSearch();
+        this.search.advance(Infinity);
+        this.publishField();
     }
 
     /**
@@ -186,24 +199,48 @@ export class Game {
                 this.events.push('squeezed');
             }
         }
-        // His girth changed what he can reach: refresh the distances at the next step
-        this.fieldAge = NAVIGATION.refreshSeconds;
+        // His girth changed what he can reach: search again from the next step
+        this.girthChanged = true;
     }
 
-    /** Recomputes the path distances from where Benny stands, at his current girth. */
-    private refreshField(): void {
+    /** Starts a search for the path distances from where Benny stands, at his current girth. */
+    private startSearch(): void {
         const diameter = diameterAt(this.player.weight);
         const nav = this.city.nav;
         const here: Point = { x: this.player.x, z: this.player.z };
         const start = nav.canStand(here.x, here.z, diameter) ? here : (nav.nearestStandable(here, diameter) ?? here);
-        // The search writes into the same array every time: twice a second, a fresh 3 MB array would feed the
-        // garbage collector for nothing (nothing keeps the previous distances)
-        this.field = {
-            time: this.time,
-            diameter,
-            distances: nav.pathDistances(start, diameter, NAVIGATION.maxPathMetres, this.field?.distances)
-        };
+        // Two arrays take turns (the field reads one while the search writes the other): twice a second, a fresh
+        // grid-sized array would feed the garbage collector for nothing
+        this.search.begin(start, diameter, NAVIGATION.maxPathMetres, this.searchInto);
+        this.searchInto = this.search.distances;
+        this.searchFrom = { time: this.time, diameter };
+        this.searching = true;
         this.fieldAge = 0;
+        this.girthChanged = false;
+    }
+
+    /** The search is complete: its distances become the field, and the field's old array takes the next search. */
+    private publishField(): void {
+        const previous = this.field?.distances;
+        this.field = { ...this.searchFrom, distances: this.search.distances };
+        this.searchInto = previous;
+        this.searching = false;
+    }
+
+    /**
+     * Runs a slice of the path search, starting a new one when it is time or when Benny's girth changed; true when a
+     * search completed on this step and the field is fresh.
+     */
+    private updateField(dt: number): boolean {
+        this.fieldAge += dt;
+        if (this.girthChanged || (!this.searching && this.fieldAge >= NAVIGATION.refreshSeconds)) {
+            this.startSearch();
+        }
+        if (!this.searching || !this.search.advance(NAVIGATION.searchCellsPerStep)) {
+            return false;
+        }
+        this.publishField();
+        return true;
     }
 
     /**
@@ -321,11 +358,7 @@ export class Game {
             }
         }
 
-        this.fieldAge += dt;
-        const refreshed = this.fieldAge >= NAVIGATION.refreshSeconds;
-        if (refreshed) {
-            this.refreshField();
-        }
+        const refreshed = this.updateField(dt);
         this.updatePopups(dt, refreshed);
         this.updateFood(dt);
         this.updateTraffic(dt);
@@ -351,8 +384,10 @@ export class Game {
             this.events.push('popupGone');
         }
 
+        // A pop-up due while the distances are still those of a slimmer Benny waits for the new ones (a few steps), so
+        // it never lands in an alley he no longer fits
         this.popupTimer -= dt;
-        if (this.popupTimer <= 0) {
+        if (this.popupTimer <= 0 && this.field.diameter === diameterAt(this.player.weight)) {
             this.popupTimer = popupIntervalAt(this.player.weight);
             if (this.popups.length < POPUP_TOILETS.maxActive) {
                 const { min, max } = POPUP_TOILETS.spawnPathDistanceMetres;
