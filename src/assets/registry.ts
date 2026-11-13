@@ -1,7 +1,7 @@
 /**
  * Every runtime asset, by dotted id, mapped to its file under `public/assets/` (docs/ASSET_PIPELINE.md, Conventions).
- * Every committed asset has an entry here and in `art/manifest.json`. Empty until the art pass (milestone M6) lands
- * its first asset; the greybox stands in until then.
+ * Every committed asset has an entry here and in `art/manifest.json`. The art pass (milestone M6) adds them one set at a
+ * time; anything without an asset keeps its greybox stand-in.
  */
 export interface AssetEntry {
     readonly kind: 'model' | 'texture' | 'image' | 'audio';
@@ -9,7 +9,9 @@ export interface AssetEntry {
     readonly file: string;
 }
 
-export const ASSETS = {} as const satisfies Record<string, AssetEntry>;
+export const ASSETS = {
+    'food.burger': { kind: 'model', file: 'models/food/burger.glb' }
+} as const satisfies Record<string, AssetEntry>;
 
 export type AssetId = keyof typeof ASSETS;
 

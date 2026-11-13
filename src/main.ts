@@ -2,13 +2,16 @@ import {
     AppBase,
     AppOptions,
     CameraComponentSystem,
+    ContainerHandler,
     FILLMODE_FILL_WINDOW,
     LightComponentSystem,
     RESOLUTION_AUTO,
     RenderComponentSystem,
+    TextureHandler,
     createGraphicsDevice
 } from 'playcanvas';
 
+import { loadModels } from './assets/load';
 import { GameAudio } from './audio/game-audio';
 import { COLLISIONS, FOOD, SIMULATION } from './config/tuning';
 import { cueFor, initialRumble, musicTempo, tickRumble } from './core/audio/director';
@@ -57,7 +60,8 @@ device.maxPixelRatio = Math.min(window.devicePixelRatio, 2);
 const createOptions = new AppOptions();
 createOptions.graphicsDevice = device;
 createOptions.componentSystems = [RenderComponentSystem, CameraComponentSystem, LightComponentSystem];
-createOptions.resourceHandlers = [];
+// GLB models (container assets) and their textures, from the art pass
+createOptions.resourceHandlers = [ContainerHandler, TextureHandler];
 
 const app = new AppBase(canvas);
 app.init(createOptions);
@@ -89,7 +93,9 @@ const cityView = new CityView(app, city);
 const bennyView = new BennyView(addBennyStandIn(app));
 const kioskView = new KioskView(app, city);
 const popupView = new PopupView(app);
-const foodView = new FoodView(app);
+// The models of the art pass so far; anything without one keeps its greybox stand-in
+const models = await loadModels(app, ['food.burger']);
+const foodView = new FoodView(app, models);
 const vehicleView = new VehicleView(app);
 const juice = new Juice(app);
 const camera = createGameCamera(app);

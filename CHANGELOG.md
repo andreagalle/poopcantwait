@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- The first felt model in the game, the burger: made from the maintainer's food sketches with Meshy (image to 3D),
+  1,499 triangles and 94 kB. The other twelve items keep their greybox shapes until theirs land. The game now loads GLB
+  models from the asset registry (`src/assets/load.ts`); a model that fails to load leaves its greybox stand-in.
+
 ### Changed
 
 - The side stories show the maintainer's picks: Benny's sketch 1 and the felt food (sheet 2), with the other sketches
