@@ -1,4 +1,20 @@
 {
     "$comment": "Provenance of every committed asset. Schema and rules: docs/ASSET_PIPELINE.md.",
-    "assets": []
+    "assets": [
+        {
+            "id": "food.burger",
+            "file": "public/assets/models/food/burger.glb",
+            "source": "meshy",
+            "tool": "meshy_image_to_3d (meshy-t2 smart topology, 1,500 polygons, texture meshy-n1)",
+            "taskIds": ["01a1d642-9369-72b1-af5c-1607f3207c3c"],
+            "inputImage": "art/raw/images/food.burger/2026-11-13T18-37-41-896Z-1.png (openai/gpt-image-2 through OpenRouter, reference: food sheet 2 of round 1, kept by the maintainer)",
+            "prompt": "Style block, then: A single burger with a sesame bun, green lettuce, a red tomato slice, a yellow cheese slice and a brown patty, sewn as a soft plush toy from felt with visible stitched seams, in the same style, colours and felt materials as the matching item in the reference sheet. Seen from a high three-quarter view from above, the whole object in frame with a margin around it, even soft lighting, light grey background, no cast shadow, nothing else in the image.",
+            "generatedAt": "2026-11-13",
+            "license": "Meshy paid plan: the customer owns the generated assets (help.meshy.ai, 'Who owns the models generated on Meshy', checked 2026-11-13); Meshy asks, without requiring it, to be credited. Input image: OpenAI's terms assign the output to the user.",
+            "attributionRequired": false,
+            "triangles": 1499,
+            "bytes": 93952,
+            "approvedBy": "maintainer"
+        }
+    ]
 }

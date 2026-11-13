@@ -1,12 +1,18 @@
 import { BLEND_ADDITIVE, Entity, StandardMaterial } from 'playcanvas';
-import type { AppBase, Color } from 'playcanvas';
+import type { AppBase, Asset, Color, ContainerResource } from 'playcanvas';
 
+import type { AssetId } from '../assets/registry';
 import { FOOD } from '../config/tuning';
 import type { JunkFoodId, VegetableId } from '../config/tuning';
 import type { Game } from '../core/game';
 import { PALETTE } from '../render/palette';
 
 type FoodId = JunkFoodId | VegetableId;
+
+/** The felt models of the art pass (milestone M6), by item; the others keep their greybox stand-in for now. */
+const MODELS: Partial<Record<FoodId, AssetId>> = { burger: 'food.burger' };
+/** The models fill a 1 m cube; this is their size across, in metres (design: *Food*: about 1 m across). */
+const MODEL_SIZE = 0.9;
 
 /** A greybox stand-in per item: an engine primitive, its proportions and tilt, until the models of milestone M6. */
 type Primitive = 'box' | 'capsule' | 'cone' | 'cylinder' | 'sphere' | 'torus';
@@ -55,6 +61,8 @@ interface Slot {
     readonly root: Entity;
     readonly body: Entity;
     readonly glow: Entity;
+    /** The model instances this slot has shown so far, made the first time and reused. */
+    readonly models: Map<FoodId, Entity>;
     shape: FoodId | null;
 }
 
@@ -69,7 +77,10 @@ export class FoodView {
     private readonly junkGlow = material('food-glow-junk', PALETTE.junkGlow, true);
     private readonly vegetableGlow = material('food-glow-vegetable', PALETTE.vegetableGlow, true);
 
-    constructor(app: AppBase) {
+    private readonly modelAssets: ReadonlyMap<AssetId, Asset>;
+
+    constructor(app: AppBase, models: ReadonlyMap<AssetId, Asset> = new Map()) {
+        this.modelAssets = models;
         const root = new Entity('food');
         this.materials = Object.fromEntries(
             Object.entries(PALETTE.food).map(([id, color]) => [id, material(`food-${id}`, color)])
@@ -86,7 +97,7 @@ export class FoodView {
             slot.addChild(glow);
             slot.enabled = false;
             root.addChild(slot);
-            return { root: slot, body, glow, shape: null };
+            return { root: slot, body, glow, models: new Map(), shape: null };
         });
         app.root.addChild(root);
     }
@@ -109,11 +120,18 @@ export class FoodView {
                 }
                 used.add(slot);
                 this.assigned.set(item.id, slot);
-                const shape = SHAPES[item.kind.id];
-                slot.body.render!.type = shape.type;
-                slot.body.render!.material = this.materials[item.kind.id];
-                slot.body.setLocalScale(...shape.scale);
-                slot.body.setLocalEulerAngles(shape.tilt ?? 0, 0, 0);
+                const model = this.modelFor(slot, item.kind.id);
+                for (const [kind, entity] of slot.models) {
+                    entity.enabled = kind === item.kind.id;
+                }
+                slot.body.enabled = model === null;
+                if (!model) {
+                    const shape = SHAPES[item.kind.id];
+                    slot.body.render!.type = shape.type;
+                    slot.body.render!.material = this.materials[item.kind.id];
+                    slot.body.setLocalScale(...shape.scale);
+                    slot.body.setLocalEulerAngles(shape.tilt ?? 0, 0, 0);
+                }
                 slot.glow.render!.material = item.kind.category === 'junk' ? this.junkGlow : this.vegetableGlow;
                 slot.shape = item.kind.id;
             }
@@ -128,5 +146,23 @@ export class FoodView {
             slot.root.setLocalEulerAngles(0, (HOVER.spinDegreesPerSecond * t) % 360, 0);
             slot.root.setLocalScale(fade, fade, fade);
         }
+    }
+
+    /** The model instance for an item in this slot, made on first use; null when the item has no model yet. */
+    private modelFor(slot: Slot, kind: FoodId): Entity | null {
+        const existing = slot.models.get(kind);
+        if (existing) {
+            return existing;
+        }
+        const id = MODELS[kind];
+        const asset = id ? this.modelAssets.get(id) : undefined;
+        if (!asset) {
+            return null;
+        }
+        const entity = (asset.resource as ContainerResource).instantiateRenderEntity();
+        entity.setLocalScale(MODEL_SIZE, MODEL_SIZE, MODEL_SIZE);
+        slot.root.addChild(entity);
+        slot.models.set(kind, entity);
+        return entity;
     }
 }

@@ -1151,5 +1151,8 @@ sup {
 
 /* A link from a stage to its side story */
 .side-link {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
     margin: 24px 0 0;
 }
