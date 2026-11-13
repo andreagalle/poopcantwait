@@ -1186,15 +1186,91 @@
             </section>
 
             <section
+                class="stage stage--agent tone-sky"
+                id="m9-phone"
+                data-when="Fri 13 Nov · 08:13"
+                data-t="113:33"
+                data-human="34"
+                data-agent="1537"
+                data-prs="40"
+                data-phase="M9 · Touch"
+                data-done="M0 M1 M2 M3 M4 M5 M6~ M7 M8 M9~"
+            >
+                <div class="stage-inner">
+                    <div class="card">
+                        <p class="kicker">
+                            <span class="tag tag--agent">Agent</span><span class="when">08:13</span>
+                            <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/44">#44</a>
+                            <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/46">#46</a>
+                        </p>
+                        <h2><span class="m">M9</span>Benny on a phone</h2>
+                        <ul class="facts">
+                            <li>
+                                A finger anywhere is a stick: past a 14 px dead zone, the nearest of the eight arrow-key
+                                directions.
+                            </li>
+                            <li>A tap starts, goes on and plays again; two round buttons pause and mute.</li>
+                            <li>Upright, the HUD shrinks to fit 390 px, and the title asks to turn the phone.</li>
+                            <li>
+                                The path search now runs 4,000 cells a step: the slowest step fell from 5.5 to 2 ms.
+                            </li>
+                        </ul>
+                    </div>
+                    <figure class="shot">
+                        <img
+                            src="./shots/m9-phone.webp"
+                            alt="The game on a phone: the title screen held upright, and Benny steered by a finger with the phone held sideways"
+                            width="960"
+                            height="378"
+                            loading="lazy"
+                            decoding="async"
+                        />
+                        <figcaption>Upright on the title, sideways with a finger on the stick.</figcaption>
+                    </figure>
+                </div>
+            </section>
+
+            <section
+                class="stage stage--agent tone-lilac"
+                id="v0-3-0"
+                data-when="Fri 13 Nov · 08:20"
+                data-t="113:40"
+                data-human="34"
+                data-agent="1560"
+                data-prs="41"
+                data-phase="v0.3.0"
+                data-done="M0 M1 M2 M3 M4 M5 M6~ M7 M8 M9~"
+            >
+                <div class="stage-inner stage-inner--solo">
+                    <div class="card">
+                        <p class="kicker">
+                            <span class="tag tag--agent">Agent</span><span class="when">08:20</span>
+                            <a class="chip" href="https://github.com/andreagalle/poopcantwait/releases/tag/v0.2.0"
+                                >v0.2.0</a
+                            >
+                        </p>
+                        <h2><span class="m">v0.3.0</span>Playable on a phone</h2>
+                        <ul class="facts">
+                            <li>The human merged v0.2.0; one minute later its tag and release were out.</li>
+                            <li>
+                                Three pull requests had waited for it, ready: touch, smoother frames, the food sketches.
+                            </li>
+                            <li>They went in one by one, each brought up to date with the last, then cut as v0.3.0.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section
                 class="stage stage--agent stage--numbers tone-sky"
                 id="who-did-what"
                 data-when="So far"
-                data-t="103:32"
+                data-t="113:40"
                 data-human="{{humanMessages}}"
                 data-agent="{{agentActions}}"
                 data-prs="{{pullRequests}}"
                 data-phase="Totals"
-                data-done="M0 M1 M2 M3 M4 M5 M6~ M7 M8"
+                data-done="M0 M1 M2 M3 M4 M5 M6~ M7 M8 M9~"
             >
                 <div class="stage-inner stage-inner--solo">
                     <h2>Who did what</h2>
@@ -1234,12 +1310,12 @@
                 id="next"
                 data-kind="end"
                 data-when="Next"
-                data-t="103:32"
+                data-t="113:40"
                 data-human="{{humanMessages}}"
                 data-agent="{{agentActions}}"
                 data-prs="{{pullRequests}}"
                 data-phase="Next"
-                data-done="M0 M1 M2 M3 M4 M5 M6~ M7 M8"
+                data-done="M0 M1 M2 M3 M4 M5 M6~ M7 M8 M9~"
             >
                 <div class="stage-inner stage-inner--solo">
                     <div class="card">
@@ -1250,7 +1326,7 @@
                                 toilets, each starting as a round of sketches.
                             </li>
                             <li>A GitHub Release for every merge into <code>master</code>, published by a workflow.</li>
-                            <li>M9, touch controls, so Benny can run on a phone.</li>
+                            <li>M9's last check: the frame time on a real phone, in the human's hand.</li>
                             <li>And a new stage here for each of them.</li>
                         </ul>
                         <nav class="end-actions" aria-label="Where next">
