@@ -93,19 +93,29 @@ Use [Conventional Commits 1.0](https://www.conventionalcommits.org/en/v1.0.0/):
 
 ## Releases
 
+Every merge into `master` is an official release: a version in `package.json`, its section in `CHANGELOG.md`, a
+`v<x.y.z>` tag and a GitHub Release whose notes are that section. Nobody has to ask for one.
+
 1. The release PR from `dev` into `master` stays open and is refreshed after every merge into `dev` (the agent runs
    `/release-pr`).
-2. The maintainer tests `dev` in the Codespace with the VS Code task **Test dev: production preview** (the same build
-   GitHub Pages will serve, on port 4173), or **Test dev: dev server** for a quick look.
-3. For a versioned release, the maintainer asks the agent for `/release-pr cut <x.y.z>`, which versions
-   `CHANGELOG.md` and `package.json` through a PR into `dev`.
+2. Before asking the maintainer to merge it, the agent versions it with `/release-pr cut <x.y.z>` (`CHANGELOG.md` and
+   `package.json`, through a PR into `dev`), and the release PR title becomes `release: v<x.y.z>`. A release PR
+   without a version in its title is not ready to merge.
+3. The maintainer tests `dev` in the Codespace with the VS Code task **Test dev: production preview** (the same build
+   GitHub Pages will serve, on port 4173: the landing page, the game under `/gottago/`, the story under `/story/`), or
+   **Test dev: dev server** (the game only, with hot reload) for a quick look.
 4. The maintainer merges the release PR with **Create a merge commit**, never squash, so `dev` and `master` keep a
    shared history. The deploy workflow publishes `master` to GitHub Pages.
-5. Optionally, the maintainer runs the task **Release: tag master after merging** to tag `v<x.y.z>`.
+5. Right after the merge, the agent publishes the release with `/release-pr publish`:
+   `gh release create v<x.y.z> --target <merge commit>` creates the tag and the GitHub Release together.
+   `.claude/hooks/guard.mjs` allows only that form, for a commit on `master` whose `package.json` has that version;
+   deleting releases and pushing tags stay with the maintainer. A GitHub Actions workflow is planned to take over this
+   step.
 
-Versions follow [Semantic Versioning](https://semver.org/) in the `0.x` range until the game is feature-complete.
-`CHANGELOG.md` follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/): every PR into `dev` adds a line under
-`## [Unreleased]`.
+Versions follow [Semantic Versioning](https://semver.org/) in the `0.x` range until the game is feature-complete: the
+minor version for a release that adds features, the patch version for one that only fixes. `CHANGELOG.md` follows
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/): every PR into `dev` adds a line under `## [Unreleased]`,
+and the cut turns that section into the version's.
 
 ### Hotfixes
 

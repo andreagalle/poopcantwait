@@ -936,9 +936,9 @@
                 id="this-page"
                 data-when="Mon 9 Nov · 23:05"
                 data-t="32:24"
-                data-human="{{humanMessages}}"
-                data-agent="{{agentActions}}"
-                data-prs="{{pullRequests}}"
+                data-human="12"
+                data-agent="762"
+                data-prs="26"
                 data-phase="This page"
                 data-done="M0 M1 M2 M3 M4 M5 M6~ M7 M8"
             >
@@ -958,10 +958,200 @@
             </section>
 
             <section
+                class="stage stage--human stage--quote"
+                id="sketches-first"
+                data-when="Wed 11 Nov · 20:06"
+                data-t="77:25"
+                data-human="16"
+                data-agent="936"
+                data-prs="27"
+                data-phase="M6 · The art"
+                data-done="M0 M1 M2 M3 M4 M5 M6~ M7 M8"
+            >
+                <div class="stage-inner stage-inner--solo">
+                    <p class="kicker">
+                        <span class="tag tag--human">Human</span><span class="when">Message 16 · 20:06</span>
+                    </p>
+                    <blockquote class="bubble">
+                        “Show me the sketches before you build the assets, so we choose the style together. And put the
+                        rejected and the accepted ones in the story.”
+                    </blockquote>
+                    <p class="reply">
+                        <span class="tag tag--agent">Agent</span>So every look starts as a round of sketches, and each
+                        topic gets a side story of its own, one click away from here.
+                    </p>
+                </div>
+            </section>
+
+            <section
+                class="stage stage--agent tone-mint"
+                id="v0-1-0"
+                data-when="Wed 11 Nov · 20:12"
+                data-t="77:31"
+                data-human="16"
+                data-agent="956"
+                data-prs="28"
+                data-phase="v0.1.0"
+                data-done="M0 M1 M2 M3 M4 M5 M6~ M7 M8"
+            >
+                <div class="stage-inner">
+                    <div class="card">
+                        <p class="kicker">
+                            <span class="tag tag--human">Human</span><span class="when">20:12</span>
+                            <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/2">#2</a>
+                            <a class="chip" href="https://github.com/andreagalle/poopcantwait/releases/tag/v0.1.0"
+                                >v0.1.0</a
+                            >
+                        </p>
+                        <h2><span class="m">v0.1.0</span>The greybox game loop ships</h2>
+                        <ul class="facts">
+                            <li>The human merges release PR #2 into <code>master</code>: 28 pull requests at once.</li>
+                            <li>Eight milestones in it: M0 to M5, M7 and M8. M6 has its asset pipeline only.</li>
+                            <li>No release followed the merge. The human asked why, and opened the guard (#38).</li>
+                            <li>Since then every merge into <code>master</code> is a version, a tag and a release.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section
+                class="stage stage--human stage--quote"
+                id="phone-question"
+                data-when="Wed 11 Nov · 23:23"
+                data-t="80:42"
+                data-human="25"
+                data-agent="1007"
+                data-prs="30"
+                data-phase="Phones"
+                data-done="M0 M1 M2 M3 M4 M5 M6~ M7 M8"
+            >
+                <div class="stage-inner stage-inner--solo">
+                    <p class="kicker">
+                        <span class="tag tag--human">Human</span><span class="when">Messages 13 and 25 · 23:23</span>
+                    </p>
+                    <blockquote class="bubble">“Is the game playable on a phone too? Yes or no?”</blockquote>
+                    <p class="reply">
+                        <span class="tag tag--agent">Agent</span>No: arrow keys only, and a HUD made for 960 px. Of
+                        three options the human picked C: say so on phones now, touch controls later.
+                    </p>
+                </div>
+            </section>
+
+            <section
+                class="stage stage--agent tone-peach"
+                id="benny-look"
+                data-when="Wed 11 Nov · 23:24"
+                data-t="80:43"
+                data-human="25"
+                data-agent="1010"
+                data-prs="30"
+                data-phase="M6 · The art"
+                data-done="M0 M1 M2 M3 M4 M5 M6~ M7 M8"
+            >
+                <div class="stage-inner">
+                    <div class="card">
+                        <p class="kicker"><span class="tag tag--agent">Agent</span><span class="when">23:24</span></p>
+                        <h2><span class="m">M6</span>Benny, round 1</h2>
+                        <ul class="facts">
+                            <li>The first paid image: four sketches from the character sheet in the design.</li>
+                            <li>Same prompt, four takes: rounder, softer, chunkier, taller.</li>
+                            <li>The human picks one; side and back views follow from it, then the 3D model.</li>
+                        </ul>
+                        <p class="side-link">
+                            <a class="btn" href="./benny/">Side story: Benny's look →</a>
+                        </p>
+                    </div>
+                    <figure class="shot">
+                        <img
+                            src="./shots/benny-round1.webp"
+                            alt="Four front-view sketches of Benny, a felt plush man in a blue tank top and banana boxers, numbered 1 to 4"
+                            width="960"
+                            height="388"
+                            loading="lazy"
+                            decoding="async"
+                        />
+                        <figcaption>Round 1: which Benny?</figcaption>
+                    </figure>
+                </div>
+            </section>
+
+            <section
+                class="stage stage--agent tone-butter"
+                id="phone-notice"
+                data-when="Wed 11 Nov · 23:33"
+                data-t="80:52"
+                data-human="26"
+                data-agent="1120"
+                data-prs="31"
+                data-phase="Phones"
+                data-done="M0 M1 M2 M3 M4 M5 M6~ M7 M8"
+            >
+                <div class="stage-inner flip">
+                    <div class="card">
+                        <p class="kicker"><span class="tag tag--agent">Agent</span><span class="when">23:33</span></p>
+                        <h2>A note for phones</h2>
+                        <ul class="facts">
+                            <li>
+                                Only coarse pointers, no fine one: a phone. The title screen says “needs a keyboard”.
+                            </li>
+                            <li>A touchscreen laptop still counts as a computer; a plugged-in keyboard still works.</li>
+                            <li>Touch controls become milestone M9: a finger to steer, a compact HUD.</li>
+                            <li>Three sessions ran in parallel tonight, and agreed by message who did what.</li>
+                        </ul>
+                    </div>
+                    <figure class="shot">
+                        <img
+                            src="./shots/phone-notice.webp"
+                            alt="The title screen on a phone: Gotta Go! needs a keyboard for now"
+                            width="780"
+                            height="650"
+                            loading="lazy"
+                            decoding="async"
+                        />
+                        <figcaption>The title screen on a 390 px phone.</figcaption>
+                    </figure>
+                </div>
+            </section>
+
+            <section
+                class="stage stage--agent tone-lilac"
+                id="v0-2-0"
+                data-when="Thu 12 Nov · 22:12"
+                data-t="103:32"
+                data-human="32"
+                data-agent="1334"
+                data-prs="36"
+                data-phase="v0.2.0"
+                data-done="M0 M1 M2 M3 M4 M5 M6~ M7 M8"
+            >
+                <div class="stage-inner stage-inner--solo">
+                    <div class="card">
+                        <p class="kicker">
+                            <span class="tag tag--agent">Agent</span><span class="when">22:12</span>
+                            <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/37">#37</a>
+                            <a class="chip" href="https://github.com/andreagalle/poopcantwait/releases/tag/v0.2.0"
+                                >v0.2.0</a
+                            >
+                        </p>
+                        <h2><span class="m">v0.2.0</span>The first release by the new rule</h2>
+                        <ul class="facts">
+                            <li>
+                                Versioned before the merge, unasked: <code>package.json</code>, the changelog, the
+                                title.
+                            </li>
+                            <li>In it: Benny's first sketches, the phone note, image references, the release guard.</li>
+                            <li>Four sessions built it in parallel, and settled by message who cuts and who ships.</li>
+                            <li>The human merges it; the agent publishes the tag and the release right after.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section
                 class="stage stage--agent stage--numbers tone-sky"
                 id="who-did-what"
                 data-when="So far"
-                data-t="32:24"
+                data-t="103:32"
                 data-human="{{humanMessages}}"
                 data-agent="{{agentActions}}"
                 data-prs="{{pullRequests}}"
@@ -976,7 +1166,7 @@
                             <ul>
                                 <li><b>{{humanMessages}}</b> messages</li>
                                 <li><b>1</b> push of 8 guardrail files</li>
-                                <li><b>1</b> API key set</li>
+                                <li><b>2</b> API keys set</li>
                                 <li><b>0</b> lines of game code</li>
                             </ul>
                         </div>
@@ -1006,7 +1196,7 @@
                 id="next"
                 data-kind="end"
                 data-when="Next"
-                data-t="32:24"
+                data-t="103:32"
                 data-human="{{humanMessages}}"
                 data-agent="{{agentActions}}"
                 data-prs="{{pullRequests}}"
@@ -1018,10 +1208,11 @@
                         <h2>What's next</h2>
                         <ul class="facts">
                             <li>
-                                M6, the art: Benny in 3D, the food, the vehicles, the toilets. About 400 credits,
-                                waiting for a yes.
+                                M6, the art: the human picks Benny's look, then Benny in 3D, the food, the vehicles, the
+                                toilets, each starting as a round of sketches.
                             </li>
-                            <li>Version 0.1.0, merged into <code>master</code> by the human.</li>
+                            <li>A GitHub Release for every merge into <code>master</code>, published by a workflow.</li>
+                            <li>M9, touch controls, so Benny can run on a phone.</li>
                             <li>And a new stage here for each of them.</li>
                         </ul>
                         <nav class="end-actions" aria-label="Where next">

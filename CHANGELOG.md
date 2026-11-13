@@ -7,6 +7,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-12
+
+### Added
+
+- `npm run assets:image` sends only the options given (`--quality`, `--background transparent`, `--resolution`,
+  `--format`) and takes up to four `--reference` images to keep a character consistent across views.
+- On a phone or a tablet without a mouse, the title screen says the game needs a keyboard for now and links to the
+  story, instead of listing keys there are none of; touch controls are planned as milestone M9.
+- The story's first side story, _Benny's look_ (`/story/benny/`): every round of sketches for the hero, the ones
+  set aside and the one kept, with the prompt, linked from a stage of the main story. The default image model is now
+  `openai/gpt-image-2` (`gpt-image-1` is no longer served).
+
+### Changed
+
+- Every merge into `master` is now an official release: the release PR is versioned before the merge, and the tag and
+  the GitHub Release are published right after it (`CONTRIBUTING.md`, _Releases_; `/release-pr publish`).
+
+### Fixed
+
+- A link to a stage of the story (`/story/#<stage>`) jumps straight to that stage, on a fresh load or from the story
+  itself; it used to land on the cover, or scroll smoothly through every stage before it.
+- `npm run story:stats` no longer counts the summary Claude Code writes when a long conversation continues, or
+  messages from other agent sessions, as messages from the maintainer: the story counted 33 messages instead of 32.
+
+## [0.1.0] - 2026-11-11
+
 ### Added
 
 - Repository bootstrap: dev container, agent guardrails, contribution rules, CI and GitHub Pages deployment.

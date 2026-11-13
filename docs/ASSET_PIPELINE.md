@@ -60,12 +60,26 @@ one (for example, the `lowpoly` model type is retired). Control polygon counts w
 
 ### 2D images through OpenRouter
 
-`scripts/assets/gen-image.mjs` (`npm run assets:image -- <asset-id> --prompt "<description>" --yes`) calls
-`POST https://openrouter.ai/api/v1/images` with `OPENROUTER_API_KEY` from the environment. It starts the prompt with
-the style block below unless `--raw` is given; `--n`, `--aspect`, `--resolution` and `--format` set the request. The model comes from `OPENROUTER_IMAGE_MODEL` or a `--model` flag; list
-candidates and prices with `GET https://openrouter.ai/api/v1/images/models`. The script writes images and a JSON
-sidecar (model, prompt, parameters, date, cost if reported) into `art/raw/images/<asset-id>/`, never prints the key,
-and refuses to run without `--yes` so every paid call is deliberate.
+`scripts/assets/gen-image.mjs` (`npm run assets:image -- <asset-id> --prompt "<description>" --model <slug> --yes`)
+calls `POST https://openrouter.ai/api/v1/images` with `OPENROUTER_API_KEY` from the environment. It starts the prompt
+with the style block below unless `--raw` is given. Only the options given are sent, because models support different
+parameters: `--n`, `--aspect` (default `1:1`), `--quality`, `--background transparent`, `--resolution`, `--format`, and
+`--reference <image>` (up to four PNG, JPEG or WebP files, sent as input references to keep a character the same
+across views). The model comes from `--model` or `OPENROUTER_IMAGE_MODEL`; list candidates with
+`GET https://openrouter.ai/api/v1/images/models`. The script writes images and a JSON sidecar (model, prompt,
+parameters, references, date, cost if reported) into `art/raw/images/<asset-id>/`, never prints the key, and refuses
+to run without `--yes` so every paid call is deliberate.
+
+**Model choice (agreed with the maintainer).** `openai/gpt-image-2` is the default: it follows prompts closely and keeps
+a character consistent through reference images (up to 16). It has no transparent backgrounds, so HUD icons stay
+hand-drawn SVG. At the time of writing it costs about $0.04 per 1024×1536 image at medium quality (the first round of
+four sketches of Benny cost $0.17). `openai/gpt-image-1`, the first choice, is no longer served by OpenAI. Any other
+model, even for a single asset (for example `black-forest-labs/flux.2-pro` for detailed facade or road textures), is
+proposed in chat and agreed with the maintainer before the call.
+
+**Sketches first.** Before any asset is built on an image (a 3D model, a texture, an icon), the sketches are shown to
+the maintainer and the style is chosen together. Every round, rejected and accepted, is kept in
+`art/raw/images/<asset-id>/` and told on the story page (`/story/`), in a side story linked from the main timeline.
 
 ## Budgets
 
@@ -143,6 +157,7 @@ attribution and visibility) and record them. Assets that require attribution are
 
 - Paid tools (`meshy_*` generation and post-processing, `npm run assets:image`) ask the maintainer for approval in the
   permission prompt. Before each paid call, say in chat what it is for, the exact prompt, and the expected cost.
+- Sketch at low or medium quality, show the maintainer, and only then go to high quality or to 3D.
 - Preview first, refine only what you keep, at most three variants of an asset without asking.
 - Batch an asset set (for example all food) on one `assets/*` branch.
 - The maintainer sets spending limits on the provider accounts (for example a credit limit on the OpenRouter key).

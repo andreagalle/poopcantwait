@@ -27,7 +27,9 @@ export default defineConfig({
         rollupOptions: {
             input: {
                 main: `${root}index.html`,
-                story: `${root}story/index.html`
+                story: `${root}story/index.html`,
+                // Side stories, one per topic of the art pass, linked from a stage of the main story
+                benny: `${root}story/benny/index.html`
             }
         }
     },
