@@ -7,6 +7,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Smoother frames on slower devices: the twice-a-second search for the walking distances from Benny is spread over
+  several simulation steps (4,000 cells a step, 10 steps for a slim Benny) instead of running in one, which cut the
+  slowest step from about 5.5 ms to about 2 ms on the Codespace. The distances change only when a search is complete,
+  and a seeded run still plays the same everywhere.
+
 ## [0.2.0] - 2026-11-12
 
 ### Added

@@ -185,7 +185,9 @@ the HUD:
   cover (at least 5 m), replacing the oldest pop-up if four are already out. Pop-ups are 1.4 m cabins, always free and
   not solid: Benny steps into one and stays half a second to use it, and it is gone once used.
 - Path distances from Benny at his current girth are recomputed every 0.5 s of game time, up to 200 m along the paths;
-  toilets farther than that count as out of reach.
+  toilets farther than that count as out of reach. Each search is spread over several steps, 4,000 cells a step (a slim
+  Benny's takes 10 steps, 0.17 s), so no frame pays for all of it; the old distances stay in use until the new ones are
+  complete. When Benny grows, a new search starts at once, and a pop-up that falls due meanwhile waits for it.
 
 ### Finding them
 

@@ -82,8 +82,8 @@ export class NavGrid {
     readonly size: number;
     readonly zone: Uint8Array;
     readonly clearance: Float32Array;
-    /** The search heap of `pathDistances`, kept between calls so it grows once instead of on every search. */
-    private readonly heap = new CellHeap(1024);
+    /** The search of `pathDistances`, kept between calls so its heap grows once instead of on every search. */
+    private readonly search: PathSearch = new PathSearch(this);
 
     /** Builds the clearance field of `zone` (a `size` by `size` grid, row-major from the north-west corner). */
     constructor(halfSize: number, zone: Uint8Array) {
@@ -138,82 +138,13 @@ export class NavGrid {
      * between neighbouring cells (diagonals cost √2 and may not cut corners). Unreachable cells, and every cell when
      * Benny does not fit at `from`, get `Infinity`. Stops expanding beyond `maxDistance`.
      *
-     * The game calls this twice a second, so it allocates nothing per cell: pass `out` (a grid-sized array) to reuse
-     * it, and the search heap lives on the grid between calls.
+     * It allocates nothing per cell: pass `out` (a grid-sized array) to reuse it, and the search heap lives on the grid
+     * between calls. To spread one search over several frames, use a `PathSearch` instead.
      */
     pathDistances(from: Point, diameter: number, maxDistance = Infinity, out?: Float64Array): Float64Array {
-        const count = this.size * this.size;
-        const distance = out && out.length === count ? out : new Float64Array(count);
-        distance.fill(Infinity);
-        const radius = diameter / 2;
-        const start = this.cellAt(from.x, from.z);
-        const clearance = this.clearance;
-        if (start < 0 || !(clearance[start] > radius)) {
-            return distance;
-        }
-
-        const size = this.size;
-        const heap = this.heap;
-        heap.size = 0;
-        distance[start] = 0;
-        heap.push(start, 0);
-
-        while (heap.size > 0) {
-            const cell = heap.pop();
-            const d = heap.lastKey;
-            if (d > distance[cell] || d > maxDistance) {
-                continue;
-            }
-            const col = cell % size;
-            const fitsW = col > 0 && clearance[cell - 1] > radius;
-            const fitsE = col < size - 1 && clearance[cell + 1] > radius;
-            const fitsN = cell >= size && clearance[cell - size] > radius;
-            const fitsS = cell < count - size && clearance[cell + size] > radius;
-            const straight = d + 1;
-            if (straight <= maxDistance) {
-                if (fitsW && straight < distance[cell - 1]) {
-                    distance[cell - 1] = straight;
-                    heap.push(cell - 1, straight);
-                }
-                if (fitsE && straight < distance[cell + 1]) {
-                    distance[cell + 1] = straight;
-                    heap.push(cell + 1, straight);
-                }
-                if (fitsN && straight < distance[cell - size]) {
-                    distance[cell - size] = straight;
-                    heap.push(cell - size, straight);
-                }
-                if (fitsS && straight < distance[cell + size]) {
-                    distance[cell + size] = straight;
-                    heap.push(cell + size, straight);
-                }
-            }
-            const diagonal = d + SQRT2;
-            if (diagonal <= maxDistance) {
-                // A diagonal step needs both side cells free too, so Benny never cuts a corner
-                let next = cell - size - 1;
-                if (fitsN && fitsW && clearance[next] > radius && diagonal < distance[next]) {
-                    distance[next] = diagonal;
-                    heap.push(next, diagonal);
-                }
-                next = cell - size + 1;
-                if (fitsN && fitsE && clearance[next] > radius && diagonal < distance[next]) {
-                    distance[next] = diagonal;
-                    heap.push(next, diagonal);
-                }
-                next = cell + size - 1;
-                if (fitsS && fitsW && clearance[next] > radius && diagonal < distance[next]) {
-                    distance[next] = diagonal;
-                    heap.push(next, diagonal);
-                }
-                next = cell + size + 1;
-                if (fitsS && fitsE && clearance[next] > radius && diagonal < distance[next]) {
-                    distance[next] = diagonal;
-                    heap.push(next, diagonal);
-                }
-            }
-        }
-        return distance;
+        this.search.begin(from, diameter, maxDistance, out);
+        this.search.advance(Infinity);
+        return this.search.distances;
     }
 
     /**
@@ -279,5 +210,116 @@ export class NavGrid {
             return Infinity;
         }
         return this.pathDistances(from, diameter)[target];
+    }
+}
+
+/**
+ * A walking-distance search (`NavGrid.pathDistances`) that can run a slice at a time: `begin` sets it up, each
+ * `advance(budget)` settles at most `budget` cells, and `done` tells when every reachable cell has its distance. The
+ * game spreads one search over several simulation steps, so no single frame pays for all of it (`NAVIGATION`); the
+ * budget counts cells, not time, so the result and the step it completes on are the same on every machine.
+ */
+export class PathSearch {
+    /** The distances found so far, final once `done`: the `out` array given to `begin`, or a new one. */
+    distances: Float64Array = new Float64Array(0);
+    /** Whether the search has finished (also before the first `begin`). */
+    done = true;
+    private readonly nav: NavGrid;
+    private readonly heap = new CellHeap(1024);
+    private radius = 0;
+    private maxDistance = Infinity;
+
+    constructor(nav: NavGrid) {
+        this.nav = nav;
+    }
+
+    /** Starts a search from `from` for a Benny of diameter `diameter`, dropping any search in progress. */
+    begin(from: Point, diameter: number, maxDistance = Infinity, out?: Float64Array): void {
+        const count = this.nav.size * this.nav.size;
+        this.distances = out && out.length === count ? out : new Float64Array(count);
+        this.distances.fill(Infinity);
+        this.radius = diameter / 2;
+        this.maxDistance = maxDistance;
+        this.heap.size = 0;
+        const start = this.nav.cellAt(from.x, from.z);
+        if (start < 0 || !(this.nav.clearance[start] > this.radius)) {
+            this.done = true;
+            return;
+        }
+        this.distances[start] = 0;
+        this.heap.push(start, 0);
+        this.done = false;
+    }
+
+    /** Settles up to `budget` more cells (`Infinity` for the rest of the search) and returns `done`. */
+    advance(budget: number): boolean {
+        if (this.done) {
+            return true;
+        }
+        const distance = this.distances;
+        const clearance = this.nav.clearance;
+        const size = this.nav.size;
+        const count = size * size;
+        const heap = this.heap;
+        const radius = this.radius;
+        const maxDistance = this.maxDistance;
+        while (heap.size > 0 && budget > 0) {
+            budget--;
+            const cell = heap.pop();
+            const d = heap.lastKey;
+            if (d > distance[cell] || d > maxDistance) {
+                continue;
+            }
+            const col = cell % size;
+            const fitsW = col > 0 && clearance[cell - 1] > radius;
+            const fitsE = col < size - 1 && clearance[cell + 1] > radius;
+            const fitsN = cell >= size && clearance[cell - size] > radius;
+            const fitsS = cell < count - size && clearance[cell + size] > radius;
+            const straight = d + 1;
+            if (straight <= maxDistance) {
+                if (fitsW && straight < distance[cell - 1]) {
+                    distance[cell - 1] = straight;
+                    heap.push(cell - 1, straight);
+                }
+                if (fitsE && straight < distance[cell + 1]) {
+                    distance[cell + 1] = straight;
+                    heap.push(cell + 1, straight);
+                }
+                if (fitsN && straight < distance[cell - size]) {
+                    distance[cell - size] = straight;
+                    heap.push(cell - size, straight);
+                }
+                if (fitsS && straight < distance[cell + size]) {
+                    distance[cell + size] = straight;
+                    heap.push(cell + size, straight);
+                }
+            }
+            const diagonal = d + SQRT2;
+            if (diagonal <= maxDistance) {
+                // A diagonal step needs both side cells free too, so Benny never cuts a corner
+                let next = cell - size - 1;
+                if (fitsN && fitsW && clearance[next] > radius && diagonal < distance[next]) {
+                    distance[next] = diagonal;
+                    heap.push(next, diagonal);
+                }
+                next = cell - size + 1;
+                if (fitsN && fitsE && clearance[next] > radius && diagonal < distance[next]) {
+                    distance[next] = diagonal;
+                    heap.push(next, diagonal);
+                }
+                next = cell + size - 1;
+                if (fitsS && fitsW && clearance[next] > radius && diagonal < distance[next]) {
+                    distance[next] = diagonal;
+                    heap.push(next, diagonal);
+                }
+                next = cell + size + 1;
+                if (fitsS && fitsE && clearance[next] > radius && diagonal < distance[next]) {
+                    distance[next] = diagonal;
+                    heap.push(next, diagonal);
+                }
+            }
+        }
+        this.done = heap.size === 0;
+        return this.done;
     }
 }
