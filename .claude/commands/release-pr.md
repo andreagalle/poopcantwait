@@ -32,7 +32,7 @@ Versions the release PR. Pick the version from the last tag (`git tag --list 'v*
 
 ## Publish mode (`publish`)
 
-Run it right after the maintainer merged a release PR into `master`.
+Run it right after the maintainer merged a release PR into `master`. The Release workflow (`.github/workflows/release.yml`) normally does steps 3 and 5 by itself: first look at its run for `origin/master` (`gh run list --workflow release.yml --branch master --limit 1`). If it succeeded, check its work (`gh release view v<x.y.z>`; `git merge-base origin/master origin/dev` is `origin/master`) and go to step 4. If it failed or did not run, read its log and do the steps it missed.
 
 1. `git fetch origin --prune --tags`. The release is `origin/master` (the squash commit of the release PR). Read the version with `git show origin/master:package.json`. If the tag `v<x.y.z>` already exists, the release PR was merged without a cut: stop, tell the maintainer, run cut mode with the next version and ask for a new merge.
 2. Write the notes to `tmp/release-notes-v<x.y.z>.md`: one or two sentences on what the release brings; the links to the game (`https://andreagalle.github.io/poopcantwait/gottago/`), the story (`.../story/`) and the start page (`.../`); then the `## [<x.y.z>]` section of `CHANGELOG.md` at `origin/master`, without its heading.

@@ -15,6 +15,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Releases publish themselves: on every merge into `master`, `.github/workflows/release.yml` creates the tag and the
+  GitHub Release from `package.json` and `CHANGELOG.md`, then records the release in `dev`'s history. The agent checks
+  its work and does by hand only what it could not.
 - The side stories show the maintainer's picks: Benny's sketch 1 and the felt food (sheet 2), with the other sketches
   set aside; a stage of the story quotes the pick.
 - Release PRs are squash-merged into `master`, the maintainer's choice; right after publishing a release, the agent

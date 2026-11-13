@@ -1,0 +1,65 @@
+# Publishes every merge into master as a release, then records it in dev's history (CONTRIBUTING.md, Releases).
+# The maintainer squash-merges release PRs, so master's commit is not in dev's history: the second step merges it into
+# dev with the "ours" strategy (no file changes) so that the next release PR shows only what is new.
+name: Release
+
+on:
+    push:
+        branches: [master]
+
+permissions:
+    contents: write
+
+concurrency:
+    group: release
+    cancel-in-progress: false
+
+jobs:
+    release:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
+
+            - name: Publish the tag and the GitHub Release
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  version=$(node -p "require('./package.json').version")
+                  tag="v$version"
+                  if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+                      echo "::error::$tag already exists: this merge was not versioned (run /release-pr cut first)"
+                      exit 1
+                  fi
+                  {
+                      echo "- Play: https://andreagalle.github.io/poopcantwait/gottago/"
+                      echo "- The story of its development: https://andreagalle.github.io/poopcantwait/story/"
+                      echo "- Start page: https://andreagalle.github.io/poopcantwait/"
+                      echo
+                      awk -v v="$version" 'index($0, "## [" v "]") == 1 {on=1; next} on && /^## \[/ {exit} on {print}' CHANGELOG.md
+                  } > notes.md
+                  gh release create "$tag" --target "$GITHUB_SHA" --title "$tag" --notes-file notes.md
+
+            - name: Record the release in dev's history
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  git fetch origin dev
+                  # Safety: master's files must equal dev at some commit since the last release (the cut), so that the
+                  # "ours" merge loses nothing. A hotfix merged straight into master fails here and is synced by hand.
+                  base=$(git merge-base origin/master origin/dev)
+                  tree=$(git rev-parse 'origin/master^{tree}')
+                  found=""
+                  for c in $(git rev-list --first-parent origin/dev "^$base^"); do
+                      if [ "$(git rev-parse "$c^{tree}")" = "$tree" ]; then found=$c; fi
+                  done
+                  if [ -z "$found" ]; then
+                      echo "::error::master has changes that dev lacks: sync it by hand (CONTRIBUTING.md, Hotfixes)"
+                      exit 1
+                  fi
+                  version=$(node -p "require('./package.json').version")
+                  git switch -c sync origin/dev
+                  git merge -s ours --no-edit -m "chore: record the v$version release on master in the history of dev" origin/master
+                  test -z "$(git diff origin/dev)"
+                  git push origin HEAD:dev
