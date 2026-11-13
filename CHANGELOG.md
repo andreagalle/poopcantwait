@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- The story's second side story, _The food set_ (`/story/food/`): the first round of food sketches, all thirteen items
+  on one sheet in two materials (stitched felt like Benny, or glossy vinyl), waiting for the maintainer's pick.
+
 ### Changed
 
 - Smoother frames on slower devices: the twice-a-second search for the walking distances from Benny is spread over
