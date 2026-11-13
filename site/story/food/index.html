@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>The food set · The story of Gotta Go!</title>
+        <meta
+            name="description"
+            content="Every sketch of the food in Gotta Go!, the ones set aside and the one kept: how the junk food and the vegetables got their look."
+        />
+        <meta name="theme-color" content="#ffe0b2" />
+        <link rel="icon" type="image/svg+xml" href="../../logo.svg" />
+        <link rel="stylesheet" href="../../shared.css" />
+        <link rel="stylesheet" href="../side.css" />
+    </head>
+    <!--
+        A side story: one topic of the art pass told round by round, linked from a stage of the main story. Each
+        <section class="round"> is a round of sketches: what was asked, every image, and which one the human kept
+        (class is-kept) or set aside (class is-set-aside); is-pending while the human has not picked yet.
+        Never put costs, keys or anything private here (AGENTS.md, "The story page").
+    -->
+    <body class="side">
+        <header class="side-head">
+            <a class="back" href="../#food-look">← Back to the story</a>
+            <p class="sticker">Side story</p>
+            <h1>The food set</h1>
+            <p class="lede">
+                Seven junk foods that fatten Benny up and six vegetables that cost him seconds, each about a metre
+                across so it reads from the camera high above. Every sketch the agent drew, in the order they came.
+            </p>
+            <ol class="how">
+                <li>The agent writes the prompt from the food tables in the game design.</li>
+                <li>The human approves the paid call.</li>
+                <li>One sheet with all thirteen items, so the whole set is judged at once.</li>
+                <li>The human picks a style and says what to change.</li>
+                <li>Then one model per item, from the kept sheet.</li>
+            </ol>
+        </header>
+
+        <main>
+            <section class="round" id="round-1">
+                <div class="round-head">
+                    <h2><span class="round-n">Round 1</span>Felt or vinyl?</h2>
+                    <p class="meta">Thu 12 Nov · 22:11 · <code>gpt-image-2</code> · 4 sheets, 1536×1024</p>
+                    <p class="verdict is-pending">Waiting for the human's pick</p>
+                </div>
+                <div class="sketches sketches--wide">
+                    <figure class="sketch">
+                        <img
+                            src="../shots/food-r1-1.webp"
+                            alt="Sheet 1: thirteen felt toy foods with stitched seams, junk food above and vegetables below"
+                            width="720"
+                            height="480"
+                            loading="lazy"
+                            decoding="async"
+                        />
+                        <figcaption><b>1</b> Felt, like Benny</figcaption>
+                    </figure>
+                    <figure class="sketch">
+                        <img
+                            src="../shots/food-r1-2.webp"
+                            alt="Sheet 2: the same felt set, with a heap of mixed beans and a soft-serve cone"
+                            width="720"
+                            height="480"
+                            loading="lazy"
+                            decoding="async"
+                        />
+                        <figcaption><b>2</b> Felt, mixed beans</figcaption>
+                    </figure>
+                    <figure class="sketch">
+                        <img
+                            src="../shots/food-r1-3.webp"
+                            alt="Sheet 3: thirteen glossy vinyl toy foods, smooth and shiny"
+                            width="720"
+                            height="480"
+                            loading="lazy"
+                            decoding="async"
+                        />
+                        <figcaption><b>3</b> Glossy vinyl toy</figcaption>
+                    </figure>
+                    <figure class="sketch">
+                        <img
+                            src="../shots/food-r1-4.webp"
+                            alt="Sheet 4: the glossy vinyl set, with a tall soft-serve cone and mixed beans"
+                            width="720"
+                            height="480"
+                            loading="lazy"
+                            decoding="async"
+                        />
+                        <figcaption><b>4</b> Glossy vinyl, soft-serve cone</figcaption>
+                    </figure>
+                </div>
+                <details class="prompt">
+                    <summary>The prompt</summary>
+                    <p>
+                        <i>The style block, with "single object, centered" left out for a sheet:</i> Stylized toy-town
+                        diorama game asset sheet. Chunky, rounded, simple shapes with strong silhouettes, readable from
+                        a high top-down camera. Soft pastel palette with a few saturated accents, smooth shading,
+                        minimal fine detail. Neutral plain light grey background. No text, no letters, no logos, no
+                        brand marks.
+                    </p>
+                    <p>
+                        <i>The set, from the food tables:</i> A sheet of thirteen separate oversized food items for a
+                        game, <b>[1, 2]</b> sewn as soft plush toys from felt with visible stitched seams, like the toy
+                        food in a children's play kitchen / <b>[3, 4]</b> made as smooth, glossy vinyl toys with soft
+                        rounded edges, like painted toy food. Each item stands alone, evenly spaced in a neat grid, seen
+                        from a high three-quarter view from above, all at the same scale and in the same soft even
+                        light. Top rows, seven junk foods, warm and golden: a burger, a fried chicken leg, a pizza
+                        slice, a hot dog, a donut with pink icing and sprinkles, fries in a plain red paper cup, an ice
+                        cream cone. Bottom rows, six vegetables, a little dull and unappetizing: a heap of beans, a
+                        cabbage, Brussels sprouts, a broccoli floret, a cauliflower, a carrot. No plates, no packaging
+                        brands.
+                    </p>
+                </details>
+                <p class="note">
+                    Benny's first sketches came out in stitched felt, so this round asks the bigger question first:
+                    should the whole toy town be felt, or glossy vinyl? The pick sets the material for the vehicles, the
+                    toilets and the street props too.
+                </p>
+            </section>
+        </main>
+
+        <footer class="side-foot">
+            <a class="btn" href="../#food-look">Back to the story</a>
+            <a class="btn btn--go" href="../../gottago/">Play Gotta Go!</a>
+        </footer>
+    </body>
+</html>
