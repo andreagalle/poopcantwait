@@ -9,7 +9,9 @@ describe('asset registry', () => {
         expect(assetUrl('a.glb', '/poopcantwait')).toBe('/poopcantwait/assets/a.glb');
     });
 
-    it('starts empty: the greybox stands in until the art pass', () => {
-        expect(Object.keys(ASSETS)).toEqual([]);
+    it('gives every entry a file under public/assets/ (scripts/assets/registry-files.test.mjs checks they exist)', () => {
+        for (const entry of Object.values(ASSETS)) {
+            expect(entry.file).toMatch(/^(models|textures|images|audio)\/[a-z0-9/-]+\.(glb|webp|png|ogg|mp3)$/);
+        }
     });
 });
