@@ -7,6 +7,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- The side stories show the maintainer's picks: Benny's sketch 1 and the felt food (sheet 2), with the other sketches
+  set aside; a stage of the story quotes the pick.
+
+### Fixed
+
+- The story's v0.3.0 stage showed the time of the morning's merges (08:20) instead of the cut's (18:12), and the counts
+  of that moment.
+
 ## [0.3.0] - 2026-11-13
 
 ### Added
