@@ -9,6 +9,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Touch controls (M9): on a phone or a tablet a finger anywhere steers Benny like a floating stick, in the same eight
+  directions as the arrow keys; a tap starts, goes on from pause and plays again; round buttons mute and pause. The
+  title, pause and game-over screens speak of taps and drags there, instead of saying the game needs a keyboard.
+- A compact HUD for narrow screens such as a phone held upright: the panels shrink and the score moves to a second row,
+  so nothing overlaps at 390 px; the title suggests turning the phone sideways while it is upright.
 - The story's second side story, _The food set_ (`/story/food/`): the first round of food sketches, all thirteen items
   on one sheet in two materials (stitched felt like Benny, or glossy vinyl), waiting for the maintainer's pick.
 

@@ -1,0 +1,111 @@
+/* Touch controls (design: Controls): the floating stick and the pause and mute buttons */
+
+/* On a touchscreen the game owns every gesture: no panning, zooming, text selection or long-press menus */
+.has-touch,
+.has-touch canvas {
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* The mute button shows the state, so the "Muted (M)" badge is not needed */
+.has-touch .mute-badge {
+    display: none;
+}
+
+.touch-stick {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 14;
+    width: calc(2 * var(--stick-radius));
+    height: calc(2 * var(--stick-radius));
+    margin: calc(-1 * var(--stick-radius)) 0 0 calc(-1 * var(--stick-radius));
+    border: 3px solid #fff6e0b3;
+    border-radius: 50%;
+    background: #2b211b33;
+    pointer-events: none;
+}
+
+.touch-stick[hidden] {
+    display: none;
+}
+
+.touch-knob {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    margin: -22px 0 0 -22px;
+    border: 3px solid #2b211b;
+    border-radius: 50%;
+    background: #fff6e0;
+    box-shadow: 0 3px 0 #2b211b;
+}
+
+.touch-buttons {
+    position: fixed;
+    right: max(12px, env(safe-area-inset-right));
+    bottom: max(12px, env(safe-area-inset-bottom));
+    z-index: 16;
+    display: flex;
+    gap: 10px;
+}
+
+/* On a narrow screen the weight bar takes the whole bottom edge: the buttons sit just above it */
+@media (max-width: 600px) {
+    .touch-buttons {
+        bottom: calc(max(12px, env(safe-area-inset-bottom)) + 70px);
+    }
+}
+
+.touch-button {
+    display: grid;
+    width: 52px;
+    height: 52px;
+    padding: 0;
+    place-items: center;
+    border: 3px solid #2b211b;
+    border-radius: 50%;
+    background: #fff6e0;
+    box-shadow: 0 4px 0 #2b211b;
+    color: #2b211b;
+    cursor: pointer;
+}
+
+.touch-button[hidden] {
+    display: none;
+}
+
+.touch-button:active {
+    box-shadow: 0 1px 0 #2b211b;
+    translate: 0 3px;
+}
+
+.touch-button svg {
+    width: 26px;
+    height: 26px;
+    fill: currentcolor;
+    stroke: currentcolor;
+}
+
+.touch-button svg rect,
+.touch-button svg path:first-child {
+    stroke: none;
+}
+
+.touch-mute .touch-cross,
+.touch-mute[aria-pressed='true'] .touch-waves {
+    display: none;
+}
+
+.touch-mute[aria-pressed='true'] .touch-cross {
+    display: inline;
+}
+
+.touch-mute[aria-pressed='true'] {
+    background: #ffd6d6;
+}

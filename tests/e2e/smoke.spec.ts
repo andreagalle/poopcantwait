@@ -370,8 +370,9 @@ test('starts on the title screen, pauses with Escape and P, and remembers mute',
     await expect(title).toBeVisible();
     await expect(title).toContainText('Gotta Go!');
     await expect(title).toContainText('Press Enter or Space to start');
-    // On a computer there is no keyboard notice (that is for phones and tablets)
-    await expect(title.locator('.screen-touch')).toHaveCount(0);
+    // A computer without a touchscreen gets no touch buttons and no stick
+    await expect(page.locator('.touch-buttons')).toHaveCount(0);
+    await expect(page.locator('.touch-stick')).toHaveCount(0);
     // Nothing runs on the title screen: the countdown stays full
     const seconds = page.locator('.hud-seconds');
     await page.waitForTimeout(1500);

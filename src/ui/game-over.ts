@@ -1,10 +1,11 @@
 /**
  * The end of a run: Benny is out of clean underpants. The final score and the best scores kept in this browser, the
- * new one marked. Enter or Space starts a new run (handled with the other menu keys).
+ * new one marked. Enter or Space starts a new run (handled with the other menu keys), or a tap on a touch-only device.
  */
 export function showGameOver(
     parent: HTMLElement,
-    result: { score: number; table: readonly number[]; rank: number }
+    result: { score: number; table: readonly number[]; rank: number },
+    touchOnly = false
 ): HTMLElement {
     const panel = document.createElement('section');
     panel.className = 'game-over';
@@ -38,7 +39,7 @@ export function showGameOver(
     }
 
     const hint = document.createElement('p');
-    hint.textContent = 'Press Enter to play again';
+    hint.textContent = touchOnly ? 'Tap to play again' : 'Press Enter to play again';
     panel.append(hint);
     parent.append(panel);
     return panel;

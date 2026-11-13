@@ -26,6 +26,22 @@ export function nextScreen(screen: Screen, action: FlowAction): Screen | 'restar
     }
 }
 
+/**
+ * What a tap on the screen does (touch controls, design: *Controls*): it starts the run from the title, goes on from
+ * pause and plays again after a game over, like Enter. During the run a finger steers instead, so a tap does nothing.
+ */
+export function tapAction(screen: Screen): Exclude<FlowAction, 'away'> | null {
+    switch (screen) {
+        case 'title':
+        case 'over':
+            return 'start';
+        case 'paused':
+            return 'pause';
+        case 'running':
+            return null;
+    }
+}
+
 /** Whether the simulation advances on this screen. */
 export function isSimulating(screen: Screen): boolean {
     return screen === 'running';
