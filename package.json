@@ -23,7 +23,7 @@
         "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json"
     },
     "dependencies": {
-        "playcanvas": "^2.23.3"
+        "playcanvas": "^2.24.0"
     },
     "devDependencies": {
         "@gltf-transform/cli": "^4.5.1",
@@ -31,7 +31,7 @@
         "@gltf-transform/extensions": "^4.5.1",
         "@gltf-transform/functions": "^4.5.1",
         "@playcanvas/eslint-config": "3.0.0",
-        "@playcanvas/inspector": "^0.4.0",
+        "@playcanvas/inspector": "^0.5.0",
         "@playwright/test": "^1.65.0",
         "@types/node": "^24.19.2",
         "@vitest/coverage-v8": "^5.1.0",
@@ -40,7 +40,7 @@
         "prettier": "^3.9.10",
         "sharp": "^0.35.5",
         "typescript": "~6.0.3",
-        "vite": "^8.3.5",
+        "vite": "^8.3.7",
         "vitest": "^5.1.0"
     },
     "engines": {
