@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Release PRs are squash-merged into `master`, the maintainer's choice; right after publishing a release, the agent
+  records it in `dev`'s history with a `chore/sync-master-into-dev-v<x.y.z>` merge (`CONTRIBUTING.md`, _Releases_).
+
 ## [0.3.0] - 2026-11-13
 
 ### Added
