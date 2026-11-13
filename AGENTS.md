@@ -12,7 +12,8 @@ root, the game under `/gottago/` and the story of its development under `/story/
 
 An AI agent does the development in a GitHub Codespace. The maintainer reviews, tests `dev` locally and merges each
 release into `master` (with squash, by choice); every such merge is an official release, which the agent versions
-beforehand, publishes right after, and then records in `dev`'s history (`CONTRIBUTING.md`, _Releases_).
+beforehand and the Release workflow publishes right after and records in `dev`'s history (`CONTRIBUTING.md`,
+_Releases_).
 
 Read these before changing anything:
 
