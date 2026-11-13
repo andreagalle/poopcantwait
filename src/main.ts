@@ -25,7 +25,7 @@ import { FixedStepper } from './core/sim/fixed-step';
 import { mountCityDebugMap } from './debug/city-map';
 import { PlayerDebug } from './debug/player-debug';
 import { BennyView } from './game/benny-view';
-import { FoodView } from './game/food-view';
+import { FOOD_MODELS, FoodView } from './game/food-view';
 import { addBennyStandIn } from './game/greybox';
 import { Juice } from './game/juice';
 import { KioskView } from './game/kiosk-view';
@@ -94,7 +94,7 @@ const bennyView = new BennyView(addBennyStandIn(app));
 const kioskView = new KioskView(app, city);
 const popupView = new PopupView(app);
 // The models of the art pass so far; anything without one keeps its greybox stand-in
-const models = await loadModels(app, ['food.burger']);
+const models = await loadModels(app, Object.values(FOOD_MODELS));
 const foodView = new FoodView(app, models);
 const vehicleView = new VehicleView(app);
 const juice = new Juice(app);

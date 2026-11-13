@@ -206,8 +206,9 @@ the HUD:
 
 ## Food
 
-Food items are oversized (about 1 m across) so they read clearly from above. They bob and spin slowly; junk food has a
-warm golden glow, vegetables a sickly green one. Benny eats an item by touching it.
+Food items are oversized (about 1 m across) so they read clearly from above. They bob and spin slowly over their
+shadow; felt models make junk food and vegetables easy to tell apart, so there is no glow under them (a golden or green
+ring read as a halo, the maintainer found, 2026-11-13). Benny eats an item by touching it.
 
 ### Junk food (points and weight)
 
