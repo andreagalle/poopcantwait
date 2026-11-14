@@ -90,14 +90,20 @@ export const BENNY = {
     maxHeightScale: 2
 } as const;
 
-/** Which of Benny's clips plays (design: *The protagonist*, animations): `core/fx/benny-clip.ts`. */
+/** Which of Benny's clips plays, and how fast (design: *The protagonist*, animations): `core/fx/benny-clip.ts`. */
 export const BENNY_CLIPS = {
-    /** Below this share of his top speed he stands (idle). */
-    moveShare: 0.08,
-    /** From this share of his top speed the walk turns into a run. */
-    runShare: 0.55,
-    /** Clip playback speed, from barely moving to full speed, so his feet keep up with the ground. */
-    playbackSpeed: { min: 0.7, max: 1.3 },
+    /** Below this speed, in m/s, he stands (idle). */
+    moveMetresPerSecond: 0.3,
+    /**
+     * Ground covered by his walk clip at normal speed, in m/s (measured from the clip: a 0.47 m step, two per 1.07 s
+     * cycle). The walk plays at his speed divided by this, so his feet keep up with the ground.
+     */
+    walkMetresPerSecond: 0.89,
+    /**
+     * Walk playback speed limits. At 4 times (about 7.5 steps a second, a hurried toy scurry) his feet match the ground
+     * up to 3.6 m/s, half his slim top speed; faster than that he slides a little rather than spin his legs.
+     */
+    playbackSpeed: { min: 0.8, max: 4 },
     /** Seconds to blend from one clip into the next. */
     blendSeconds: 0.15
 } as const;
