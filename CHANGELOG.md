@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Benny walks briskly instead of running: his run swung his arms wide and his feet slid over the ground. One walk clip
+  plays at a cadence that follows his speed (his feet match the ground up to 3.6 m/s), and his model drops the run and
+  the waddle clips (1.18 MB instead of 1.31 MB).
+
 ## [0.4.0] - 2026-11-14
 
 ### Added

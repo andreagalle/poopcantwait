@@ -16,15 +16,13 @@
             "clips": {
                 "idle": "Meshy preset 0 Idle",
                 "walk": "rig walking",
-                "run": "rig running",
-                "fall": "Meshy preset 366 Falling Down",
-                "waddle": "Meshy preset 637 Injured Walk (in place)"
+                "fall": "Meshy preset 366 Falling Down"
             },
             "generatedAt": "2026-11-13",
             "license": "Meshy paid plan: the customer owns the generated assets (help.meshy.ai, 'Who owns the models generated on Meshy', checked 2026-11-13); Meshy asks, without requiring it, to be credited. Input image: OpenAI's terms assign the output to the user.",
             "attributionRequired": false,
             "triangles": 18708,
-            "bytes": 1314584,
+            "bytes": 1179020,
             "approvedBy": "maintainer"
         },
         {
