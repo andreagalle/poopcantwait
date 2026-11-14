@@ -22,6 +22,16 @@ const DEVTOOLS_HOOK = path.resolve(
 export const SCREENSHOT_DIR = 'tmp/screenshots';
 
 /**
+ * Waits until the game is ready to play: the app exists and its models have loaded, which is when the title screen and
+ * the menu keys appear (main.ts creates them right after the models). A key pressed before that would be lost.
+ * Software rendering on a slow runner can take a while to load the models, hence the long timeout.
+ */
+export async function waitForGame(page: Page): Promise<void> {
+    await page.waitForFunction(() => (globalThis.__playcanvasApps?.size ?? 0) > 0, undefined, { timeout: 60_000 });
+    await expect(page.locator('.screen-title')).toBeVisible({ timeout: 60_000 });
+}
+
+/**
  * Opens the game, collects console errors and uncaught exceptions while the test runs, and starts the run from the
  * title screen unless `start` is false.
  */
@@ -35,7 +45,7 @@ export async function openGame(page: Page, query = '', start = true): Promise<st
     page.on('pageerror', (error) => errors.push(error.message));
     await page.addInitScript({ path: DEVTOOLS_HOOK });
     await page.goto(`./${query}`);
-    await page.waitForFunction(() => (globalThis.__playcanvasApps?.size ?? 0) > 0);
+    await waitForGame(page);
     if (start) {
         await page.keyboard.press('Enter');
         await expect(page.locator('.screen-title')).toBeHidden();
