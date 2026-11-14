@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-14
+
 ### Added
 
 - Felt traffic: four little cars that take turns (green, orange, a blue van, yellow) and a red bus, from the vehicle
