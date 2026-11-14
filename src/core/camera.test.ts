@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { CAMERA } from '../config/tuning';
+import { CAMERA, TRAFFIC } from '../config/tuning';
 
 import {
     BuildingIndex,
@@ -8,6 +8,7 @@ import {
     cameraPosition,
     lookAhead,
     occludingBuildings,
+    outOfSightMetresAt,
     segmentHitsBox,
     smoothingFactor
 } from './camera';
@@ -90,5 +91,15 @@ describe('occludingBuildings', () => {
         ];
         expect(occludingBuildings(index, camera, wide)).toEqual([0, 1]);
         expect(occludingBuildings(index, camera, [])).toEqual([]);
+    });
+});
+
+describe('outOfSightMetresAt', () => {
+    it('reaches twice the camera distance plus the look-ahead, never less than the minimum spawn distance', () => {
+        expect(outOfSightMetresAt(0)).toBe(
+            Math.max(TRAFFIC.spawnMinDistanceMetres, 2 * cameraDistanceAt(0) + CAMERA.maxLookAheadMetres)
+        );
+        expect(outOfSightMetresAt(1)).toBeCloseTo(2 * cameraDistanceAt(1) + CAMERA.maxLookAheadMetres);
+        expect(outOfSightMetresAt(1)).toBeGreaterThan(outOfSightMetresAt(0));
     });
 });

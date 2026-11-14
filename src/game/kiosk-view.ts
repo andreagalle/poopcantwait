@@ -1,4 +1,4 @@
-import { BLEND_ADDITIVE, Color, CylinderGeometry, Entity, Mesh, MeshInstance, StandardMaterial } from 'playcanvas';
+import { Color, Entity, MeshInstance, StandardMaterial } from 'playcanvas';
 import type { AppBase, Asset } from 'playcanvas';
 
 import type { City } from '../core/city/types';
@@ -11,7 +11,6 @@ import { fittedModel } from './fit-model';
 const KIOSK_HEIGHT = 2.6;
 const DOOR = { width: 1.2, height: 2, depth: 0.08 };
 const BEACON = { size: 0.6, height: 0.45 };
-const BEAM = { radius: 0.35, height: 10, opacity: 0.35 };
 /**
  * On the felt cabin, a round sign on the door says free or occupied (green or red), like the latch indicator of a real
  * cabin: its diameter and thickness, in metres, and the height of its centre as a share of the cabin's.
@@ -20,17 +19,12 @@ export const DOOR_SIGN = { diameter: 0.38, thickness: 0.05, heightShare: 0.75 };
 /** The occupied door rattles: a small shake along the facade, in metres and cycles per second. */
 const RATTLE = { amplitude: 0.04, frequency: 11 };
 
-function emissiveMaterial(name: string, color: Color, opacity = 1): StandardMaterial {
+function emissiveMaterial(name: string, color: Color): StandardMaterial {
     const material = new StandardMaterial();
     material.name = name;
     material.diffuse.set(0, 0, 0);
     material.emissive.copy(color);
     material.useLighting = false;
-    if (opacity < 1) {
-        material.opacity = opacity;
-        material.blendType = BLEND_ADDITIVE;
-        material.depthWrite = false;
-    }
     material.update();
     return material;
 }
@@ -51,16 +45,15 @@ interface KioskParts {
     readonly door: Entity;
     /** What turns green or red: the roof beacon on the greybox, the door sign on the felt cabin. */
     readonly beacon: Entity;
-    readonly beam: Entity;
     /** The rattling part's resting position, and the direction along the facade it rattles in. */
     readonly rest: { x: number; y: number; z: number; alongX: number; alongZ: number };
 }
 
 /**
  * The public toilet kiosks (design: *Public toilet kiosks*): the felt cabin of the art pass, filling its notch with the
- * door to the street, a round sign on the door (green when free, red when occupied), a rattle while it is occupied and
- * an upward light beam while it is free. In greybox, until the model has loaded: one mesh for all the cabins, a door
- * that rattles and a beacon on the roof. Signs and beacons glow through emissive materials, not lights.
+ * door to the street, a round sign on the door (green when free, red when occupied) and a rattle while it is occupied.
+ * In greybox, until the model has loaded: one mesh for all the cabins, a door that rattles and a beacon on the roof.
+ * Signs and beacons glow through emissive materials, not lights.
  */
 export class KioskView {
     private readonly parts: KioskParts[];
@@ -88,11 +81,6 @@ export class KioskView {
         }
 
         const doorMaterial = flatMaterial('kiosk-door', PALETTE.kioskDoor);
-        const beamMaterial = emissiveMaterial('kiosk-beam', PALETTE.beaconFree, BEAM.opacity);
-        const beamMesh = Mesh.fromGeometry(
-            app.graphicsDevice,
-            new CylinderGeometry({ radius: BEAM.radius, height: BEAM.height, capSegments: 12, heightSegments: 1 })
-        );
 
         this.parts = city.kioskSpots.map((spot, i) => {
             const r = spot.rect;
@@ -100,15 +88,6 @@ export class KioskView {
             const cz = (r.z0 + r.z1) / 2;
             const front = { x: cx + (spot.facing.x * (r.x1 - r.x0)) / 2, z: cz + (spot.facing.z * (r.z1 - r.z0)) / 2 };
             const across = spot.facing.x !== 0;
-
-            const beam = new Entity(`kiosk-beam-${i}`);
-            beam.addComponent('render', {
-                meshInstances: [new MeshInstance(beamMesh, beamMaterial)],
-                castShadows: false,
-                receiveShadows: false
-            });
-            beam.setPosition(cx, KIOSK_HEIGHT + BEACON.height + BEAM.height / 2, cz);
-            root.addChild(beam);
 
             if (cabinModel) {
                 const yaw = (Math.atan2(spot.facing.x, spot.facing.z) * 180) / Math.PI;
@@ -135,7 +114,7 @@ export class KioskView {
                 root.addChild(cabin);
                 root.addChild(holder);
                 const rest = { x: cx, y: 0, z: cz, alongX: across ? 0 : 1, alongZ: across ? 1 : 0 };
-                return { door: cabin, beacon: sign, beam, rest };
+                return { door: cabin, beacon: sign, rest };
             }
 
             const door = new Entity(`kiosk-door-${i}`);
@@ -157,7 +136,7 @@ export class KioskView {
 
             root.addChild(door);
             root.addChild(beacon);
-            return { door, beacon, beam, rest };
+            return { door, beacon, rest };
         });
         app.root.addChild(root);
     }
@@ -171,7 +150,6 @@ export class KioskView {
             if (instance.material !== material) {
                 instance.material = material;
             }
-            part.beam.enabled = free;
             const shake = free
                 ? 0
                 : RATTLE.amplitude * Math.sin(2 * Math.PI * RATTLE.frequency * (game.time + i * 0.37));
