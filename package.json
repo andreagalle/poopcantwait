@@ -6,6 +6,7 @@
     "type": "module",
     "scripts": {
         "assets:image": "node scripts/assets/gen-image.mjs",
+        "assets:merge-clips": "node scripts/assets/merge-clips.mjs",
         "assets:optimize": "node scripts/assets/optimize.mjs",
         "build": "vite build -c site/vite.config.ts && vite build",
         "check": "npm run typecheck && npm run lint && npm run fmt && npm run test",

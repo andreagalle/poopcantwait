@@ -49,9 +49,13 @@ Hard rules for prompts:
    procedural animation (squash, stretch, bob and sway) on an unrigged mesh.
 5. **Animate** with `meshy_animate`, choosing clips from `meshy_list_animations` (free to query) for idle, run, fall
    and similar. Map them to the animation list in `docs/GAME_DESIGN.md`.
-6. **Download** with `meshy_download_model` into `art/raw/benny/`, then optimize with the `hero` preset. Rigging and
-   animation tasks return file URLs instead of saving files, so those downloads need the maintainer to allow
-   `assets.meshy.ai` in the Codespace.
+6. **Download** into `art/raw/benny/`. `meshy_download_model` saves a model task's file, but for rigging and animation
+   tasks it only returns links, and the agent may not run `curl` (denied in `.claude/settings.json`); `meshy_convert`
+   is no way round, since it strips the skeleton. So the agent writes a git-ignored `tmp/fetch-<asset>.sh` with the
+   links, and the maintainer runs it once.
+7. **One file** with `npm run assets:merge-clips -- <rigged.glb> <out.glb> <clip.glb>:<clip>=<name> ...`: it keeps
+   the rigged model's mesh and copies each clip onto it by joint name (every Meshy clip file carries the whole mesh
+   again). Then optimize with the `hero` preset, which keeps the skin and the clips.
 
 ### Props, food and vehicles
 

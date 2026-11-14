@@ -90,6 +90,18 @@ export const BENNY = {
     maxHeightScale: 2
 } as const;
 
+/** Which of Benny's clips plays (design: *The protagonist*, animations): `core/fx/benny-clip.ts`. */
+export const BENNY_CLIPS = {
+    /** Below this share of his top speed he stands (idle). */
+    moveShare: 0.08,
+    /** From this share of his top speed the walk turns into a run. */
+    runShare: 0.55,
+    /** Clip playback speed, from barely moving to full speed, so his feet keep up with the ground. */
+    playbackSpeed: { min: 0.7, max: 1.3 },
+    /** Seconds to blend from one clip into the next. */
+    blendSeconds: 0.15
+} as const;
+
 /**
  * Weight `w` goes from 0 (slim) to 1 (maximum). Junk food adds it; nothing removes it during a run.
  * The formulas below are evaluated in `src/core/player/`.

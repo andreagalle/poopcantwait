@@ -41,6 +41,12 @@ Animations: idle, run, low-urgency run (clenched waddle), eat (quick chomp), ent
 belly bounce (crushing a vehicle), accident (freeze and shiver). A procedural squash-and-stretch layer on top of the
 clips gives the plush feel and can stand in for any clip that is not available.
 
+His felt model carries five clips: idle, walk, run, a clenched waddle and a fall. He stands below 8% of his top speed
+and when frozen in an accident (the shiver is procedural), walks up to 55% of it and runs beyond, waddles at any speed
+while the countdown is low, and plays the fall while knocked over. The walk, run and waddle play at 0.7 to 1.3 times
+their speed, rising with his, so his feet keep up with the ground; clips blend in 0.15 s. Eating, the toilet and the
+belly bounce stay procedural. _Initial_ values in `BENNY_CLIPS`.
+
 ## Controls
 
 - On a computer, gameplay uses **only the arrow keys**. Up moves up the screen, and so on; two keys together move
