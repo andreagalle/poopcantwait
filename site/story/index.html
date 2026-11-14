@@ -1419,10 +1419,102 @@
             </section>
 
             <section
+                class="stage stage--human stage--quote"
+                id="cabins-only"
+                data-when="Sat 14 Nov · 10:20"
+                data-t="139:40"
+                data-human="47"
+                data-agent="1917"
+                data-prs="57"
+                data-phase="M6 · The art"
+                data-done="M0 M1 M2 M3 M4 M5 M6~ M7 M8 M9~"
+            >
+                <div class="stage-inner stage-inner--solo">
+                    <p class="kicker">
+                        <span class="tag tag--human">Human</span><span class="when">Message 47 · 10:20</span>
+                    </p>
+                    <blockquote class="bubble">
+                        “Vehicles 1. The toilets with the beacon won't do: I want them all of this kind, and that's it.
+                        And Benny: when he runs he swings his arms too much and seems to skate. More of a brisk walk.”
+                    </blockquote>
+                    <p class="reply">
+                        <span class="tag tag--agent">Agent</span>So the town gets four little cars and a red bus, one
+                        teal cabin for every toilet, and a Benny who scurries instead of running.
+                    </p>
+                </div>
+            </section>
+
+            <section
+                class="stage stage--agent tone-mint"
+                id="felt-street"
+                data-when="Sat 14 Nov · 14:58"
+                data-t="144:17"
+                data-human="48"
+                data-agent="1979"
+                data-prs="59"
+                data-phase="M6 · The art"
+                data-done="M0 M1 M2 M3 M4 M5 M6~ M7 M8 M9~"
+            >
+                <div class="stage-inner flip">
+                    <div class="card">
+                        <p class="kicker"><span class="tag tag--agent">Agent</span><span class="when">14:58</span></p>
+                        <h2><span class="m">M6</span>Felt traffic, felt toilets</h2>
+                        <ul class="facts">
+                            <li>Four little cars take turns and one red bus drives the avenues, all felt.</li>
+                            <li>Every toilet is the teal cabin, with a green or red sign on its door.</li>
+                            <li>
+                                Benny walks at 0.8 to 4 times his clip's pace, his feet on the ground up to 3.6 m/s.
+                            </li>
+                        </ul>
+                        <p class="side-link">
+                            <a class="btn" href="./street/">Side story: Traffic and toilets →</a>
+                        </p>
+                    </div>
+                    <figure class="shot">
+                        <img
+                            src="./shots/m6-felt-street.webp"
+                            alt="Two felt toilet cabins with a green and a red door sign, four felt cars and a red felt bus next to Benny"
+                            width="960"
+                            height="415"
+                            loading="lazy"
+                            decoding="async"
+                        />
+                        <figcaption>A free and an occupied cabin, the cars and the bus.</figcaption>
+                    </figure>
+                </div>
+            </section>
+
+            <section
+                class="stage stage--agent tone-lilac"
+                id="v0-5-0"
+                data-when="Sat 14 Nov · 15:21"
+                data-t="144:40"
+                data-human="48"
+                data-agent="2000"
+                data-prs="60"
+                data-phase="v0.5.0"
+                data-done="M0 M1 M2 M3 M4 M5 M6~ M7 M8 M9~"
+            >
+                <div class="stage-inner stage-inner--solo">
+                    <div class="card">
+                        <p class="kicker"><span class="tag tag--agent">Agent</span><span class="when">15:21</span></p>
+                        <h2><span class="m">v0.5.0</span>Felt streets</h2>
+                        <ul class="facts">
+                            <li>
+                                In it: felt cars and a red bus, one teal cabin for every toilet, a brisk-walking Benny.
+                            </li>
+                            <li>The second release the workflow publishes by itself.</li>
+                            <li>The whole site weighs 5.9 MB, under the 15 MB budget.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section
                 class="stage stage--agent stage--numbers tone-sky"
                 id="who-did-what"
                 data-when="So far"
-                data-t="138:28"
+                data-t="144:40"
                 data-human="{{humanMessages}}"
                 data-agent="{{agentActions}}"
                 data-prs="{{pullRequests}}"
@@ -1467,7 +1559,7 @@
                 id="next"
                 data-kind="end"
                 data-when="Next"
-                data-t="138:28"
+                data-t="144:40"
                 data-human="{{humanMessages}}"
                 data-agent="{{agentActions}}"
                 data-prs="{{pullRequests}}"
@@ -1479,10 +1571,9 @@
                         <h2>What's next</h2>
                         <ul class="facts">
                             <li>
-                                M6, the art: the vehicles, the toilets and the street props, in felt, each starting as a
-                                round of sketches.
+                                M6, the art: the street props and the buildings, in felt, each starting as a round of
+                                sketches.
                             </li>
-                            <li>A GitHub Release for every merge into <code>master</code>, published by a workflow.</li>
                             <li>M9's last check: the frame time on a real phone, in the human's hand.</li>
                             <li>And a new stage here for each of them.</li>
                         </ul>

@@ -7,6 +7,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-14
+
+### Added
+
+- Felt traffic: four little cars that take turns (green, orange, a blue van, yellow) and a red bus, from the vehicle
+  sketches the maintainer kept, 3,999 to 5,917 triangles each, stretched to their size in the game. A wreck stays
+  squashed and grey.
+- Felt toilets: every kiosk and pop-up is the same teal portable cabin the maintainer picked (1,596 triangles). No roof
+  beacon: a round sign on the door shows free or occupied, green or red, and an occupied cabin rattles.
+
+### Changed
+
+- Benny walks briskly instead of running: his run swung his arms wide and his feet slid over the ground. One walk clip
+  plays at a cadence that follows his speed (his feet match the ground up to 3.6 m/s), and his model drops the run and
+  the waddle clips (1.18 MB instead of 1.31 MB).
+
 ## [0.4.0] - 2026-11-14
 
 ### Added

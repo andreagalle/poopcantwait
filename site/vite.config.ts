@@ -30,7 +30,8 @@ export default defineConfig({
                 story: `${root}story/index.html`,
                 // Side stories, one per topic of the art pass, linked from a stage of the main story
                 benny: `${root}story/benny/index.html`,
-                food: `${root}story/food/index.html`
+                food: `${root}story/food/index.html`,
+                street: `${root}story/street/index.html`
             }
         }
     },
