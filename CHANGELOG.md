@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-14
+
 ### Added
 
 - Benny in felt: his model from the maintainer's sketches (Meshy image to 3D, rigged), 18,708 triangles and 1.3 MB with
@@ -30,6 +32,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   set aside; a stage of the story quotes the pick.
 - Release PRs are squash-merged into `master`, the maintainer's choice; right after publishing a release, the agent
   records it in `dev`'s history with a `chore/sync-master-into-dev-v<x.y.z>` merge (`CONTRIBUTING.md`, _Releases_).
+
+- Dependencies: the PlayCanvas engine 2.24.0, the Inspector 0.5, Vite 8.3.7 and ESLint 10; `actions/checkout` and
+  `actions/setup-node` 7 in the workflows.
 
 ### Fixed
 
