@@ -42,10 +42,10 @@
                 <div class="round-head">
                     <h2><span class="round-n">Round 1</span>Front view</h2>
                     <p class="meta">Wed 11 Nov · 23:24 · <code>gpt-image-2</code> · 4 sketches, 1024×1536</p>
-                    <p class="verdict is-pending">Waiting for the human's pick</p>
+                    <p class="verdict is-done">Kept: sketch 1</p>
                 </div>
                 <div class="sketches">
-                    <figure class="sketch">
+                    <figure class="sketch is-kept">
                         <img
                             src="../shots/benny-r1-1.webp"
                             alt="Sketch 1: the roundest Benny, belly showing under the tank top"
@@ -56,7 +56,7 @@
                         />
                         <figcaption><b>1</b> The roundest, belly peeking out</figcaption>
                     </figure>
-                    <figure class="sketch">
+                    <figure class="sketch is-set-aside">
                         <img
                             src="../shots/benny-r1-2.webp"
                             alt="Sketch 2: a pear-shaped head and the softest face"
@@ -67,7 +67,7 @@
                         />
                         <figcaption><b>2</b> The softest face</figcaption>
                     </figure>
-                    <figure class="sketch">
+                    <figure class="sketch is-set-aside">
                         <img
                             src="../shots/benny-r1-3.webp"
                             alt="Sketch 3: the chunkiest Benny, wide belly and a wide stance"
@@ -78,7 +78,7 @@
                         />
                         <figcaption><b>3</b> The chunkiest, wide stance</figcaption>
                     </figure>
-                    <figure class="sketch">
+                    <figure class="sketch is-set-aside">
                         <img
                             src="../shots/benny-r1-4.webp"
                             alt="Sketch 4: a taller, slimmer Benny with open arms"
@@ -110,9 +110,114 @@
                     </p>
                 </details>
                 <p class="note">
-                    The first model, <code>gpt-image-1</code>, turned out to be retired; the human agreed to its
-                    successor before the call. None of the four is in a true A-pose, which rigging needs: the next round
-                    asks for it.
+                    The human kept 1, the roundest, with his belly peeking out from under the tank top (Fri 13 Nov). The
+                    first model, <code>gpt-image-1</code>, turned out to be retired; the human agreed to its successor
+                    before the call. None of the four is in a true A-pose, which rigging needs: the next round asks for
+                    it, from sketch 1.
+                </p>
+            </section>
+
+            <section class="round" id="round-2">
+                <div class="round-head">
+                    <h2><span class="round-n">Round 2</span>All the way round</h2>
+                    <p class="meta">
+                        Fri 13 Nov · 19:12 · <code>gpt-image-2</code>, sketch 1 as reference · 2 sheets, 1536×1024
+                    </p>
+                    <p class="verdict is-done">Kept: sheet 1</p>
+                </div>
+                <div class="sketches sketches--wide">
+                    <figure class="sketch is-kept">
+                        <img
+                            src="../shots/benny-r2-1.webp"
+                            alt="Sheet 1: Benny from the front, the left side and the back, the shoes matching in every view"
+                            width="720"
+                            height="480"
+                            loading="lazy"
+                            decoding="async"
+                        />
+                        <figcaption><b>1</b> The shoes match in every view</figcaption>
+                    </figure>
+                    <figure class="sketch is-set-aside">
+                        <img
+                            src="../shots/benny-r2-2.webp"
+                            alt="Sheet 2: the same three views, with the wrong shoe in the side view"
+                            width="720"
+                            height="480"
+                            loading="lazy"
+                            decoding="async"
+                        />
+                        <figcaption><b>2</b> The side view shows the wrong shoe</figcaption>
+                    </figure>
+                </div>
+                <p class="note">
+                    The 3D model needs Benny from every side, the same Benny each time: front, profile and back on one
+                    sheet, drawn from the kept sketch. The red sneaker is on his right foot, so in the left profile only
+                    the purple one shows: sheet 2 got that wrong. In both, the arms still hang close to the body.
+                </p>
+            </section>
+
+            <section class="round" id="round-3">
+                <div class="round-head">
+                    <h2><span class="round-n">Round 3</span>Arms out, for the rig</h2>
+                    <p class="meta">
+                        Fri 13 Nov · 19:37 · <code>gpt-image-2</code>, sheet 1 as reference · 2 sheets, 1536×1024
+                    </p>
+                    <p class="verdict is-done">Kept: sheet 1, by the agent</p>
+                </div>
+                <div class="sketches sketches--wide">
+                    <figure class="sketch is-kept">
+                        <img
+                            src="../shots/benny-r3-1.webp"
+                            alt="Sheet 1: Benny in a clear A-pose, arms out at about 40 degrees, from the front, the side and the back"
+                            width="720"
+                            height="480"
+                            loading="lazy"
+                            decoding="async"
+                        />
+                        <figcaption><b>1</b> Arms out, shoes right</figcaption>
+                    </figure>
+                    <figure class="sketch is-set-aside">
+                        <img
+                            src="../shots/benny-r3-2.webp"
+                            alt="Sheet 2: arms still close, and the shoes swapped in the back view"
+                            width="720"
+                            height="480"
+                            loading="lazy"
+                            decoding="async"
+                        />
+                        <figcaption><b>2</b> Arms still close, shoes swapped behind</figcaption>
+                    </figure>
+                </div>
+                <p class="note">
+                    An auto-rig finds the arms more easily when they stand away from the body. The human left the choice
+                    to the agent ("do it as you think best"): sheet 1, arms at about 40 degrees. From its front view
+                    Meshy made Benny in 3D, about 18,000 triangles in a T-pose, and put a skeleton in him, with a walk
+                    and a run.
+                </p>
+            </section>
+
+            <section class="round" id="round-4">
+                <div class="round-head">
+                    <h2><span class="round-n">Round 4</span>In 3D, in the game</h2>
+                    <p class="meta">Sat 14 Nov · 01:16 · Meshy: image to 3D, rig, clips · 18,708 triangles, 1.3 MB</p>
+                    <p class="verdict is-done">In the game</p>
+                </div>
+                <figure class="sketch">
+                    <img
+                        src="../shots/m6-benny-in-felt.webp"
+                        alt="Benny in felt in the game, among felt fries, a burger, a donut, broccoli and a pizza slice"
+                        width="960"
+                        height="480"
+                        loading="lazy"
+                        decoding="async"
+                    />
+                    <figcaption>Benny in the game, among the felt food.</figcaption>
+                </figure>
+                <p class="note">
+                    From the front view of round 3 Meshy built him in a T-pose, put a skeleton of 24 joints in him and
+                    animated it: a walk and a run, then an idle, a fall and an injured walk that became his clenched
+                    waddle. The five clips ride on one model, and play faster the faster he runs. Under them the old
+                    procedural layer still hops, breathes and stretches when he bites.
                 </p>
             </section>
         </main>

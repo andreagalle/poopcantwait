@@ -16,7 +16,7 @@ The maintainer tests `dev` locally and merges the release PR into `master` by ha
    - **Changes**: the `## [Unreleased]` section of `CHANGELOG.md` on `origin/dev` (or the newest version section if it was just cut).
    - **Merged pull requests**: every PR merged into dev since the last release, as `#<number> <title>`.
    - **How to test**: "Run the VS Code task _Test dev: production preview_, open port 4173 (task _Ports: print game URLs_): the landing page, the game under `/gottago/`, the story under `/story/`", followed by a short checklist of the things worth trying for these changes.
-   - **Merge instructions**: "Merge with _Create a merge commit_ (not squash). The agent then publishes `v<x.y.z>` (tag and GitHub Release)." Before the cut: "Not versioned yet: wait for `release: v<x.y.z>` in the title before merging."
+   - **Merge instructions**: "Merge with _Squash and merge_ (the maintainer's choice for `master`). The agent then publishes `v<x.y.z>` (tag and GitHub Release) and realigns `dev` with `master`." Before the cut: "Not versioned yet: wait for `release: v<x.y.z>` in the title before merging."
 4. If no release PR exists: `gh pr create --base master --head dev --title "release: <name> (not versioned yet)" --body-file tmp/release-pr.md`. Otherwise update it: `gh pr edit <number> --body-file tmp/release-pr.md`, and the title too if the version changed.
 5. When you are about to report to the maintainer and `## [Unreleased]` has entries, run cut mode first: the maintainer may merge as soon as they read the report.
 6. Reply with the PR link and its CI status (`gh pr checks <number>`).
@@ -32,9 +32,14 @@ Versions the release PR. Pick the version from the last tag (`git tag --list 'v*
 
 ## Publish mode (`publish`)
 
-Run it right after the maintainer merged a release PR into `master`.
+Run it right after the maintainer merged a release PR into `master`. The Release workflow (`.github/workflows/release.yml`) normally does steps 3 and 5 by itself: first look at its run for `origin/master` (`gh run list --workflow release.yml --branch master --limit 1`). If it succeeded, check its work (`gh release view v<x.y.z>`; `git merge-base origin/master origin/dev` is `origin/master`) and go to step 4. If it failed or did not run, read its log and do the steps it missed.
 
-1. `git fetch origin --prune --tags`. The release is `origin/master` (its subject is `release: v<x.y.z> ...` or the merge of the release PR). Read the version with `git show origin/master:package.json`. If the tag `v<x.y.z>` already exists, the release PR was merged without a cut: stop, tell the maintainer, run cut mode with the next version and ask for a new merge.
+1. `git fetch origin --prune --tags`. The release is `origin/master` (the squash commit of the release PR). Read the version with `git show origin/master:package.json`. If the tag `v<x.y.z>` already exists, the release PR was merged without a cut: stop, tell the maintainer, run cut mode with the next version and ask for a new merge.
 2. Write the notes to `tmp/release-notes-v<x.y.z>.md`: one or two sentences on what the release brings; the links to the game (`https://andreagalle.github.io/poopcantwait/gottago/`), the story (`.../story/`) and the start page (`.../`); then the `## [<x.y.z>]` section of `CHANGELOG.md` at `origin/master`, without its heading.
 3. Publish, as a plain top-level command (the guard checks it): `gh release create v<x.y.z> --target <full SHA of origin/master> --title "v<x.y.z>: <short name>" --notes-file tmp/release-notes-v<x.y.z>.md`. It creates the tag and the GitHub Release together; never push tags.
-4. Check it with `gh release view v<x.y.z>`. If the story has no stage for the release yet, add one (`AGENTS.md`, _The story page_). Reply with the release link.
+4. Check it with `gh release view v<x.y.z>`. If the story has no stage for the release yet, add one (`AGENTS.md`, _The story page_).
+5. Realign `dev` (`CONTRIBUTING.md`, _Releases_, step 6). The squash commit is not in `dev`'s history, so:
+   - Find the `dev` commit the release was cut from (later PRs may have landed on `dev` since) and check that `git diff origin/master <that commit>` is empty. If it is not, stop and tell the maintainer: `master` has something `dev` lacks.
+   - `git switch -c chore/sync-master-into-dev-v<x.y.z> origin/dev`, then `git merge -s ours origin/master` with a message that names the release. `git diff origin/dev` must be empty.
+   - Push, open the PR into `dev` (body written with the Write tool), wait for green checks, and merge it with `--merge`, never `--squash`. Afterwards `git merge-base origin/master origin/dev` is the release commit.
+6. Reply with the release link, and tell the other sessions that merges into `dev` are open again.

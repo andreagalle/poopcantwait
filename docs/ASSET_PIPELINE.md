@@ -40,20 +40,35 @@ Hard rules for prompts:
 1. **Concept sheet** with `npm run assets:image`: Benny in front view, A-pose (arms away from the body, legs slightly
    apart), plain background. Optionally side and back views for multi-image-to-3D. Show the images to the maintainer and
    wait for approval before any 3D call.
-2. **Image to 3D** with `meshy_image_to_3d` (or `meshy_multi_image_to_3d` with the approved views).
-3. **Remesh** with `meshy_remesh` to the budget below if needed.
+2. **Image to 3D** with `meshy_image_to_3d` on the approved front view (cropped from the turnaround sheet to a square):
+   `meshy-t2.5` smart topology with `target_polycount` under the budget, texture `meshy-n1`, `pose_mode: "t-pose"` so
+   the rig gets straight arms. Smart topology is single-image only; `meshy_multi_image_to_3d` with the approved views is
+   the alternative when the back matters more than the topology.
+3. **Remesh** with `meshy_remesh` to the budget below if needed (not with smart topology, which is made at its count).
 4. **Rig** with `meshy_rig` (humanoid skeleton). If rigging fails on his stubby proportions, report it: the fallback is
    procedural animation (squash, stretch, bob and sway) on an unrigged mesh.
 5. **Animate** with `meshy_animate`, choosing clips from `meshy_list_animations` (free to query) for idle, run, fall
    and similar. Map them to the animation list in `docs/GAME_DESIGN.md`.
-6. **Download** with `meshy_download_model` into `art/raw/benny/`, then optimize with the `hero` preset.
+6. **Download** into `art/raw/benny/`. `meshy_download_model` saves a model task's file, but for rigging and animation
+   tasks it only returns links, and the agent may not run `curl` (denied in `.claude/settings.json`); `meshy_convert`
+   is no way round, since it strips the skeleton. So the agent writes a git-ignored `tmp/fetch-<asset>.sh` with the
+   links, and the maintainer runs it once.
+7. **One file** with `npm run assets:merge-clips -- <rigged.glb> <out.glb> <clip.glb>:<clip>=<name> ...`: it keeps
+   the rigged model's mesh and copies each clip onto it by joint name (every Meshy clip file carries the whole mesh
+   again). Then optimize with the `hero` preset, which keeps the skin and the clips.
 
 ### Props, food and vehicles
 
-1. `meshy_text_to_3d` for a preview mesh. Inspect it (screenshot in the game or a debug viewer).
-2. `meshy_text_to_3d_refine` on the preview you keep, for PBR textures.
-3. `meshy_remesh` if it exceeds the triangle budget.
-4. Download into `art/raw/<asset-id>/`, optimize with the matching preset, place it in the game and check it.
+1. **One image per item** with `npm run assets:image`, the kept sketch sheet as `--reference`, one object centred on a
+   plain background in a high three-quarter view (the style block as is). Asset ids are kebab-case
+   (`food.chicken-leg`).
+2. **Image to 3D** with `meshy_image_to_3d`: `meshy-t2` smart topology with `target_polycount` at the budget, texture
+   `meshy-n1` (15 credits). Do one item first, look at it in the game, then the rest of the set.
+3. Download into `art/raw/<asset-id>/`, optimize with the matching preset (meshoptimizer trims the last few triangles to
+   the budget), register it, place it in the game and check it with a screenshot.
+
+`meshy_text_to_3d` (preview, then `meshy_text_to_3d_refine` for textures) is the fallback for an asset with no approved
+image.
 
 Check <https://docs.meshy.ai/api/deprecations> before choosing a Meshy model or option, and never use a deprecated
 one (for example, the `lowpoly` model type is retired). Control polygon counts with `meshy_remesh` instead.

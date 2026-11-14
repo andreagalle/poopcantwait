@@ -1,14 +1,18 @@
 import {
+    AnimComponentSystem,
     AppBase,
     AppOptions,
     CameraComponentSystem,
+    ContainerHandler,
     FILLMODE_FILL_WINDOW,
     LightComponentSystem,
     RESOLUTION_AUTO,
     RenderComponentSystem,
+    TextureHandler,
     createGraphicsDevice
 } from 'playcanvas';
 
+import { loadModels } from './assets/load';
 import { GameAudio } from './audio/game-audio';
 import { COLLISIONS, FOOD, SIMULATION } from './config/tuning';
 import { cueFor, initialRumble, musicTempo, tickRumble } from './core/audio/director';
@@ -22,8 +26,8 @@ import { FixedStepper } from './core/sim/fixed-step';
 import { mountCityDebugMap } from './debug/city-map';
 import { PlayerDebug } from './debug/player-debug';
 import { BennyView } from './game/benny-view';
-import { FoodView } from './game/food-view';
-import { addBennyStandIn } from './game/greybox';
+import { FOOD_MODELS, FoodView } from './game/food-view';
+import { addBenny } from './game/greybox';
 import { Juice } from './game/juice';
 import { KioskView } from './game/kiosk-view';
 import { PopupView } from './game/popup-view';
@@ -56,8 +60,14 @@ device.maxPixelRatio = Math.min(window.devicePixelRatio, 2);
 // Only the systems and handlers the game uses (AGENTS.md, PlayCanvas engine conventions)
 const createOptions = new AppOptions();
 createOptions.graphicsDevice = device;
-createOptions.componentSystems = [RenderComponentSystem, CameraComponentSystem, LightComponentSystem];
-createOptions.resourceHandlers = [];
+createOptions.componentSystems = [
+    RenderComponentSystem,
+    CameraComponentSystem,
+    LightComponentSystem,
+    AnimComponentSystem
+];
+// GLB models (container assets) and their textures, from the art pass
+createOptions.resourceHandlers = [ContainerHandler, TextureHandler];
 
 const app = new AppBase(canvas);
 app.init(createOptions);
@@ -84,12 +94,15 @@ const game = new Game(city, {
     countdownSeconds: params.countdownSeconds ?? undefined
 });
 
+// The models of the art pass so far; anything without one keeps its greybox stand-in
+const models = await loadModels(app, ['char.benny', ...Object.values(FOOD_MODELS)]);
+
 addSunlight(app);
 const cityView = new CityView(app, city);
-const bennyView = new BennyView(addBennyStandIn(app));
+const bennyView = new BennyView(addBenny(app, models.get('char.benny')));
 const kioskView = new KioskView(app, city);
 const popupView = new PopupView(app);
-const foodView = new FoodView(app);
+const foodView = new FoodView(app, models);
 const vehicleView = new VehicleView(app);
 const juice = new Juice(app);
 const camera = createGameCamera(app);

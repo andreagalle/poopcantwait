@@ -37,8 +37,6 @@ export const PALETTE = {
     bus: hex('#ffb300'),
     busWindows: hex('#3d5a6c'),
     wreck: hex('#6d6d6d'),
-    junkGlow: hex('#ffd54a'),
-    vegetableGlow: hex('#9be564'),
     food: {
         burger: hex('#c27a3a'),
         chickenLeg: hex('#d08a45'),

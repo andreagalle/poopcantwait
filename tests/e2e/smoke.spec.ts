@@ -4,7 +4,7 @@ import type { Entity } from 'playcanvas';
 
 import { CAMERA, WEIGHT } from '../../src/config/tuning';
 
-import { openGame, SCREENSHOT_DIR } from './helpers';
+import { openGame, SCREENSHOT_DIR, waitForGame } from './helpers';
 
 /** AGENTS.md, Testing and verification: under 300 draw calls in a busy scene. */
 const DRAW_CALL_BUDGET = 300;
@@ -322,7 +322,7 @@ test('points to the nearest free toilets by path distance, greying the ones Benn
 
     // At maximum weight, kiosks on streets are out of reach: they show greyed
     await page.goto('./?seed=42&weight=1');
-    await page.waitForFunction(() => (globalThis.__playcanvasApps?.size ?? 0) > 0);
+    await waitForGame(page);
     await expect(page.locator('.toilet-indicator.is-unreachable').first()).toContainText('too wide');
     expect(errors).toEqual([]);
 });

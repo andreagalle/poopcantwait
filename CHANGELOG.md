@@ -7,6 +7,43 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-14
+
+### Added
+
+- Benny in felt: his model from the maintainer's sketches (Meshy image to 3D, rigged), 18,708 triangles and 1.3 MB with
+  five clips: idle, walk, run, a clenched waddle on a low countdown and a fall when knocked over. The clips play at a
+  speed that follows his, under the procedural squash and stretch; the capsule stays as the fallback.
+  `npm run assets:merge-clips` puts clips from other GLBs of the same rig onto one model.
+- The whole food set in felt: the twelve other junk foods and vegetables join the burger, 870 to 1,500 triangles and
+  about 90 kB each (1.2 MB for the thirteen). Four of them are laid down in the game, since they came out standing the
+  way their image showed them.
+- The first felt model in the game, the burger: made from the maintainer's food sketches with Meshy (image to 3D),
+  1,499 triangles and 94 kB. The other twelve items keep their greybox shapes until theirs land. The game now loads GLB
+  models from the asset registry (`src/assets/load.ts`); a model that fails to load leaves its greybox stand-in.
+
+### Changed
+
+- No more glow ring under the food: it read as a halo, the maintainer found. Each item hovers over its own shadow.
+- Releases publish themselves: on every merge into `master`, `.github/workflows/release.yml` creates the tag and the
+  GitHub Release from `package.json` and `CHANGELOG.md`, then records the release in `dev`'s history. The agent checks
+  its work and does by hand only what it could not.
+- The side stories show the maintainer's picks: Benny's sketch 1 and the felt food (sheet 2), with the other sketches
+  set aside; a stage of the story quotes the pick.
+- Release PRs are squash-merged into `master`, the maintainer's choice; right after publishing a release, the agent
+  records it in `dev`'s history with a `chore/sync-master-into-dev-v<x.y.z>` merge (`CONTRIBUTING.md`, _Releases_).
+
+- Dependencies: the PlayCanvas engine 2.24.0, the Inspector 0.5, Vite 8.3.7 and ESLint 10; `actions/checkout` and
+  `actions/setup-node` 7 in the workflows.
+
+### Fixed
+
+- The end-to-end tests wait for the title screen before pressing a key: since the game loads its models first, a key
+  pressed as soon as the app existed could be lost on a slow runner. The scripted run to a kiosk heads back to its
+  planned way when a car knocks Benny off it, instead of walking into the buildings.
+- The story's v0.3.0 stage showed the time of the morning's merges (08:20) instead of the cut's (18:12), and the counts
+  of that moment.
+
 ## [0.3.0] - 2026-11-13
 
 ### Added

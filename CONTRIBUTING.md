@@ -14,7 +14,7 @@ is written in English.
 Nobody commits or pushes to `master` or `dev` directly. Changes flow one way:
 
 ```text
-topic branch --(PR, squash merge)--> dev --(release PR, merge commit, maintainer only)--> master --> GitHub Pages
+topic branch --(PR, squash merge)--> dev --(release PR, squash merge, maintainer only)--> master --> GitHub Pages
 ```
 
 ## Topic branch names
@@ -104,13 +104,22 @@ Every merge into `master` is an official release: a version in `package.json`, i
 3. The maintainer tests `dev` in the Codespace with the VS Code task **Test dev: production preview** (the same build
    GitHub Pages will serve, on port 4173: the landing page, the game under `/gottago/`, the story under `/story/`), or
    **Test dev: dev server** (the game only, with hot reload) for a quick look.
-4. The maintainer merges the release PR with **Create a merge commit**, never squash, so `dev` and `master` keep a
-   shared history. The deploy workflow publishes `master` to GitHub Pages.
-5. Right after the merge, the agent publishes the release with `/release-pr publish`:
-   `gh release create v<x.y.z> --target <merge commit>` creates the tag and the GitHub Release together.
-   `.claude/hooks/guard.mjs` allows only that form, for a commit on `master` whose `package.json` has that version;
-   deleting releases and pushing tags stay with the maintainer. A GitHub Actions workflow is planned to take over this
-   step.
+4. The maintainer merges the release PR with **Squash and merge**: their choice, so `master` reads as one commit per
+   release. The deploy workflow publishes `master` to GitHub Pages.
+5. Right after the merge, `.github/workflows/release.yml` publishes the release: it reads the version from
+   `package.json` and creates the `v<x.y.z>` tag and the GitHub Release, with that version's `CHANGELOG.md` section as
+   the notes. It refuses a version whose tag already exists (a release PR merged without a cut).
+6. The same workflow then realigns `dev` with `master`. A squash commit has a single parent, so `dev`'s history does
+   not contain it; left alone, the next release PR would show every earlier release again. The workflow checks that
+   `master`'s files equal `dev` at some commit since the last release (the cut), merges `origin/master` into `dev` with
+   `git merge -s ours` (no file changes, only the parent) and pushes it. When `dev` gets a ruleset, GitHub Actions
+   needs to be on its bypass list for that push.
+7. The agent checks both with `/release-pr publish`, and does by hand whatever the workflow could not:
+   `gh release create v<x.y.z> --target <the squash commit>` (`.claude/hooks/guard.mjs` allows only that form, for a
+   commit on `master` whose `package.json` has that version; deleting releases and pushing tags stay with the
+   maintainer), and the realignment on a `chore/sync-master-into-dev-v<x.y.z>` branch merged into `dev` with a
+   **merge commit**, since a squash would drop the very parent it records. The workflow stops on purpose when `master`
+   has changes `dev` lacks (after a hotfix): see _Hotfixes_.
 
 Versions follow [Semantic Versioning](https://semver.org/) in the `0.x` range until the game is feature-complete: the
 minor version for a release that adds features, the patch version for one that only fixes. `CHANGELOG.md` follows
@@ -120,7 +129,8 @@ and the cut turns that section into the version's.
 ### Hotfixes
 
 Only the maintainer creates `hotfix/*` branches, from `master`, with a PR into `master`. Right after the merge, open a
-PR from `master` into `dev` (or a `chore/sync-master-into-dev` branch) so `dev` gets the fix.
+`chore/sync-master-into-dev` branch from `dev` that merges `origin/master` normally (not `-s ours`: here `dev` needs
+the fix's changes), and merge it into `dev` with a merge commit.
 
 ## Code standards
 

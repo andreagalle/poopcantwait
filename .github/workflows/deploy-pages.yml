@@ -21,7 +21,7 @@ jobs:
       present: ${{ steps.app.outputs.present }}
     steps:
       - name: Check out
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
 
@@ -37,7 +37,7 @@ jobs:
 
       - name: Set up Node.js
         if: steps.app.outputs.present == 'true'
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
