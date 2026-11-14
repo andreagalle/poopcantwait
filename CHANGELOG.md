@@ -9,6 +9,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Benny in felt: his model from the maintainer's sketches (Meshy image to 3D, rigged), 18,708 triangles and 1.3 MB with
+  five clips: idle, walk, run, a clenched waddle on a low countdown and a fall when knocked over. The clips play at a
+  speed that follows his, under the procedural squash and stretch; the capsule stays as the fallback.
+  `npm run assets:merge-clips` puts clips from other GLBs of the same rig onto one model.
 - The whole food set in felt: the twelve other junk foods and vegetables join the burger, 870 to 1,500 triangles and
   about 90 kB each (1.2 MB for the thirteen). Four of them are laid down in the game, since they came out standing the
   way their image showed them.

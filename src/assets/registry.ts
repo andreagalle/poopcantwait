@@ -10,6 +10,7 @@ export interface AssetEntry {
 }
 
 export const ASSETS = {
+    'char.benny': { kind: 'model', file: 'models/benny/benny.glb' },
     'food.burger': { kind: 'model', file: 'models/food/burger.glb' },
     'food.chicken-leg': { kind: 'model', file: 'models/food/chicken-leg.glb' },
     'food.pizza-slice': { kind: 'model', file: 'models/food/pizza-slice.glb' },

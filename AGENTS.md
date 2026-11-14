@@ -53,22 +53,23 @@ Read these before changing anything:
 
 CI, the VS Code tasks and the slash commands rely on these script names. Keep them working.
 
-| Script                      | What it does                                                                        |
-| --------------------------- | ----------------------------------------------------------------------------------- |
-| `npm run dev`               | Vite dev server with hot reload and the PlayCanvas Inspector (no browser auto-open) |
-| `npm run dev:site`          | Vite dev server for the landing page and the story (port 5174, no game)             |
-| `npm run build`             | Production build: the site into `dist/`, then the game into `dist/gottago/`         |
-| `npm run start`             | Serves `dist/` with `vite preview`: landing at `/`, `/gottago/`, `/story/`          |
-| `npm run typecheck`         | `tsc --noEmit`                                                                      |
-| `npm run lint` / `lint:fix` | ESLint                                                                              |
-| `npm run fmt` / `fmt:fix`   | Prettier check / write                                                              |
-| `npm run test`              | Unit tests (Vitest, `src/**/*.test.ts`)                                             |
-| `npm run test:e2e`          | End-to-end smoke tests (Playwright, Chromium) against the built preview             |
-| `npm run check`             | `typecheck`, `lint`, `fmt` and `test`, in that order                                |
-| `npm run assets:optimize`   | Optimizes a raw GLB or image into `public/assets/` (`scripts/assets/optimize.mjs`)  |
-| `npm run assets:image`      | Generates a 2D image through OpenRouter (`scripts/assets/gen-image.mjs`), paid      |
-| `npm run story:stats`       | Prints the story's numbers from the local session transcripts and `gh`              |
-| `npm run story:shot`        | Turns a screenshot into a WebP under `site/story/shots/`                            |
+| Script                       | What it does                                                                        |
+| ---------------------------- | ----------------------------------------------------------------------------------- |
+| `npm run dev`                | Vite dev server with hot reload and the PlayCanvas Inspector (no browser auto-open) |
+| `npm run dev:site`           | Vite dev server for the landing page and the story (port 5174, no game)             |
+| `npm run build`              | Production build: the site into `dist/`, then the game into `dist/gottago/`         |
+| `npm run start`              | Serves `dist/` with `vite preview`: landing at `/`, `/gottago/`, `/story/`          |
+| `npm run typecheck`          | `tsc --noEmit`                                                                      |
+| `npm run lint` / `lint:fix`  | ESLint                                                                              |
+| `npm run fmt` / `fmt:fix`    | Prettier check / write                                                              |
+| `npm run test`               | Unit tests (Vitest, `src/**/*.test.ts`)                                             |
+| `npm run test:e2e`           | End-to-end smoke tests (Playwright, Chromium) against the built preview             |
+| `npm run check`              | `typecheck`, `lint`, `fmt` and `test`, in that order                                |
+| `npm run assets:optimize`    | Optimizes a raw GLB or image into `public/assets/` (`scripts/assets/optimize.mjs`)  |
+| `npm run assets:merge-clips` | Puts clips from other GLBs of the same rig onto one model (`merge-clips.mjs`)       |
+| `npm run assets:image`       | Generates a 2D image through OpenRouter (`scripts/assets/gen-image.mjs`), paid      |
+| `npm run story:stats`        | Prints the story's numbers from the local session transcripts and `gh`              |
+| `npm run story:shot`         | Turns a screenshot into a WebP under `site/story/shots/`                            |
 
 Slash commands in `.claude/commands/`: `/feature`, `/release-pr`, `/asset`.
 

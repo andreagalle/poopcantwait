@@ -1,5 +1,8 @@
-import type { Entity } from 'playcanvas';
+import type { AnimComponent, Entity } from 'playcanvas';
 
+import { BENNY_CLIPS } from '../config/tuning';
+import type { BennyClip } from '../core/fx/benny-clip';
+import { bennyClip } from '../core/fx/benny-clip';
 import { decayEatPulse, squashPose, stridePhaseDelta } from '../core/fx/squash';
 import type { Game } from '../core/game';
 import { wrapAngle } from '../core/player/movement';
@@ -24,6 +27,9 @@ const BOUNCE = { squash: 0.75, bulge: 1.12 };
 export class BennyView {
     readonly entity: Entity;
     private readonly pose: Entity;
+    /** The clips of his felt model; null on the greybox capsule, which only has the procedural layer. */
+    private readonly anim: AnimComponent | null;
+    private clip: BennyClip | null = null;
     private readonly slimDiameter = diameterAt(0);
     private stridePhase = 0;
     private eatPulse = 0;
@@ -34,6 +40,7 @@ export class BennyView {
     constructor(entity: Entity) {
         this.entity = entity;
         this.pose = entity.findByName('benny-pose') as Entity;
+        this.anim = (entity.findByName('benny-model') as Entity | null)?.anim ?? null;
     }
 
     /** A quick stretch, when he eats. */
@@ -54,7 +61,8 @@ export class BennyView {
         this.entity.setPosition(x, 0, z);
         this.entity.setEulerAngles(0, heading * RADIANS_TO_DEGREES, 0);
         const knocked = game.stunSecondsLeft > 0;
-        if (knocked) {
+        // The capsule tips over; the model plays its fall instead
+        if (knocked && !this.anim) {
             this.entity.rotateLocal(KNOCKED_TILT, 0, 0);
         }
         const bounce = game.slowSecondsLeft > 0;
@@ -76,8 +84,28 @@ export class BennyView {
             nervous: playing && isLow(game.urgency),
             eatPulse: this.eatPulse
         });
+        this.playClip(game, knocked);
         this.pose.setLocalPosition(0, pose.lift, 0);
         this.pose.setLocalEulerAngles(0, 0, pose.rollDegrees);
         this.pose.setLocalScale(pose.sxz, pose.sy, pose.sxz);
+    }
+
+    /** Blends into the clip that fits what he is doing, at a speed that keeps his feet on the ground. */
+    private playClip(game: Game, knocked: boolean): void {
+        if (!this.anim) {
+            return;
+        }
+        const b = game.player;
+        const { clip, speed } = bennyClip({
+            knocked,
+            accident: game.phase === 'accident',
+            speedShare: game.phase === 'playing' ? Math.hypot(b.vx, b.vz) / topSpeedAt(b.weight) : 0,
+            low: isLow(game.urgency)
+        });
+        if (clip !== this.clip) {
+            this.anim.baseLayer?.transition(clip, this.clip === null ? 0 : BENNY_CLIPS.blendSeconds);
+            this.clip = clip;
+        }
+        this.anim.speed = speed;
     }
 }

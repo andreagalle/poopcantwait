@@ -2,6 +2,32 @@
     "$comment": "Provenance of every committed asset. Schema and rules: docs/ASSET_PIPELINE.md.",
     "assets": [
         {
+            "id": "char.benny",
+            "file": "public/assets/models/benny/benny.glb",
+            "source": "meshy",
+            "tool": "meshy_image_to_3d (meshy-t2.5 smart topology, 18,000 polygons, texture meshy-n1, t-pose) + meshy_rig + meshy_animate; clips merged with npm run assets:merge-clips",
+            "taskIds": [
+                "01a1d642-7c2a-7556-801d-6915017f9bac",
+                "01a1d645-d4da-7028-92b6-7730748666ca",
+                "01a1d646-b028-777a-a37b-dd79bb1302d6"
+            ],
+            "inputImage": "art/raw/benny/benny-front-a-pose.png, the front view of art/raw/images/char.benny/2026-11-13T18-37-52-455Z-1.png (openai/gpt-image-2 through OpenRouter: round 3 of Benny's look, from round 2 sheet 1 and round 1 sketch 1, kept by the maintainer)",
+            "prompt": "See site/story/benny/ (rounds 1 to 3): the character sheet of docs/GAME_DESIGN.md, then the turnaround in an A-pose with arms out at about 45 degrees.",
+            "clips": {
+                "idle": "Meshy preset 0 Idle",
+                "walk": "rig walking",
+                "run": "rig running",
+                "fall": "Meshy preset 366 Falling Down",
+                "waddle": "Meshy preset 637 Injured Walk (in place)"
+            },
+            "generatedAt": "2026-11-13",
+            "license": "Meshy paid plan: the customer owns the generated assets (help.meshy.ai, 'Who owns the models generated on Meshy', checked 2026-11-13); Meshy asks, without requiring it, to be credited. Input image: OpenAI's terms assign the output to the user.",
+            "attributionRequired": false,
+            "triangles": 18708,
+            "bytes": 1314584,
+            "approvedBy": "maintainer"
+        },
+        {
             "id": "food.burger",
             "file": "public/assets/models/food/burger.glb",
             "source": "meshy",

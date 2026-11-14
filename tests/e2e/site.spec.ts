@@ -90,7 +90,7 @@ for (const side of SIDE_STORIES) {
         const errors = collectErrors(page);
         await page.goto(`/story/#${side.stage}`);
         await expect(page.locator(`#${side.stage}`)).toHaveClass(/is-active/);
-        await page.getByRole('link', { name: side.link }).click();
+        await page.locator(`#${side.stage}`).getByRole('link', { name: side.link }).click();
         await expect(page).toHaveURL(new RegExp(`/story/${side.path}/$`));
         await expect(page.getByRole('heading', { level: 1 })).toHaveText(side.title);
 
