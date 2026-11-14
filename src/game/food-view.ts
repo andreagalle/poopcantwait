@@ -1,4 +1,4 @@
-import { BLEND_ADDITIVE, Entity, StandardMaterial } from 'playcanvas';
+import { Entity, StandardMaterial } from 'playcanvas';
 import type { AppBase, Asset, Color, ContainerResource } from 'playcanvas';
 
 import type { AssetId } from '../assets/registry';
@@ -9,10 +9,34 @@ import { PALETTE } from '../render/palette';
 
 type FoodId = JunkFoodId | VegetableId;
 
-/** The felt models of the art pass (milestone M6), by item; the others keep their greybox stand-in for now. */
-const MODELS: Partial<Record<FoodId, AssetId>> = { burger: 'food.burger' };
+/** The felt model of each item (art pass, milestone M6); the greybox shape stands in until it has loaded. */
+export const FOOD_MODELS: Record<FoodId, AssetId> = {
+    burger: 'food.burger',
+    chickenLeg: 'food.chicken-leg',
+    pizzaSlice: 'food.pizza-slice',
+    hotDog: 'food.hot-dog',
+    donut: 'food.donut',
+    fries: 'food.fries',
+    iceCreamCone: 'food.ice-cream-cone',
+    beans: 'food.beans',
+    cabbage: 'food.cabbage',
+    brusselsSprouts: 'food.brussels-sprouts',
+    broccoli: 'food.broccoli',
+    cauliflower: 'food.cauliflower',
+    carrot: 'food.carrot'
+};
 /** The models fill a 1 m cube; this is their size across, in metres (design: *Food*: about 1 m across). */
 const MODEL_SIZE = 0.9;
+/**
+ * Some models come out standing the way their source image showed them, seen from three-quarters above: these lie
+ * them down, in degrees about x then z, so they read from the camera high above (a donut flat, not on its edge).
+ */
+const MODEL_TILT: Partial<Record<FoodId, { x?: number; z?: number }>> = {
+    chickenLeg: { z: 90 },
+    pizzaSlice: { x: -90 },
+    donut: { x: -90 },
+    beans: { x: -90 }
+};
 
 /** A greybox stand-in per item: an engine primitive, its proportions and tilt, until the models of milestone M6. */
 type Primitive = 'box' | 'capsule' | 'cone' | 'cylinder' | 'sphere' | 'torus';
@@ -35,24 +59,13 @@ const SHAPES: Record<FoodId, { type: Primitive; scale: [number, number, number];
 
 /** Hover height, bob and spin (design: *Food*: items bob and spin slowly). */
 const HOVER = { height: 0.8, bob: 0.15, bobPerSecond: 0.8, spinDegreesPerSecond: 60, fadeSeconds: 1 };
-const GLOW = { radius: 0.75, opacity: 0.5 };
-
-function material(name: string, color: Color, glow = false): StandardMaterial {
+function material(name: string, color: Color): StandardMaterial {
     const m = new StandardMaterial();
     m.name = name;
-    if (glow) {
-        m.diffuse.set(0, 0, 0);
-        m.emissive.copy(color);
-        m.useLighting = false;
-        m.opacity = GLOW.opacity;
-        m.blendType = BLEND_ADDITIVE;
-        m.depthWrite = false;
-    } else {
-        m.diffuse.copy(color);
-        m.useMetalness = true;
-        m.metalness = 0;
-        m.gloss = 0.4;
-    }
+    m.diffuse.copy(color);
+    m.useMetalness = true;
+    m.metalness = 0;
+    m.gloss = 0.4;
     m.update();
     return m;
 }
@@ -60,22 +73,19 @@ function material(name: string, color: Color, glow = false): StandardMaterial {
 interface Slot {
     readonly root: Entity;
     readonly body: Entity;
-    readonly glow: Entity;
     /** The model instances this slot has shown so far, made the first time and reused. */
     readonly models: Map<FoodId, Entity>;
     shape: FoodId | null;
 }
 
 /**
- * Food on the streets: a pool of items that hover, bob and spin over a glow on the ground (warm gold for junk food,
- * sickly green for vegetables) and shrink away as they fade out.
+ * Food on the streets: a pool of items that hover, bob and spin over their shadow, and shrink away as they fade out.
+ * Each shows its felt model, or its greybox shape until the model has loaded (or if it failed to).
  */
 export class FoodView {
     private readonly slots: Slot[];
     private readonly assigned = new Map<number, Slot>();
     private readonly materials: Record<FoodId, StandardMaterial>;
-    private readonly junkGlow = material('food-glow-junk', PALETTE.junkGlow, true);
-    private readonly vegetableGlow = material('food-glow-vegetable', PALETTE.vegetableGlow, true);
 
     private readonly modelAssets: ReadonlyMap<AssetId, Asset>;
 
@@ -89,15 +99,10 @@ export class FoodView {
             const slot = new Entity(`food-${i}`);
             const body = new Entity('food-body');
             body.addComponent('render', { type: 'box', castShadows: true, receiveShadows: false });
-            const glow = new Entity('food-glow');
-            glow.addComponent('render', { type: 'cylinder', material: this.junkGlow, castShadows: false });
-            glow.setLocalScale(GLOW.radius * 2, 0.02, GLOW.radius * 2);
-            glow.setLocalPosition(0, 0.06, 0);
             slot.addChild(body);
-            slot.addChild(glow);
             slot.enabled = false;
             root.addChild(slot);
-            return { root: slot, body, glow, models: new Map(), shape: null };
+            return { root: slot, body, models: new Map(), shape: null };
         });
         app.root.addChild(root);
     }
@@ -132,7 +137,6 @@ export class FoodView {
                     slot.body.setLocalScale(...shape.scale);
                     slot.body.setLocalEulerAngles(shape.tilt ?? 0, 0, 0);
                 }
-                slot.glow.render!.material = item.kind.category === 'junk' ? this.junkGlow : this.vegetableGlow;
                 slot.shape = item.kind.id;
             }
             const t = game.time + item.id * 0.61;
@@ -154,13 +158,14 @@ export class FoodView {
         if (existing) {
             return existing;
         }
-        const id = MODELS[kind];
-        const asset = id ? this.modelAssets.get(id) : undefined;
+        const asset = this.modelAssets.get(FOOD_MODELS[kind]);
         if (!asset) {
             return null;
         }
         const entity = (asset.resource as ContainerResource).instantiateRenderEntity();
         entity.setLocalScale(MODEL_SIZE, MODEL_SIZE, MODEL_SIZE);
+        const tilt = MODEL_TILT[kind];
+        entity.setLocalEulerAngles(tilt?.x ?? 0, 0, tilt?.z ?? 0);
         slot.root.addChild(entity);
         slot.models.set(kind, entity);
         return entity;

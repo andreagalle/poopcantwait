@@ -9,12 +9,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- The whole food set in felt: the twelve other junk foods and vegetables join the burger, 870 to 1,500 triangles and
+  about 90 kB each (1.2 MB for the thirteen). Four of them are laid down in the game, since they came out standing the
+  way their image showed them.
 - The first felt model in the game, the burger: made from the maintainer's food sketches with Meshy (image to 3D),
   1,499 triangles and 94 kB. The other twelve items keep their greybox shapes until theirs land. The game now loads GLB
   models from the asset registry (`src/assets/load.ts`); a model that fails to load leaves its greybox stand-in.
 
 ### Changed
 
+- No more glow ring under the food: it read as a halo, the maintainer found. Each item hovers over its own shadow.
 - Releases publish themselves: on every merge into `master`, `.github/workflows/release.yml` creates the tag and the
   GitHub Release from `package.json` and `CHANGELOG.md`, then records the release in `dev`'s history. The agent checks
   its work and does by hand only what it could not.
