@@ -11,6 +11,12 @@ export interface AssetEntry {
 
 export const ASSETS = {
     'char.benny': { kind: 'model', file: 'models/benny/benny.glb' },
+    'toilet.cabin': { kind: 'model', file: 'models/toilets/cabin.glb' },
+    'vehicle.car-green': { kind: 'model', file: 'models/vehicles/car-green.glb' },
+    'vehicle.car-orange': { kind: 'model', file: 'models/vehicles/car-orange.glb' },
+    'vehicle.van-blue': { kind: 'model', file: 'models/vehicles/van-blue.glb' },
+    'vehicle.car-yellow': { kind: 'model', file: 'models/vehicles/car-yellow.glb' },
+    'vehicle.bus-red': { kind: 'model', file: 'models/vehicles/bus-red.glb' },
     'food.burger': { kind: 'model', file: 'models/food/burger.glb' },
     'food.chicken-leg': { kind: 'model', file: 'models/food/chicken-leg.glb' },
     'food.pizza-slice': { kind: 'model', file: 'models/food/pizza-slice.glb' },

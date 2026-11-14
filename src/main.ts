@@ -31,7 +31,7 @@ import { addBenny } from './game/greybox';
 import { Juice } from './game/juice';
 import { KioskView } from './game/kiosk-view';
 import { PopupView } from './game/popup-view';
-import { VehicleView } from './game/vehicle-view';
+import { VEHICLE_MODELS, VehicleView } from './game/vehicle-view';
 import type { MenuAction } from './input/keyboard';
 import { KeyboardInput, MenuKeys } from './input/keyboard';
 import { combineDirections, TouchInput } from './input/touch';
@@ -95,15 +95,21 @@ const game = new Game(city, {
 });
 
 // The models of the art pass so far; anything without one keeps its greybox stand-in
-const models = await loadModels(app, ['char.benny', ...Object.values(FOOD_MODELS)]);
+const models = await loadModels(app, [
+    'char.benny',
+    'toilet.cabin',
+    ...VEHICLE_MODELS.car,
+    ...VEHICLE_MODELS.bus,
+    ...Object.values(FOOD_MODELS)
+]);
 
 addSunlight(app);
 const cityView = new CityView(app, city);
 const bennyView = new BennyView(addBenny(app, models.get('char.benny')));
-const kioskView = new KioskView(app, city);
-const popupView = new PopupView(app);
+const kioskView = new KioskView(app, city, models.get('toilet.cabin'));
+const popupView = new PopupView(app, models.get('toilet.cabin'));
 const foodView = new FoodView(app, models);
-const vehicleView = new VehicleView(app);
+const vehicleView = new VehicleView(app, models);
 const juice = new Juice(app);
 const camera = createGameCamera(app);
 const cameraRig = new CameraRig(camera, cityView, new BuildingIndex(city.buildings));

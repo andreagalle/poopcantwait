@@ -82,7 +82,8 @@ test('the story snaps from stage to stage and moves its HUD along', async ({ pag
 /** The side stories: one per topic of the art pass, each linked from a stage of the main story. */
 const SIDE_STORIES = [
     { stage: 'benny-look', link: /Side story: Benny's look/, path: 'benny', title: "Benny's look" },
-    { stage: 'food-look', link: /Side story: The food set/, path: 'food', title: 'The food set' }
+    { stage: 'food-look', link: /Side story: The food set/, path: 'food', title: 'The food set' },
+    { stage: 'felt-street', link: /Side story: Traffic and toilets/, path: 'street', title: 'Traffic and toilets' }
 ];
 
 for (const side of SIDE_STORIES) {
@@ -120,7 +121,7 @@ for (const side of SIDE_STORIES) {
 test('the landing page and the story fit a phone screen', async ({ page }) => {
     const errors = collectErrors(page);
     await page.setViewportSize({ width: 375, height: 740 });
-    for (const path of ['/', '/story/benny/', '/story/food/', '/story/', '/story/#m3-toilets']) {
+    for (const path of ['/', '/story/benny/', '/story/food/', '/story/street/', '/story/', '/story/#m3-toilets']) {
         await page.goto(path);
         const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
         expect(overflow, `horizontal overflow on ${path}`).toBeLessThanOrEqual(0);
