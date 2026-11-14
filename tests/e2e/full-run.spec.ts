@@ -109,8 +109,32 @@ test('plays a seeded run to a kiosk by following the arrow keys there, and gets 
                     }
                     const p = benny.getPosition();
                     let cell = cellAt(p.x, p.z);
+                    // Knocked off the planned way (a car, a squeeze into a tight spot): head back to the nearest cell
+                    // on it first, rather than straight at the door through the buildings
+                    if (cell >= 0 && field[cell]! >= unreachable) {
+                        const col = cell % size;
+                        let nearest = -1;
+                        let best = Infinity;
+                        for (let dr = -4; dr <= 4; dr++) {
+                            for (let dc = -4; dc <= 4; dc++) {
+                                const c = cell + dr * size + dc;
+                                const d = dr * dr + dc * dc;
+                                if (col + dc >= 0 && col + dc < size && c >= 0 && c < field.length) {
+                                    if (field[c]! < unreachable && d < best) {
+                                        best = d;
+                                        nearest = c;
+                                    }
+                                }
+                            }
+                        }
+                        if (nearest >= 0) {
+                            cell = nearest;
+                        }
+                    }
                     let aim = { x: plan.door.x, z: plan.door.z };
-                    if (cell >= 0 && field[cell]! < unreachable && field[cell]! > 0.5) {
+                    if (cell >= 0 && field[cell]! < unreachable && cellAt(p.x, p.z) !== cell) {
+                        aim = { x: (cell % size) - halfSize, z: Math.floor(cell / size) - halfSize };
+                    } else if (cell >= 0 && field[cell]! < unreachable && field[cell]! > 0.5) {
                         // Aim three cells ahead along the way, which smooths the zigzag of single cells
                         for (let i = 0; i < 3; i++) {
                             cell = downhill(cell);
