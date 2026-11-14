@@ -16,7 +16,7 @@ shiver and a stained icon in the HUD.
 
 ## Core loop
 
-1. Read the city: which toilets are free (green beacon) and which ones Benny can still reach at his current size.
+1. Read the city: which toilets are free (green sign and beam) and which ones Benny can still reach at his current size.
 2. Run there with the arrow keys, grabbing junk food on the way and dodging vegetables and traffic.
 3. Reach a free toilet: relief, bonus points, countdown reset.
 4. Bigger Benny means more points and crushed cars, but slower runs and fewer usable streets. Pop-up toilets appear
@@ -178,8 +178,10 @@ the HUD:
 - _Initial_ 8 kiosks placed on sidewalks of streets and avenues, spread across the city, each with its door facing
   the street. A kiosk has a 2 m square footprint and stands in a notch of its building, flush with the facades, so it
   never narrows the street; its door zone is the 1.5 m of sidewalk in front of the door.
-- Each kiosk cycles between **free** (green beacon and an upward light beam) and **occupied** (red beacon, rattling
-  door). _Initial_ free time: 6 to 14 s; occupied time: 5 to 15 s; both random per cycle.
+- Every toilet is the same felt portable cabin (teal, with a rounded cream roof), the maintainer chose: no roof beacon.
+  A round sign on its door shows the state like a real cabin's latch, and the kiosk fills its 2 m notch, 2.6 m tall.
+- Each kiosk cycles between **free** (green door sign and an upward light beam) and **occupied** (red door sign, the
+  cabin rattling). _Initial_ free time: 6 to 14 s; occupied time: 5 to 15 s; both random per cycle.
 - Benny uses a free toilet by standing in its door zone for 0.5 s. He enters (he squeezes through comically at any
   size), relief plays for 1.5 s during which he cannot be hurt, then he comes out with a fresh countdown. The kiosk
   turns occupied for 5 to 10 s.
@@ -197,8 +199,8 @@ the HUD:
 - **Mercy rule:** if no free toilet is reachable within 80% of the remaining time at Benny's current speed, one pop-up
   toilet spawns within reach immediately. At most once per countdown cycle.
 - _Initial_ details: a mercy pop-up appears at a path distance between 30% and 60% of the distance Benny can still
-  cover (at least 5 m), replacing the oldest pop-up if four are already out. Pop-ups are 1.4 m cabins, always free and
-  not solid: Benny steps into one and stays half a second to use it, and it is gone once used.
+  cover (at least 5 m), replacing the oldest pop-up if four are already out. Pop-ups are the same felt cabin, 1.4 m wide
+  and 2.3 m tall with a green door sign and a light beam, always free and not solid: Benny steps into one and stays half a second to use it, and it is gone once used.
 - Path distances from Benny at his current girth are recomputed every 0.5 s of game time, up to 200 m along the paths;
   toilets farther than that count as out of reach. Each search is spread over several steps, 4,000 cells a step (a slim
   Benny's takes 10 steps, 0.17 s), so no frame pays for all of it; the old distances stay in use until the new ones are

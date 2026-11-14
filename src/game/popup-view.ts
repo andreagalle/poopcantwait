@@ -1,9 +1,12 @@
 import { BLEND_ADDITIVE, CylinderGeometry, Entity, Mesh, MeshInstance, StandardMaterial } from 'playcanvas';
-import type { AppBase, Color } from 'playcanvas';
+import type { AppBase, Asset, Color } from 'playcanvas';
 
 import { POPUP_TOILETS } from '../config/tuning';
 import type { Game } from '../core/game';
 import { PALETTE } from '../render/palette';
+
+import { fittedModel } from './fit-model';
+import { DOOR_SIGN } from './kiosk-view';
 
 const CABIN_HEIGHT = 2.3;
 const DOOR = { width: 0.9, height: 1.8, depth: 0.06 };
@@ -43,14 +46,15 @@ function popScale(t: number): number {
 }
 
 /**
- * Pop-up toilets (design: *Pop-up toilets*): a small pool of teal cabins, each with a door facing the camera, a green
- * beacon and a light beam (they are always free). They pop out of the ground and sink back when their time is up.
+ * Pop-up toilets (design: *Pop-up toilets*): a small pool of felt cabins, the same as the kiosks, each with its door
+ * facing the camera, a green sign on the door and a light beam (they are always free). In greybox, until the model has
+ * loaded: a teal box with a door and a green beacon. They pop out of the ground and sink back when their time is up.
  */
 export class PopupView {
     private readonly slots: Entity[];
     private readonly assigned = new Map<number, Entity>();
 
-    constructor(app: AppBase) {
+    constructor(app: AppBase, cabinModel?: Asset) {
         const root = new Entity('popups');
         const cabin = material('popup-cabin', PALETTE.popup);
         const door = material('popup-door', PALETTE.popupDoor);
@@ -83,9 +87,22 @@ export class PopupView {
                 receiveShadows: false
             });
             ray.setLocalPosition(0, CABIN_HEIGHT + BEACON.height + BEAM.height / 2, 0);
-            slot.addChild(body);
-            slot.addChild(front);
-            slot.addChild(light);
+            if (cabinModel) {
+                slot.addChild(
+                    fittedModel(cabinModel, { width: size, height: CABIN_HEIGHT, length: size }, 'popup-cabin')
+                );
+                const sign = new Entity('popup-sign');
+                sign.addComponent('render', { type: 'cylinder', material: beacon, castShadows: false });
+                sign.setLocalScale(DOOR_SIGN.diameter, DOOR_SIGN.thickness, DOOR_SIGN.diameter);
+                sign.setLocalEulerAngles(90, 0, 0);
+                sign.setLocalPosition(0, DOOR_SIGN.heightShare * CABIN_HEIGHT, size / 2 + DOOR_SIGN.thickness / 2);
+                slot.addChild(sign);
+                ray.setLocalPosition(0, CABIN_HEIGHT + BEAM.height / 2, 0);
+            } else {
+                slot.addChild(body);
+                slot.addChild(front);
+                slot.addChild(light);
+            }
             slot.addChild(ray);
             slot.enabled = false;
             root.addChild(slot);
