@@ -33,6 +33,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- The end-to-end tests wait for the title screen before pressing a key: since the game loads its models first, a key
+  pressed as soon as the app existed could be lost on a slow runner. The scripted run to a kiosk heads back to its
+  planned way when a car knocks Benny off it, instead of walking into the buildings.
 - The story's v0.3.0 stage showed the time of the morning's merges (08:20) instead of the cut's (18:12), and the counts
   of that moment.
 
