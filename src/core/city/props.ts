@@ -5,7 +5,7 @@ import type { Building, Circle, KioskSpot, Point, Rect, Road } from './types';
 import { ZONE_OF_CLASS } from './types';
 
 /** The kinds of street furniture (design: *Street props*). */
-export type PropKind = 'tree' | 'lamp' | 'bench' | 'hydrant';
+export type PropKind = 'tree' | 'lamp' | 'bench' | 'hydrant' | 'shelter';
 
 /** A piece of street furniture: solid, standing by a facade on the sidewalk of an avenue or a boulevard. */
 export interface StreetProp {
@@ -32,10 +32,10 @@ function layoutOf(streetClass: StreetClass): { spacing: number; pattern: readonl
 
 /** The solid of a piece of furniture standing `offset` metres out from a facade, at a point, facing away from it. */
 function solidOf(kind: PropKind, x: number, z: number, facing: Point): Circle | Rect {
-    if (kind !== 'bench') {
+    if (kind !== 'bench' && kind !== 'shelter') {
         return { x, z, radius: CITY.streetProps.kinds[kind].radiusMetres };
     }
-    const { lengthMetres, depthMetres } = CITY.streetProps.kinds.bench;
+    const { lengthMetres, depthMetres } = CITY.streetProps.kinds[kind];
     const halfAcross = facing.x !== 0 ? depthMetres / 2 : lengthMetres / 2;
     const halfAlong = facing.z !== 0 ? depthMetres / 2 : lengthMetres / 2;
     return { x0: x - halfAcross, z0: z - halfAlong, x1: x + halfAcross, z1: z + halfAlong };

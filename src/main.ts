@@ -23,6 +23,7 @@ import { isSimulating, nextScreen, tapAction } from './core/flow';
 import { Game } from './core/game';
 import { parseLaunchParams } from './core/params';
 import { FixedStepper } from './core/sim/fixed-step';
+import { markingsOf } from './core/traffic/markings';
 import { mountCityDebugMap } from './debug/city-map';
 import { PlayerDebug } from './debug/player-debug';
 import { BennyView } from './game/benny-view';
@@ -32,6 +33,7 @@ import { Juice } from './game/juice';
 import { KioskView } from './game/kiosk-view';
 import { PopupView } from './game/popup-view';
 import { PropsView, PROP_MODELS, TREE_MODELS } from './game/props-view';
+import { SIGN_MODELS, SignsView } from './game/signs-view';
 import { VEHICLE_MODELS, VehicleView } from './game/vehicle-view';
 import type { MenuAction } from './input/keyboard';
 import { KeyboardInput, MenuKeys } from './input/keyboard';
@@ -98,18 +100,27 @@ const game = new Game(city, {
 // The models of the art pass so far; anything without one keeps its greybox stand-in
 const models = await loadAssets(app, [
     'texture.facade-felt',
+    'texture.felt-plain',
     'char.benny',
     'toilet.cabin',
     ...VEHICLE_MODELS.car,
     ...VEHICLE_MODELS.bus,
     ...Object.values(FOOD_MODELS),
     ...Object.values(PROP_MODELS),
-    ...Object.values(TREE_MODELS)
+    ...Object.values(TREE_MODELS),
+    ...Object.values(SIGN_MODELS)
 ]);
 
 addSunlight(app);
-const cityView = new CityView(app, city, models.get('texture.facade-felt'));
+const cityView = new CityView(
+    app,
+    city,
+    markingsOf(game.lanes),
+    models.get('texture.facade-felt'),
+    models.get('texture.felt-plain')
+);
 new PropsView(app, city, models);
+const signsView = new SignsView(app, game.signs, models);
 const bennyView = new BennyView(addBenny(app, models.get('char.benny')));
 const kioskView = new KioskView(app, city, models.get('toilet.cabin'));
 const popupView = new PopupView(app, models.get('toilet.cabin'));
@@ -238,6 +249,7 @@ const onUpdate = (dt: number) => {
     const position = bennyView.entity.getPosition();
     cameraRig.update(game, { x: position.x, z: position.z }, dt, juice.shake(game));
     kioskView.update(game);
+    signsView.update(game);
     popupView.update(game);
     foodView.update(game);
     vehicleView.update(game);

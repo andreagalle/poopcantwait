@@ -40,7 +40,14 @@ export const ASSETS = {
     'prop.lamp': { kind: 'model', file: 'models/props/lamp.glb' },
     'prop.bench': { kind: 'model', file: 'models/props/bench.glb' },
     'prop.hydrant': { kind: 'model', file: 'models/props/hydrant.glb' },
-    'texture.facade-felt': { kind: 'texture', file: 'textures/facade-felt.webp' }
+    'street.traffic-light': { kind: 'model', file: 'models/street/traffic-light.glb' },
+    'street.stop-sign': { kind: 'model', file: 'models/street/stop-sign.glb' },
+    'street.give-way': { kind: 'model', file: 'models/street/give-way.glb' },
+    'street.crossing-sign': { kind: 'model', file: 'models/street/crossing-sign.glb' },
+    'street.speed-30': { kind: 'model', file: 'models/street/speed-30.glb' },
+    'street.bus-shelter': { kind: 'model', file: 'models/street/bus-shelter.glb' },
+    'texture.facade-felt': { kind: 'texture', file: 'textures/facade-felt.webp' },
+    'texture.felt-plain': { kind: 'texture', file: 'textures/felt-plain.webp' }
 } as const satisfies Record<string, AssetEntry>;
 
 export type AssetId = keyof typeof ASSETS;

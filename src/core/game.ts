@@ -1,7 +1,18 @@
-import { COLLISIONS, FOOD, KIOSKS, MOVEMENT, NAVIGATION, POPUP_TOILETS, SIMULATION, TRAFFIC } from '../config/tuning';
+import {
+    CITY,
+    COLLISIONS,
+    FOOD,
+    KIOSKS,
+    MOVEMENT,
+    NAVIGATION,
+    POPUP_TOILETS,
+    SIMULATION,
+    TRAFFIC
+} from '../config/tuning';
 
 import { outOfSightMetresAt } from './camera';
 import { PathSearch } from './city/navgrid';
+import { sidewalksOf } from './city/sidewalks';
 import type { City, Point } from './city/types';
 import type { FoodItem, FoodKind } from './food/food';
 import { chooseFoodSpot, chooseKind, touchesFood } from './food/food';
@@ -20,6 +31,10 @@ import { choosePopupSpot, popupDoor, popupIntervalAt, touchesPopup, wallSpots } 
 import { hitOutcome, knockSpeed } from './traffic/collisions';
 import type { LaneGraph } from './traffic/lanes';
 import { buildLaneGraph } from './traffic/lanes';
+import type { Signal } from './traffic/signals';
+import { signalGap, signalsOf } from './traffic/signals';
+import type { StreetSign } from './traffic/street-signs';
+import { placeStreetSigns } from './traffic/street-signs';
 import type { Vehicle } from './traffic/vehicles';
 import {
     driveVehicle,
@@ -133,6 +148,10 @@ export class Game {
     private readonly gains: Gain[] = [];
     /** The lanes vehicles drive on. */
     readonly lanes: LaneGraph;
+    /** The crossings with traffic lights, by lane node (`signalsOf`). */
+    readonly signals: ReadonlyMap<number, Signal>;
+    /** The traffic lights and road signs at the crossings (`placeStreetSigns`): solid poles. */
+    readonly signs: readonly StreetSign[];
     /** The nav cells inside buildings: a pop-up backs onto one of them. */
     /** Every spot against a building where a pop-up may appear (`wallSpots`). */
     private readonly wallSpots: readonly PopupSpot[];
@@ -156,7 +175,6 @@ export class Game {
 
     constructor(city: City, options: GameOptions = {}) {
         this.city = city;
-        this.world = buildCollisionWorld(city);
         const weight = clampWeight(options.weight ?? 0);
         const start =
             city.nav.nearestStandable(city.spawn, diameterAt(weight) + 2 * PLACEMENT_MARGIN) ??
@@ -171,7 +189,15 @@ export class Game {
         this.foodRng = runRng.fork();
         this.trafficRng = runRng.fork();
         this.lanes = buildLaneGraph(city);
-        this.wallSpots = wallSpots(city.nav, city.buildings, city.props);
+        this.signals = new Map(signalsOf(this.lanes).map((s) => [s.node, s]));
+        this.signs = placeStreetSigns(
+            this.lanes,
+            sidewalksOf(city).map((s) => s.rect),
+            this.signals
+        );
+        const poles = this.signs.map((s) => ({ x: s.x, z: s.z, radius: CITY.streetSigns.poleRadiusMetres }));
+        this.world = buildCollisionWorld(city, poles);
+        this.wallSpots = wallSpots(city.nav, city.buildings, city.props, poles);
         const initial = targetCounts(0);
         for (const type of ['car', 'bus'] as const) {
             for (let i = 0; i < initial[type]; i++) {
@@ -459,7 +485,8 @@ export class Game {
         const sight = outOfSightMetresAt(this.player.weight);
         const gaps = gapsAhead(this.lanes, this.vehicles);
         this.vehicles = this.vehicles.flatMap((v, i) => {
-            const next = driveVehicle(this.lanes, v, dt, this.trafficRng, followSpeed(v.speed, gaps[i]));
+            const gap = Math.min(gaps[i], signalGap(this.lanes, this.signals, v, this.time));
+            const next = driveVehicle(this.lanes, v, dt, this.trafficRng, followSpeed(v.speed, gap));
             if (!(v.wreckSecondsLeft > 0 && next.wreckSecondsLeft === 0)) {
                 return [next];
             }

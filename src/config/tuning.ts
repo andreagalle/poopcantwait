@@ -79,6 +79,22 @@ export const CITY = {
     /** Trees in the park: spacing of their jittered grid, trunk radius and margin from the park edge, in metres. */
     parkTrees: { spacingMetres: 9, radiusMetres: 0.8, marginMetres: 3 },
     /**
+     * Raised sidewalks along the facades, by road class, in metres (presentation only: Benny walks over them). They stay
+     * clear of the lanes: a car's side passes 0.55 m from a street's facades, a bus's 1.7 m from an avenue's and 3.7 m
+     * from a boulevard's.
+     */
+    sidewalkMetres: { alley: 0, street: 0.5, avenue: 1.5, boulevard: 3 } satisfies Record<StreetClass, number>,
+    /**
+     * White paint on the roads, in metres: zebra crossings on every arm of every crossing, `gapMetres` out from it,
+     * stripes `stripeMetres` wide every `pitchMetres`; a stop line across the incoming lane just before; and a dashed
+     * centre line between the crossings.
+     */
+    roadMarkings: {
+        zebra: { gapMetres: 0.6, depthMetres: 3, stripeMetres: 0.5, pitchMetres: 1 },
+        stopLine: { gapMetres: 0.4, depthMetres: 0.4 },
+        dash: { lengthMetres: 3, gapMetres: 3, widthMetres: 0.2 }
+    },
+    /**
      * Street furniture along both sides of avenues and boulevards (design: *Street props*): one spot every
      * `spacingMetres`, filled in turn from `pattern` (null leaves the spot empty; the far side starts half way through).
      * Spots within `clearanceMetres` of a crossing, an alley mouth or a kiosk stay empty.
@@ -87,7 +103,24 @@ export const CITY = {
         spacingMetres: { avenue: 10, boulevard: 8 },
         pattern: {
             avenue: ['lamp', null, 'bench', null, 'lamp', null, 'hydrant', null],
-            boulevard: ['tree', 'lamp', 'tree', 'bench', 'tree', 'lamp', 'tree', 'hydrant']
+            boulevard: [
+                'tree',
+                'lamp',
+                'tree',
+                'bench',
+                'tree',
+                'lamp',
+                'tree',
+                'hydrant',
+                'tree',
+                'lamp',
+                'tree',
+                'shelter',
+                'tree',
+                'lamp',
+                'tree',
+                'bench'
+            ]
         },
         clearanceMetres: 3,
         /**
@@ -99,9 +132,12 @@ export const CITY = {
             tree: { offsetMetres: 2, radiusMetres: 0.35, canopyRadiusMetres: 1.7 },
             lamp: { offsetMetres: 1, radiusMetres: 0.25 },
             hydrant: { offsetMetres: 1, radiusMetres: 0.3 },
-            bench: { offsetMetres: 0.6, lengthMetres: 1.8, depthMetres: 0.8 }
+            bench: { offsetMetres: 0.6, lengthMetres: 1.8, depthMetres: 0.8 },
+            shelter: { offsetMetres: 0.8, lengthMetres: 3, depthMetres: 1.4 }
         }
     },
+    /** The poles at the crossings (traffic lights and road signs): solid, this thick, in metres of radius. */
+    streetSigns: { poleRadiusMetres: 0.15 },
     /** Sides of the city bordered by the river; the other sides are parkland. Either way, the edge blocks the way. */
     riverSides: { min: 1, max: 2 } satisfies Range
 } as const;
@@ -362,6 +398,12 @@ export const TRAFFIC = {
     followGapMetres: 2,
     /** ...plus this many seconds of driving at their speed, slowing down smoothly as the gap closes. */
     followHeadwaySeconds: 1,
+    /**
+     * Traffic lights where avenues and boulevards cross: green, amber and all red for one axis, then the same for the
+     * other, in seconds; each crossing starts `staggerSeconds` later in the cycle than the one before. Vehicles stop at
+     * the stop line on red, and on amber unless they are within `amberCommitMetres` of it.
+     */
+    signals: { greenSeconds: 12, amberSeconds: 2.5, allRedSeconds: 1.5, staggerSeconds: 7, amberCommitMetres: 8 },
     /** New vehicles appear at least this far from Benny, in metres, so they never pop in on screen. */
     spawnMinDistanceMetres: 45,
     /**
