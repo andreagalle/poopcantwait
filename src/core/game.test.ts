@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { NAVIGATION, POPUP_TOILETS } from '../config/tuning';
+import { NAVIGATION, POPUP_TOILETS, TRAFFIC } from '../config/tuning';
 
 import { outOfSightMetresAt } from './camera';
 import { generateCity } from './city/generate';
@@ -511,6 +511,35 @@ describe('Game traffic', () => {
         // Not again right away
         game.step({ x: 0, z: 0 });
         expect(game.drainEvents()).not.toContain('honk');
+    });
+});
+
+describe('Game traffic over time', () => {
+    it('keeps flowing for three minutes: no vehicle stands still longer than a red light lasts', () => {
+        const game = new Game(generateCity(31), { countdownSeconds: 100_000 });
+        const { greenSeconds, amberSeconds, allRedSeconds } = TRAFFIC.signals;
+        // A red light for one axis lasts the other's green and amber, and both all-red phases
+        const longestRed = greenSeconds + amberSeconds + 2 * allRedSeconds;
+        const since = new Map<number, { key: string; seconds: number }>();
+        let longest = 0;
+        for (let second = 0; second < 180; second++) {
+            for (let i = 0; i < 60; i++) {
+                game.step({ x: 0, z: 0 });
+            }
+            game.drainEvents();
+            for (const v of game.vehicles) {
+                if (v.wreckSecondsLeft > 0) {
+                    continue;
+                }
+                const key = `${v.edge}:${v.t.toFixed(2)}`;
+                const prev = since.get(v.id);
+                const seconds = prev && prev.key === key ? prev.seconds + 1 : 0;
+                since.set(v.id, { key, seconds });
+                longest = Math.max(longest, seconds);
+            }
+        }
+        expect(game.vehicles.length).toBeGreaterThan(15);
+        expect(longest).toBeLessThanOrEqual(longestRed);
     });
 });
 
