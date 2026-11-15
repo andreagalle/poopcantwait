@@ -3,13 +3,16 @@
  * Prints the numbers behind the story page (site/story/): every message the maintainer typed, the agent's tool calls
  * up to each of them, and the merged pull requests with the agent's tool calls up to each merge.
  *
- *   npm run story:stats
+ *   npm run story:stats            the lists and the totals
+ *   npm run story:stats -- --json  the numbers the story is built from, as JSON (no message text)
  *
  * It reads the Claude Code transcripts of this project (~/.claude/projects/<project>/*.jsonl, top-level sessions
  * only) and `gh pr list`. Transcripts stay on the machine that ran the sessions: run it in the Codespace. It prints
  * the maintainer's messages, so keep its output out of the repository; the story quotes them in short, translated.
  *
- * T+ is the time since the first message (the kickoff); times are UTC and CET (UTC+1).
+ * T+ is the time since the first message (the kickoff); times are UTC and CET (UTC+1). The page itself shows no dates or
+ * times of day, only the project day and how long the agent had been going on its own: a run is the time from a message
+ * of the maintainer to the agent's last action before the next one.
  */
 import { execFileSync } from 'node:child_process';
 import { readdirSync, readFileSync } from 'node:fs';
@@ -75,11 +78,62 @@ const elapsed = (iso) => {
     return `T+${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, '0')}`;
 };
 const cet = (iso) => new Date(Date.parse(iso) + 3600_000).toISOString().slice(5, 16).replace('T', ' ');
+const minutesSince = (ms) => Math.round((ms - start) / 60000);
+const hm = (minutes) => `${Math.floor(minutes / 60)}:${String(Math.round(minutes) % 60).padStart(2, '0')}`;
 
-console.log('Maintainer messages (n, UTC, CET, T+, agent tool calls so far, start of the message)');
+// The agent's runs on its own: from each message of the maintainer to its last action before the next one
+const humanMs = human.map((m) => Date.parse(m.at));
+const toolMs = tools.map((t) => Date.parse(t));
+const runs = humanMs.map((at, i) => {
+    const next = humanMs[i + 1] ?? Infinity;
+    let last = at;
+    let actions = 0;
+    for (const t of toolMs) {
+        if (t > at && t < next) {
+            last = Math.max(last, t);
+            actions++;
+        }
+    }
+    return { from: minutesSince(at), minutes: (last - at) / 60000, actions };
+});
+const aloneMinutes = runs.reduce((sum, r) => sum + r.minutes, 0);
+const longest = runs.reduce((best, r) => (r.minutes > best.minutes ? r : best), runs[0]);
+
+if (process.argv.includes('--json')) {
+    console.log(
+        JSON.stringify(
+            {
+                kickoffCet: cet(human[0].at),
+                messages: runs.map((r, i) => ({
+                    n: i + 1,
+                    t: hm(r.from),
+                    actionsBefore: toolsUntil(human[i].at),
+                    aloneAfter: hm(r.minutes),
+                    actions: r.actions
+                })),
+                aloneHours: Math.round(aloneMinutes / 60),
+                longestAlone: hm(longest.minutes),
+                longestAloneActions: longest.actions,
+                runsOverAnHour: runs.filter((r) => r.minutes >= 60).length,
+                actionsPerMessage: Math.round(tools.length / human.length),
+                clock: hm(minutesSince(Date.now()))
+            },
+            null,
+            2
+        )
+    );
+    process.exit(0);
+}
+
+console.log(
+    'Maintainer messages (n, UTC, CET, T+, agent tool calls so far, the agent alone after it h:mm, start of the message)'
+);
 human.forEach((m, i) => {
     const preview = m.text.replace(/\s+/g, ' ').slice(0, 70);
-    console.log(`${i + 1}\t${m.at.slice(0, 16)}\t${cet(m.at)}\t${elapsed(m.at)}\t${toolsUntil(m.at)}\t${preview}`);
+    const alone = hm(runs[i].minutes);
+    console.log(
+        `${i + 1}\t${m.at.slice(0, 16)}\t${cet(m.at)}\t${elapsed(m.at)}\t${toolsUntil(m.at)}\t${alone}\t${preview}`
+    );
 });
 
 let prs = [];
@@ -104,4 +158,7 @@ if (prs.length > 0) {
 
 console.log(
     `\nTotals: ${human.length} maintainer messages, ${tools.length} agent tool calls, ${prs.length} merged PRs, ${elapsed(new Date().toISOString())} since the kickoff`
+);
+console.log(
+    `Alone: ${hm(aloneMinutes)} of agent work on its own in all, longest run ${hm(longest.minutes)} (${longest.actions} actions), ${runs.filter((r) => r.minutes >= 60).length} runs of an hour or more`
 );

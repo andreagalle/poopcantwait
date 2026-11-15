@@ -16,11 +16,14 @@
     </head>
     <!--
         Keeping this page up to date: AGENTS.md, "The story page". One <section class="stage"> per stage, in order.
-        Its data-* attributes drive the HUD: data-when (date, CET), data-t (h:mm since the kickoff), data-human,
+        Its data-* attributes drive the HUD: data-t (h:mm since the kickoff, shown as the project day), data-alone on an
+        agent's stage (h:mm the agent had been going on its own since the human's last message), data-human,
         data-agent and data-prs (running totals from `npm run story:stats`), data-phase, and data-done (the finished
-        milestones, "M6~" for a partial one). The double-brace placeholders are filled from site/stats.json.
+        milestones, "M6~" for a partial one). The double-brace placeholders are filled from site/stats.json. No dates or
+        times of day anywhere: a stage's kicker says "Message n" for the human and "Alone for ... · n actions" for the
+        agent.
     -->
-    <body class="story at-cover" data-human-total="{{humanMessages}}">
+    <body class="story at-cover" data-human-total="{{humanMessages}}" data-kickoff-minute="881">
         <header class="hud hud--top" aria-hidden="true">
             <div class="hud-panel hud-clock">
                 <svg class="hud-icon" viewBox="0 0 24 24">
@@ -35,7 +38,7 @@
                     <path d="M9 2.5 H15" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
                 </svg>
                 <div class="hud-clock-text">
-                    <b class="hud-t">T+0:00</b>
+                    <b class="hud-t">Day 1</b>
                     <span class="hud-when">Before day one</span>
                 </div>
                 <span class="hud-bar"><span class="hud-bar-fill"></span></span>
@@ -68,7 +71,6 @@
                 class="stage stage--cover"
                 id="top"
                 data-kind="cover"
-                data-when=""
                 data-t="0:00"
                 data-human="0"
                 data-agent="0"
@@ -100,7 +102,6 @@
             <section
                 class="stage stage--human tone-peach"
                 id="the-kit"
-                data-when="Before day one"
                 data-t="0:00"
                 data-human="0"
                 data-agent="0"
@@ -128,7 +129,6 @@
             <section
                 class="stage stage--human stage--quote"
                 id="kickoff"
-                data-when="Sun 8 Nov · 14:41"
                 data-t="0:00"
                 data-human="1"
                 data-agent="0"
@@ -137,9 +137,7 @@
                 data-done=""
             >
                 <div class="stage-inner stage-inner--solo">
-                    <p class="kicker">
-                        <span class="tag tag--human">Human</span><span class="when">Message 1 · Sun 14:41</span>
-                    </p>
+                    <p class="kicker"><span class="tag tag--human">Human</span><span class="when">Message 1</span></p>
                     <blockquote class="bubble bubble--big">
                         “You are the developer of Gotta Go! I am the maintainer.”
                     </blockquote>
@@ -156,8 +154,8 @@
             <section
                 class="stage stage--agent tone-rose"
                 id="first-move"
-                data-when="Sun 8 Nov · 14:43"
                 data-t="0:02"
+                data-alone="0:02"
                 data-human="1"
                 data-agent="16"
                 data-prs="0"
@@ -167,7 +165,8 @@
                 <div class="stage-inner stage-inner--solo">
                     <div class="card">
                         <p class="kicker">
-                            <span class="tag tag--agent">Agent</span><span class="when">14:43 · two minutes in</span>
+                            <span class="tag tag--agent">Agent</span
+                            ><span class="when">Alone for 2 min · 16 actions</span>
                         </p>
                         <h2>First move: stop</h2>
                         <p class="lede">The agent checks the ground, and refuses to build on it.</p>
@@ -183,7 +182,6 @@
             <section
                 class="stage stage--human stage--quote"
                 id="figure-it-out"
-                data-when="Sun 8 Nov · 17:26"
                 data-t="2:46"
                 data-human="2"
                 data-agent="16"
@@ -192,9 +190,7 @@
                 data-done=""
             >
                 <div class="stage-inner stage-inner--solo">
-                    <p class="kicker">
-                        <span class="tag tag--human">Human</span><span class="when">Message 2 · 17:26</span>
-                    </p>
+                    <p class="kicker"><span class="tag tag--human">Human</span><span class="when">Message 2</span></p>
                     <blockquote class="bubble">
                         “I skipped the setup on purpose, and I'm not doing it. Everything is in the zip. What would you
                         miss?”
@@ -209,8 +205,8 @@
             <section
                 class="stage stage--agent tone-lilac"
                 id="the-guard"
-                data-when="Sun 8 Nov · 17:52"
                 data-t="3:11"
+                data-alone="0:00"
                 data-human="3"
                 data-agent="32"
                 data-prs="1"
@@ -220,7 +216,8 @@
                 <div class="stage-inner stage-inner--solo">
                     <div class="card">
                         <p class="kicker">
-                            <span class="tag tag--agent">Agent</span><span class="when">17:30</span>
+                            <span class="tag tag--agent">Agent</span
+                            ><span class="when">Alone for under a minute · 3 actions</span>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/1">#1</a>
                         </p>
                         <h2>The guard bites its own author</h2>
@@ -234,8 +231,8 @@
                         </ul>
                     </div>
                     <p class="reply reply--human">
-                        <span class="tag tag--human">Human · 17:52</span>“I pushed everything as the PR said. What now?”
-                        The human's hands-on work so far: one push.
+                        <span class="tag tag--human">Human</span>“I pushed everything as the PR said. What now?” The
+                        human's hands-on work so far: one push.
                     </p>
                 </div>
             </section>
@@ -243,8 +240,8 @@
             <section
                 class="stage stage--agent tone-butter"
                 id="m0"
-                data-when="Sun 8 Nov · 18:15"
                 data-t="3:34"
+                data-alone="0:23"
                 data-human="3"
                 data-agent="129"
                 data-prs="2"
@@ -254,7 +251,8 @@
                 <div class="stage-inner">
                     <div class="card">
                         <p class="kicker">
-                            <span class="tag tag--agent">Agent</span><span class="when">18:15</span>
+                            <span class="tag tag--agent">Agent</span
+                            ><span class="when">Alone for 23 min · 100 actions</span>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/3">#3</a>
                         </p>
                         <h2><span class="m">M0</span>An empty stage</h2>
@@ -282,8 +280,8 @@
             <section
                 class="stage stage--agent tone-mint"
                 id="roadmap"
-                data-when="Sun 8 Nov · 18:19"
                 data-t="3:39"
+                data-alone="0:28"
                 data-human="3"
                 data-agent="139"
                 data-prs="3"
@@ -294,7 +292,7 @@
                     <div class="card">
                         <p class="kicker">
                             <span class="tag tag--agent">Agent</span
-                            ><span class="when">18:19 · four minutes later</span>
+                            ><span class="when">Alone for 28 min · 110 actions</span>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/4">#4</a>
                         </p>
                         <h2>A roadmap</h2>
@@ -322,8 +320,8 @@
             <section
                 class="stage stage--agent tone-sky"
                 id="m1-city"
-                data-when="Sun 8 Nov · 18:36"
                 data-t="3:55"
+                data-alone="0:44"
                 data-human="3"
                 data-agent="168"
                 data-prs="4"
@@ -333,7 +331,8 @@
                 <div class="stage-inner flip">
                     <div class="card">
                         <p class="kicker">
-                            <span class="tag tag--agent">Agent</span><span class="when">18:36</span>
+                            <span class="tag tag--agent">Agent</span
+                            ><span class="when">Alone for 44 min · 139 actions</span>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/5">#5</a>
                         </p>
                         <h2><span class="m">M1</span>A city from a seed</h2>
@@ -361,8 +360,8 @@
             <section
                 class="stage stage--agent tone-lilac"
                 id="m1-fit"
-                data-when="Sun 8 Nov · 19:01"
                 data-t="4:20"
+                data-alone="1:09"
                 data-human="3"
                 data-agent="216"
                 data-prs="5"
@@ -372,7 +371,8 @@
                 <div class="stage-inner">
                     <div class="card">
                         <p class="kicker">
-                            <span class="tag tag--agent">Agent</span><span class="when">19:01</span>
+                            <span class="tag tag--agent">Agent</span
+                            ><span class="when">Alone for 1 h 9 min · 187 actions</span>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/6">#6</a>
                         </p>
                         <h2><span class="m">M1</span>Will Benny fit?</h2>
@@ -399,8 +399,8 @@
             <section
                 class="stage stage--agent tone-peach"
                 id="m2"
-                data-when="Sun 8 Nov · 19:29"
                 data-t="4:49"
+                data-alone="1:38"
                 data-human="3"
                 data-agent="268"
                 data-prs="7"
@@ -410,7 +410,8 @@
                 <div class="stage-inner flip">
                     <div class="card">
                         <p class="kicker">
-                            <span class="tag tag--agent">Agent</span><span class="when">19:29</span>
+                            <span class="tag tag--agent">Agent</span
+                            ><span class="when">Alone for 1 h 38 min · 239 actions</span>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/7">#7</a>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/8">#8</a>
                         </p>
@@ -440,7 +441,6 @@
                 class="stage stage--wait"
                 id="first-wait"
                 data-kind="wait"
-                data-when="Sun 8 Nov · 19:29 → 21:59"
                 data-t="7:19"
                 data-human="3"
                 data-agent="284"
@@ -450,7 +450,7 @@
             >
                 <div class="stage-inner stage-inner--solo">
                     <p class="kicker">
-                        <span class="tag tag--agent">Agent</span><span class="when">19:29 → 21:59</span>
+                        <span class="tag tag--agent">Agent</span><span class="when">The agent waits</span>
                     </p>
                     <h2>Then it stops</h2>
                     <p class="big-time">2 h 30 min</p>
@@ -463,7 +463,6 @@
             <section
                 class="stage stage--human stage--quote"
                 id="go"
-                data-when="Sun 8 Nov · 21:59"
                 data-t="7:19"
                 data-human="4"
                 data-agent="284"
@@ -472,9 +471,7 @@
                 data-done="M0 M1 M2"
             >
                 <div class="stage-inner stage-inner--solo">
-                    <p class="kicker">
-                        <span class="tag tag--human">Human</span><span class="when">Message 4 · 21:59</span>
-                    </p>
+                    <p class="kicker"><span class="tag tag--human">Human</span><span class="when">Message 4</span></p>
                     <blockquote class="bubble bubble--big">“Carry on. Go as far as you can, on your own!”</blockquote>
                     <p class="reply">
                         <span class="tag tag--agent">Agent</span>Saves it to memory as a standing rule: chain the
@@ -486,8 +483,8 @@
             <section
                 class="stage stage--agent tone-rose"
                 id="m3-clock"
-                data-when="Sun 8 Nov · 22:17"
                 data-t="7:36"
+                data-alone="0:17"
                 data-human="4"
                 data-agent="306"
                 data-prs="9"
@@ -497,7 +494,8 @@
                 <div class="stage-inner">
                     <div class="card">
                         <p class="kicker">
-                            <span class="tag tag--agent">Agent</span><span class="when">22:17</span>
+                            <span class="tag tag--agent">Agent</span
+                            ><span class="when">Alone for 17 min · 22 actions</span>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/9">#9</a>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/10">#10</a>
                         </p>
@@ -525,8 +523,8 @@
             <section
                 class="stage stage--agent tone-mint"
                 id="m3-toilets"
-                data-when="Sun 8 Nov · 23:04"
                 data-t="8:24"
+                data-alone="1:05"
                 data-human="4"
                 data-agent="364"
                 data-prs="12"
@@ -536,7 +534,8 @@
                 <div class="stage-inner flip">
                     <div class="card">
                         <p class="kicker">
-                            <span class="tag tag--agent">Agent</span><span class="when">23:04</span>
+                            <span class="tag tag--agent">Agent</span
+                            ><span class="when">Alone for 1 h 5 min · 80 actions</span>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/11">#11</a>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/12">#12</a>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/13">#13</a>
@@ -566,8 +565,8 @@
             <section
                 class="stage stage--agent tone-butter"
                 id="m4"
-                data-when="Sun 8 Nov · 23:45"
                 data-t="9:05"
+                data-alone="1:46"
                 data-human="4"
                 data-agent="422"
                 data-prs="15"
@@ -577,7 +576,8 @@
                 <div class="stage-inner">
                     <div class="card">
                         <p class="kicker">
-                            <span class="tag tag--agent">Agent</span><span class="when">23:45</span>
+                            <span class="tag tag--agent">Agent</span
+                            ><span class="when">Alone for 1 h 46 min · 138 actions</span>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/14">#14</a>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/15">#15</a>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/16">#16</a>
@@ -607,8 +607,8 @@
             <section
                 class="stage stage--agent tone-sky"
                 id="m5"
-                data-when="Mon 9 Nov · 00:11"
                 data-t="9:30"
+                data-alone="2:11"
                 data-human="4"
                 data-agent="451"
                 data-prs="17"
@@ -618,7 +618,8 @@
                 <div class="stage-inner flip">
                     <div class="card">
                         <p class="kicker">
-                            <span class="tag tag--agent">Agent</span><span class="when">Mon 00:11</span>
+                            <span class="tag tag--agent">Agent</span
+                            ><span class="when">Alone for 2 h 11 min · 167 actions</span>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/17">#17</a>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/18">#18</a>
                         </p>
@@ -647,8 +648,8 @@
             <section
                 class="stage stage--agent tone-lilac"
                 id="m6"
-                data-when="Mon 9 Nov · 00:22"
                 data-t="9:41"
+                data-alone="2:22"
                 data-human="4"
                 data-agent="479"
                 data-prs="18"
@@ -658,7 +659,8 @@
                 <div class="stage-inner stage-inner--solo">
                     <div class="card">
                         <p class="kicker">
-                            <span class="tag tag--agent">Agent</span><span class="when">00:22</span>
+                            <span class="tag tag--agent">Agent</span
+                            ><span class="when">Alone for 2 h 22 min · 195 actions</span>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/19">#19</a>
                         </p>
                         <h2><span class="m">M6</span>The one thing it won't do alone</h2>
@@ -675,7 +677,6 @@
             <section
                 class="stage stage--human stage--quote"
                 id="morning"
-                data-when="Mon 9 Nov · 06:46"
                 data-t="16:06"
                 data-human="6"
                 data-agent="495"
@@ -685,7 +686,7 @@
             >
                 <div class="stage-inner stage-inner--solo">
                     <p class="kicker">
-                        <span class="tag tag--human">Human</span><span class="when">Messages 5–6 · Mon 06:41</span>
+                        <span class="tag tag--human">Human</span><span class="when">Messages 5–6</span>
                     </p>
                     <blockquote class="bubble">“Meanwhile, what can I do to help? Do I give you API keys?”</blockquote>
                     <p class="reply">
@@ -698,7 +699,6 @@
             <section
                 class="stage stage--human stage--quote"
                 id="relay"
-                data-when="Mon 9 Nov · 17:52"
                 data-t="27:12"
                 data-human="7"
                 data-agent="495"
@@ -707,9 +707,7 @@
                 data-done="M0 M1 M2 M3 M4 M5 M6~"
             >
                 <div class="stage-inner stage-inner--solo">
-                    <p class="kicker">
-                        <span class="tag tag--human">Human</span><span class="when">Message 7 · Mon 17:52</span>
-                    </p>
+                    <p class="kicker"><span class="tag tag--human">Human</span><span class="when">Message 7</span></p>
                     <blockquote class="bubble">
                         “Carry on with what you were doing in the other session. Go as far as you can, on your own!”
                     </blockquote>
@@ -723,8 +721,8 @@
             <section
                 class="stage stage--agent tone-peach"
                 id="m7-screens"
-                data-when="Mon 9 Nov · 18:32"
                 data-t="27:52"
+                data-alone="0:40"
                 data-human="7"
                 data-agent="599"
                 data-prs="20"
@@ -734,7 +732,8 @@
                 <div class="stage-inner">
                     <div class="card">
                         <p class="kicker">
-                            <span class="tag tag--agent">Agent</span><span class="when">18:32</span>
+                            <span class="tag tag--agent">Agent</span
+                            ><span class="when">Alone for 40 min · 104 actions</span>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/20">#20</a>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/21">#21</a>
                         </p>
@@ -763,7 +762,6 @@
             <section
                 class="stage stage--human stage--quote"
                 id="again"
-                data-when="Mon 9 Nov · 21:13"
                 data-t="30:32"
                 data-human="8"
                 data-agent="607"
@@ -772,9 +770,7 @@
                 data-done="M0 M1 M2 M3 M4 M5 M6~"
             >
                 <div class="stage-inner stage-inner--solo">
-                    <p class="kicker">
-                        <span class="tag tag--human">Human</span><span class="when">Message 8 · 21:13</span>
-                    </p>
+                    <p class="kicker"><span class="tag tag--human">Human</span><span class="when">Message 8</span></p>
                     <blockquote class="bubble">
                         “Carry on with what you were doing. Go as far as you can, on your own!”
                     </blockquote>
@@ -788,8 +784,8 @@
             <section
                 class="stage stage--agent tone-rose"
                 id="m7-juice"
-                data-when="Mon 9 Nov · 21:30"
                 data-t="30:50"
+                data-alone="0:18"
                 data-human="8"
                 data-agent="653"
                 data-prs="21"
@@ -799,7 +795,8 @@
                 <div class="stage-inner flip">
                     <div class="card">
                         <p class="kicker">
-                            <span class="tag tag--agent">Agent</span><span class="when">21:30</span>
+                            <span class="tag tag--agent">Agent</span
+                            ><span class="when">Alone for 18 min · 46 actions</span>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/22">#22</a>
                         </p>
                         <h2><span class="m">M7</span>Juice</h2>
@@ -827,8 +824,8 @@
             <section
                 class="stage stage--agent tone-mint"
                 id="m7-hud"
-                data-when="Mon 9 Nov · 22:15"
                 data-t="31:35"
+                data-alone="1:03"
                 data-human="8"
                 data-agent="694"
                 data-prs="22"
@@ -838,7 +835,8 @@
                 <div class="stage-inner">
                     <div class="card">
                         <p class="kicker">
-                            <span class="tag tag--agent">Agent</span><span class="when">22:15</span>
+                            <span class="tag tag--agent">Agent</span
+                            ><span class="when">Alone for 1 h 3 min · 87 actions</span>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/23">#23</a>
                         </p>
                         <h2><span class="m">M7</span>A bar that explains itself</h2>
@@ -865,7 +863,6 @@
             <section
                 class="stage stage--human stage--chat"
                 id="check-ins"
-                data-when="Mon 9 Nov · 22:42"
                 data-t="32:01"
                 data-human="11"
                 data-agent="740"
@@ -875,13 +872,13 @@
             >
                 <div class="stage-inner stage-inner--solo">
                     <p class="kicker">
-                        <span class="tag tag--human">Human</span><span class="when">Messages 9–11 · 22:26 → 22:42</span>
+                        <span class="tag tag--human">Human</span><span class="when">Messages 9–11</span>
                     </p>
                     <h2>The human checks in</h2>
                     <ol class="chat">
-                        <li><time>22:26</time>“Meanwhile… where are you at??”</li>
-                        <li><time>22:40</time>“Very briefly: where are we?”</li>
-                        <li><time>22:42</time>“Carry on… or: what should I do?”</li>
+                        <li>“Meanwhile… where are you at??”</li>
+                        <li>“Very briefly: where are we?”</li>
+                        <li>“Carry on… or: what should I do?”</li>
                     </ol>
                     <p class="reply">
                         <span class="tag tag--agent">Agent</span>Three status checks in 16 minutes. It answers each, and
@@ -893,8 +890,8 @@
             <section
                 class="stage stage--agent tone-butter"
                 id="m8"
-                data-when="Mon 9 Nov · 22:53"
                 data-t="32:13"
+                data-alone="0:12"
                 data-human="11"
                 data-agent="759"
                 data-prs="25"
@@ -904,7 +901,8 @@
                 <div class="stage-inner flip">
                     <div class="card">
                         <p class="kicker">
-                            <span class="tag tag--agent">Agent</span><span class="when">22:53</span>
+                            <span class="tag tag--agent">Agent</span
+                            ><span class="when">Alone for 12 min · 19 actions</span>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/24">#24</a>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/25">#25</a>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/26">#26</a>
@@ -934,7 +932,6 @@
             <section
                 class="stage stage--human stage--quote"
                 id="this-page"
-                data-when="Mon 9 Nov · 23:05"
                 data-t="32:24"
                 data-human="12"
                 data-agent="762"
@@ -943,9 +940,7 @@
                 data-done="M0 M1 M2 M3 M4 M5 M6~ M7 M8"
             >
                 <div class="stage-inner stage-inner--solo">
-                    <p class="kicker">
-                        <span class="tag tag--human">Human</span><span class="when">Message 12 · 23:05</span>
-                    </p>
+                    <p class="kicker"><span class="tag tag--human">Human</span><span class="when">Message 12</span></p>
                     <blockquote class="bubble">
                         “Put the game on /gottago and its story on /story. Build the story on your own, and keep it
                         updated.”
@@ -960,7 +955,6 @@
             <section
                 class="stage stage--human stage--quote"
                 id="sketches-first"
-                data-when="Wed 11 Nov · 20:06"
                 data-t="77:25"
                 data-human="16"
                 data-agent="936"
@@ -969,9 +963,7 @@
                 data-done="M0 M1 M2 M3 M4 M5 M6~ M7 M8"
             >
                 <div class="stage-inner stage-inner--solo">
-                    <p class="kicker">
-                        <span class="tag tag--human">Human</span><span class="when">Message 16 · 20:06</span>
-                    </p>
+                    <p class="kicker"><span class="tag tag--human">Human</span><span class="when">Message 16</span></p>
                     <blockquote class="bubble">
                         “Show me the sketches before you build the assets, so we choose the style together. And put the
                         rejected and the accepted ones in the story.”
@@ -986,8 +978,8 @@
             <section
                 class="stage stage--agent tone-mint"
                 id="v0-1-0"
-                data-when="Wed 11 Nov · 20:12"
                 data-t="77:31"
+                data-alone="0:04"
                 data-human="16"
                 data-agent="956"
                 data-prs="28"
@@ -997,7 +989,8 @@
                 <div class="stage-inner">
                     <div class="card">
                         <p class="kicker">
-                            <span class="tag tag--human">Human</span><span class="when">20:12</span>
+                            <span class="tag tag--human">Human</span
+                            ><span class="when">Alone for 4 min · 20 actions</span>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/2">#2</a>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/releases/tag/v0.1.0"
                                 >v0.1.0</a
@@ -1017,7 +1010,6 @@
             <section
                 class="stage stage--human stage--quote"
                 id="phone-question"
-                data-when="Wed 11 Nov · 23:23"
                 data-t="80:42"
                 data-human="25"
                 data-agent="1007"
@@ -1027,7 +1019,7 @@
             >
                 <div class="stage-inner stage-inner--solo">
                     <p class="kicker">
-                        <span class="tag tag--human">Human</span><span class="when">Messages 13 and 25 · 23:23</span>
+                        <span class="tag tag--human">Human</span><span class="when">Messages 13 and 25</span>
                     </p>
                     <blockquote class="bubble">“Is the game playable on a phone too? Yes or no?”</blockquote>
                     <p class="reply">
@@ -1040,8 +1032,8 @@
             <section
                 class="stage stage--agent tone-peach"
                 id="benny-look"
-                data-when="Wed 11 Nov · 23:24"
                 data-t="80:43"
+                data-alone="0:01"
                 data-human="25"
                 data-agent="1010"
                 data-prs="30"
@@ -1050,7 +1042,10 @@
             >
                 <div class="stage-inner">
                     <div class="card">
-                        <p class="kicker"><span class="tag tag--agent">Agent</span><span class="when">23:24</span></p>
+                        <p class="kicker">
+                            <span class="tag tag--agent">Agent</span
+                            ><span class="when">Alone for 1 min · 3 actions</span>
+                        </p>
                         <h2><span class="m">M6</span>Benny, round 1</h2>
                         <ul class="facts">
                             <li>The first paid image: four sketches from the character sheet in the design.</li>
@@ -1078,8 +1073,8 @@
             <section
                 class="stage stage--agent tone-butter"
                 id="phone-notice"
-                data-when="Wed 11 Nov · 23:33"
                 data-t="80:52"
+                data-alone="0:07"
                 data-human="26"
                 data-agent="1120"
                 data-prs="31"
@@ -1088,7 +1083,10 @@
             >
                 <div class="stage-inner flip">
                     <div class="card">
-                        <p class="kicker"><span class="tag tag--agent">Agent</span><span class="when">23:33</span></p>
+                        <p class="kicker">
+                            <span class="tag tag--agent">Agent</span
+                            ><span class="when">Alone for 7 min · 85 actions</span>
+                        </p>
                         <h2>A note for phones</h2>
                         <ul class="facts">
                             <li>
@@ -1116,8 +1114,8 @@
             <section
                 class="stage stage--agent tone-mint"
                 id="food-look"
-                data-when="Thu 12 Nov · 22:11"
                 data-t="103:31"
+                data-alone="0:17"
                 data-human="32"
                 data-agent="1301"
                 data-prs="35"
@@ -1126,7 +1124,10 @@
             >
                 <div class="stage-inner flip">
                     <div class="card">
-                        <p class="kicker"><span class="tag tag--agent">Agent</span><span class="when">22:11</span></p>
+                        <p class="kicker">
+                            <span class="tag tag--agent">Agent</span
+                            ><span class="when">Alone for 17 min · 51 actions</span>
+                        </p>
                         <h2><span class="m">M6</span>The food, round 1</h2>
                         <ul class="facts">
                             <li>All thirteen items on one sheet: seven junk foods, six vegetables.</li>
@@ -1154,8 +1155,8 @@
             <section
                 class="stage stage--agent tone-lilac"
                 id="v0-2-0"
-                data-when="Thu 12 Nov · 22:12"
                 data-t="103:32"
+                data-alone="0:18"
                 data-human="32"
                 data-agent="1334"
                 data-prs="36"
@@ -1165,7 +1166,8 @@
                 <div class="stage-inner stage-inner--solo">
                     <div class="card">
                         <p class="kicker">
-                            <span class="tag tag--agent">Agent</span><span class="when">22:12</span>
+                            <span class="tag tag--agent">Agent</span
+                            ><span class="when">Alone for 18 min · 84 actions</span>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/37">#37</a>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/releases/tag/v0.2.0"
                                 >v0.2.0</a
@@ -1188,8 +1190,8 @@
             <section
                 class="stage stage--agent tone-sky"
                 id="m9-phone"
-                data-when="Fri 13 Nov · 08:13"
                 data-t="113:33"
+                data-alone="0:21"
                 data-human="34"
                 data-agent="1537"
                 data-prs="40"
@@ -1199,7 +1201,8 @@
                 <div class="stage-inner">
                     <div class="card">
                         <p class="kicker">
-                            <span class="tag tag--agent">Agent</span><span class="when">08:13</span>
+                            <span class="tag tag--agent">Agent</span
+                            ><span class="when">Alone for 21 min · 38 actions</span>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/44">#44</a>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/pull/46">#46</a>
                         </p>
@@ -1233,8 +1236,8 @@
             <section
                 class="stage stage--agent tone-lilac"
                 id="v0-3-0"
-                data-when="Fri 13 Nov · 18:12"
                 data-t="123:32"
+                data-alone="0:09"
                 data-human="36"
                 data-agent="1565"
                 data-prs="41"
@@ -1244,7 +1247,8 @@
                 <div class="stage-inner stage-inner--solo">
                     <div class="card">
                         <p class="kicker">
-                            <span class="tag tag--agent">Agent</span><span class="when">18:12</span>
+                            <span class="tag tag--agent">Agent</span
+                            ><span class="when">Alone for 9 min · 24 actions</span>
                             <a class="chip" href="https://github.com/andreagalle/poopcantwait/releases/tag/v0.2.0"
                                 >v0.2.0</a
                             >
@@ -1264,7 +1268,6 @@
             <section
                 class="stage stage--human stage--quote"
                 id="picks"
-                data-when="Fri 13 Nov · 19:00"
                 data-t="124:19"
                 data-human="37"
                 data-agent="1581"
@@ -1273,9 +1276,7 @@
                 data-done="M0 M1 M2 M3 M4 M5 M6~ M7 M8 M9~"
             >
                 <div class="stage-inner stage-inner--solo">
-                    <p class="kicker">
-                        <span class="tag tag--human">Human</span><span class="when">Message 37 · 19:00</span>
-                    </p>
+                    <p class="kicker"><span class="tag tag--human">Human</span><span class="when">Message 37</span></p>
                     <blockquote class="bubble">
                         “Benny 1 and food 2. Merged with squash: write it down as a rule that I prefer it on master, so
                         after these merges you always realign the history with dev.”
@@ -1290,8 +1291,8 @@
             <section
                 class="stage stage--agent tone-butter"
                 id="first-felt"
-                data-when="Fri 13 Nov · 23:57"
                 data-t="129:17"
+                data-alone="0:10"
                 data-human="40"
                 data-agent="1719"
                 data-prs="51"
@@ -1300,7 +1301,10 @@
             >
                 <div class="stage-inner flip">
                     <div class="card">
-                        <p class="kicker"><span class="tag tag--agent">Agent</span><span class="when">23:57</span></p>
+                        <p class="kicker">
+                            <span class="tag tag--agent">Agent</span
+                            ><span class="when">Alone for 10 min · 17 actions</span>
+                        </p>
                         <h2><span class="m">M6</span>First felt in town</h2>
                         <ul class="facts">
                             <li>Two more rounds of Benny: all the way round, then arms out at 40°, for the rig.</li>
@@ -1330,7 +1334,6 @@
             <section
                 class="stage stage--human stage--quote"
                 id="halo"
-                data-when="Sat 14 Nov · 00:27"
                 data-t="129:46"
                 data-human="41"
                 data-agent="1751"
@@ -1339,9 +1342,7 @@
                 data-done="M0 M1 M2 M3 M4 M5 M6~ M7 M8 M9~"
             >
                 <div class="stage-inner stage-inner--solo">
-                    <p class="kicker">
-                        <span class="tag tag--human">Human</span><span class="when">Message 41 · 00:27</span>
-                    </p>
+                    <p class="kicker"><span class="tag tag--human">Human</span><span class="when">Message 41</span></p>
                     <blockquote class="bubble">
                         “OK for the burger, go on with the others! But take away that yellow circle around the food: it
                         looks like a halo, it makes no sense.”
@@ -1356,8 +1357,8 @@
             <section
                 class="stage stage--agent tone-peach"
                 id="benny-in-felt"
-                data-when="Sat 14 Nov · 01:16"
                 data-t="130:35"
+                data-alone="0:11"
                 data-human="42"
                 data-agent="1854"
                 data-prs="54"
@@ -1366,7 +1367,10 @@
             >
                 <div class="stage-inner">
                     <div class="card">
-                        <p class="kicker"><span class="tag tag--agent">Agent</span><span class="when">01:16</span></p>
+                        <p class="kicker">
+                            <span class="tag tag--agent">Agent</span
+                            ><span class="when">Alone for 11 min · 32 actions</span>
+                        </p>
                         <h2><span class="m">M6</span>Benny steps in</h2>
                         <ul class="facts">
                             <li>From the sketch the human kept: 18,708 triangles, a skeleton of 24 joints, 1.3 MB.</li>
@@ -1395,8 +1399,8 @@
             <section
                 class="stage stage--agent tone-lilac"
                 id="v0-4-0"
-                data-when="Sat 14 Nov · 09:08"
                 data-t="138:28"
+                data-alone="0:00"
                 data-human="44"
                 data-agent="1875"
                 data-prs="55"
@@ -1405,7 +1409,10 @@
             >
                 <div class="stage-inner stage-inner--solo">
                     <div class="card">
-                        <p class="kicker"><span class="tag tag--agent">Agent</span><span class="when">09:08</span></p>
+                        <p class="kicker">
+                            <span class="tag tag--agent">Agent</span
+                            ><span class="when">Alone for under a minute · 1 actions</span>
+                        </p>
                         <h2><span class="m">v0.4.0</span>A felt town</h2>
                         <ul class="facts">
                             <li>In it: Benny in felt with five clips, the thirteen felt foods, no more halos.</li>
@@ -1421,7 +1428,6 @@
             <section
                 class="stage stage--human stage--quote"
                 id="cabins-only"
-                data-when="Sat 14 Nov · 10:20"
                 data-t="139:40"
                 data-human="47"
                 data-agent="1917"
@@ -1430,9 +1436,7 @@
                 data-done="M0 M1 M2 M3 M4 M5 M6~ M7 M8 M9~"
             >
                 <div class="stage-inner stage-inner--solo">
-                    <p class="kicker">
-                        <span class="tag tag--human">Human</span><span class="when">Message 47 · 10:20</span>
-                    </p>
+                    <p class="kicker"><span class="tag tag--human">Human</span><span class="when">Message 47</span></p>
                     <blockquote class="bubble">
                         “Vehicles 1. The toilets with the beacon won't do: I want them all of this kind, and that's it.
                         And Benny: when he runs he swings his arms too much and seems to skate. More of a brisk walk.”
@@ -1447,8 +1451,8 @@
             <section
                 class="stage stage--agent tone-mint"
                 id="felt-street"
-                data-when="Sat 14 Nov · 14:58"
                 data-t="144:17"
+                data-alone="0:12"
                 data-human="48"
                 data-agent="1979"
                 data-prs="59"
@@ -1457,7 +1461,10 @@
             >
                 <div class="stage-inner flip">
                     <div class="card">
-                        <p class="kicker"><span class="tag tag--agent">Agent</span><span class="when">14:58</span></p>
+                        <p class="kicker">
+                            <span class="tag tag--agent">Agent</span
+                            ><span class="when">Alone for 12 min · 12 actions</span>
+                        </p>
                         <h2><span class="m">M6</span>Felt traffic, felt toilets</h2>
                         <ul class="facts">
                             <li>Four little cars take turns and one red bus drives the avenues, all felt.</li>
@@ -1487,7 +1494,6 @@
             <section
                 class="stage stage--human stage--quote"
                 id="no-beam"
-                data-when="Sat 14 Nov · 18:01"
                 data-t="147:20"
                 data-human="49"
                 data-agent="2010"
@@ -1496,9 +1502,7 @@
                 data-done="M0 M1 M2 M3 M4 M5 M6~ M7 M8 M9~"
             >
                 <div class="stage-inner stage-inner--solo">
-                    <p class="kicker">
-                        <span class="tag tag--human">Human</span><span class="when">Message 49 · 18:01</span>
-                    </p>
+                    <p class="kicker"><span class="tag tag--human">Human</span><span class="when">Message 49</span></p>
                     <blockquote class="bubble">
                         “Benny is just right now!! Take it away [the green beam] and make the toilets always appear
                         against the buildings, never in the middle of the road. Improve the cars' dynamics too:
@@ -1515,8 +1519,8 @@
             <section
                 class="stage stage--agent tone-mint"
                 id="against-the-walls"
-                data-when="Sat 14 Nov · 18:55"
                 data-t="148:14"
+                data-alone="0:54"
                 data-human="49"
                 data-agent="2135"
                 data-prs="61"
@@ -1525,7 +1529,10 @@
             >
                 <div class="stage-inner flip">
                     <div class="card">
-                        <p class="kicker"><span class="tag tag--agent">Agent</span><span class="when">18:55</span></p>
+                        <p class="kicker">
+                            <span class="tag tag--agent">Agent</span
+                            ><span class="when">Alone for 54 min · 125 actions</span>
+                        </p>
                         <h2><span class="m">M6</span>Against the walls, round the corners</h2>
                         <ul class="facts">
                             <li>
@@ -1559,8 +1566,8 @@
             <section
                 class="stage stage--agent tone-lilac"
                 id="felt-furniture"
-                data-when="Sun 15 Nov · 02:20"
                 data-t="155:40"
+                data-alone="0:19"
                 data-human="51"
                 data-agent="2240"
                 data-prs="62"
@@ -1569,7 +1576,10 @@
             >
                 <div class="stage-inner">
                     <div class="card">
-                        <p class="kicker"><span class="tag tag--agent">Agent</span><span class="when">02:20</span></p>
+                        <p class="kicker">
+                            <span class="tag tag--agent">Agent</span
+                            ><span class="when">Alone for 19 min · 37 actions</span>
+                        </p>
                         <h2><span class="m">M6</span>Felt furniture, felt facades</h2>
                         <ul class="facts">
                             <li>
@@ -1600,8 +1610,8 @@
             <section
                 class="stage stage--agent tone-lilac"
                 id="v0-5-0"
-                data-when="Sun 15 Nov · 09:05"
                 data-t="162:24"
+                data-alone="0:05"
                 data-human="52"
                 data-agent="2265"
                 data-prs="63"
@@ -1610,7 +1620,10 @@
             >
                 <div class="stage-inner stage-inner--solo">
                     <div class="card">
-                        <p class="kicker"><span class="tag tag--agent">Agent</span><span class="when">09:05</span></p>
+                        <p class="kicker">
+                            <span class="tag tag--agent">Agent</span
+                            ><span class="when">Alone for 5 min · 14 actions</span>
+                        </p>
                         <h2><span class="m">v0.5.0</span>Felt streets</h2>
                         <ul class="facts">
                             <li>
@@ -1627,7 +1640,6 @@
             <section
                 class="stage stage--agent stage--numbers tone-sky"
                 id="who-did-what"
-                data-when="So far"
                 data-t="162:24"
                 data-human="{{humanMessages}}"
                 data-agent="{{agentActions}}"
@@ -1651,6 +1663,7 @@
                             <p class="side-title">Agent</p>
                             <ul>
                                 <li><b>{{agentActions}}</b> actions (tool calls)</li>
+                                <li><b>{{aloneHours}} h</b> of work on its own</li>
                                 <li><b>{{pullRequests}}</b> pull requests, merged on green CI</li>
                                 <li><b>{{gameLines}}</b> lines of game code</li>
                                 <li><b>{{unitTests}}</b> unit tests, <b>{{e2eTests}}</b> end-to-end</li>
@@ -1659,11 +1672,12 @@
                     </div>
                     <div class="ratio" data-human="{{humanMessages}}" data-agent="{{agentActions}}">
                         <span class="ratio-human"></span>
-                        <span class="ratio-label">Human messages against agent actions</span>
+                        <span class="ratio-label"
+                            >Human messages against agent actions: 1 to {{actionsPerMessage}}</span
+                        >
                     </div>
                     <p class="note">
-                        About {{workHours}} hours of agent work in {{clockHours}} on the clock. The rest was waiting:
-                        for a push, a go, the morning, new credits.
+                        Longest run without a word from the human: {{longestAlone}}, {{longestAloneActions}} actions.
                     </p>
                 </div>
             </section>
@@ -1672,7 +1686,6 @@
                 class="stage stage--end tone-mint"
                 id="next"
                 data-kind="end"
-                data-when="Next"
                 data-t="162:24"
                 data-human="{{humanMessages}}"
                 data-agent="{{agentActions}}"
@@ -1697,7 +1710,6 @@
                             </a>
                             <a class="btn" href="#top">Back to the top</a>
                         </nav>
-                        <p class="note">Updated {{updated}}.</p>
                     </div>
                 </div>
             </section>
