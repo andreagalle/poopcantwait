@@ -222,9 +222,10 @@ supervision it takes, so **keep it current as part of the work, not as an aftert
   actions", counted since the maintainer's last message; the HUD shows the project day; side stories say "Day n"; the
   closing stage gives the totals (`aloneHours`, `longestAlone`, `actionsPerMessage` in `site/stats.json`).
 - **The numbers.** Run `npm run story:stats` in the Codespace: it lists every maintainer message and merged PR with
-  the agent's tool calls up to that moment, and how long the agent went on alone after each message (a run: from the
-  message to the agent's last action before the next one); `-- --json` gives the same without the messages' text. Use
-  its values in the stage (`data-alone` and the kicker), and update the totals in `site/stats.json`.
+  the agent's tool calls up to that moment, and how long the agent worked after each message; `-- --json` gives the same
+  without the messages' text. A run goes from one message of the maintainer to the next, adding up the agent's working
+  time; messages that only resume an interrupted session ("continua") are nudges and do not end it, as the maintainer
+  asked. Use its values in the stage (`data-alone` and the kicker), and update the totals in `site/stats.json`.
   If the transcripts are not available (another machine), say so in the PR and leave the counts you cannot measure.
 - **The words.** English, short: a title of a few words, at most one line of lede, two to four facts with real numbers
   (tuning values, timings, sizes). Quote the maintainer briefly, translated from Italian, never more than they wrote.
