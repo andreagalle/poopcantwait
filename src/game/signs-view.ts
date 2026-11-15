@@ -21,6 +21,7 @@ import { lightAt } from '../core/traffic/signals';
 import type { SignKind, StreetSign } from '../core/traffic/street-signs';
 import { MeshBuilder } from '../render/mesh-builder';
 import { PALETTE } from '../render/palette';
+import { SIDEWALK_HEIGHT } from '../render/sidewalk-map';
 
 import { pieceOf } from './props-view';
 
@@ -98,7 +99,7 @@ export class SignsView {
             const matrices = new Float32Array(list.length * 16);
             const s = HEIGHT[kind] / piece.extents.y;
             list.forEach((sign, i) => {
-                position.set(sign.x, 0, sign.z);
+                position.set(sign.x, SIDEWALK_HEIGHT, sign.z);
                 turn.setFromEulerAngles(0, (Math.atan2(sign.facing.x, sign.facing.z) * 180) / Math.PI, 0);
                 trs.setTRS(position, turn, scale.set(s, s, s));
                 world.mul2(trs, piece.base);
@@ -128,7 +129,7 @@ export class SignsView {
             const at = (share: number): Vec3 =>
                 new Vec3(
                     sign.x + sign.facing.x * forward,
-                    share * HEIGHT['traffic-light'],
+                    SIDEWALK_HEIGHT + share * HEIGHT['traffic-light'],
                     sign.z + sign.facing.z * forward
                 );
             this.lights.push({

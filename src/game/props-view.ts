@@ -17,6 +17,7 @@ import type { PropKind } from '../core/city/props';
 import type { City } from '../core/city/types';
 import { MeshBuilder } from '../render/mesh-builder';
 import { PALETTE } from '../render/palette';
+import { SIDEWALK_HEIGHT } from '../render/sidewalk-map';
 
 /** The felt model of each kind of street furniture but the trees (design: *Street props*). */
 export const PROP_MODELS = {
@@ -89,6 +90,8 @@ const SIZE: Record<Exclude<PropKind, 'tree'>, Size> = {
 interface Placement {
     readonly x: number;
     readonly z: number;
+    /** The ground under it: the sidewalk's height for street furniture, 0 in the park. */
+    readonly y: number;
     /** Turn about the vertical axis, in degrees: the model's front (+z) to the way the piece faces. */
     readonly yaw: number;
     readonly size: Size;
@@ -198,15 +201,21 @@ export class PropsView {
                 const { species, height } = STREET_TREES[streetTrees++ % STREET_TREES.length];
                 // Trees turn any way, so they do not look stamped
                 const size = { width: canopy, height, length: canopy, uniform: true };
-                add(TREE_MODELS[species], 'tree', { x: p.x, z: p.z, yaw: (streetTrees * 97) % 360, size });
+                add(TREE_MODELS[species], 'tree', {
+                    x: p.x,
+                    z: p.z,
+                    y: SIDEWALK_HEIGHT,
+                    yaw: (streetTrees * 97) % 360,
+                    size
+                });
             } else {
-                add(PROP_MODELS[p.kind], p.kind, { x: p.x, z: p.z, yaw, size: SIZE[p.kind] });
+                add(PROP_MODELS[p.kind], p.kind, { x: p.x, z: p.z, y: SIDEWALK_HEIGHT, yaw, size: SIZE[p.kind] });
             }
         }
         city.park.trees.forEach((t, i) => {
             const { species, height } = PARK_TREES[(i * 3) % PARK_TREES.length];
             const size = { width: PARK_CANOPY_METRES, height, length: PARK_CANOPY_METRES, uniform: true };
-            add(TREE_MODELS[species], 'tree', { x: t.x, z: t.z, yaw: (i * 137) % 360, size });
+            add(TREE_MODELS[species], 'tree', { x: t.x, z: t.z, y: 0, yaw: (i * 137) % 360, size });
         });
 
         const greybox = new MeshBuilder();
@@ -225,7 +234,7 @@ export class PropsView {
             }
             const matrices = new Float32Array(list.length * 16);
             list.forEach((p, i) => {
-                position.set(p.x, 0, p.z);
+                position.set(p.x, p.y, p.z);
                 turn.setFromEulerAngles(0, p.yaw, 0);
                 trs.setTRS(position, turn, scaleFor(p.size, piece.extents, scale));
                 world.mul2(trs, piece.base);

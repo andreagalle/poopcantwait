@@ -13,6 +13,7 @@ import { MeshBuilder, meshFromArrays } from './mesh-builder';
 import type { MeshArrays } from './mesh-builder';
 import { PALETTE } from './palette';
 import { addRoof } from './roofs';
+import { SIDEWALK_HEIGHT } from './sidewalk-map';
 
 /** Parkland and river drawn beyond the city border so the camera never sees the void, in metres. */
 const EDGE_EXTENT = 90;
@@ -29,7 +30,6 @@ const ROAD_LIFT: Record<string, number> = { alley: 0.02, street: 0.03, avenue: 0
 const OPEN_SPACE_LIFT = 0.02;
 /** White paint lies just above the widest road; sidewalks stand a kerb's height above the road. */
 const PAINT_LIFT = 0.056;
-const SIDEWALK_HEIGHT = 0.1;
 /** The felt tile repeats every this many metres on the ground. */
 const FELT_METRES = 3;
 const EDGE_DROP = { parkland: -0.15, riverbank: -0.1, river: -0.05 };

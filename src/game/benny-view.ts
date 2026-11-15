@@ -37,7 +37,11 @@ export class BennyView {
     private lastZ = 0;
     private lastTime = 0;
 
-    constructor(entity: Entity) {
+    /** The ground's height under a point: he steps up onto the sidewalks. */
+    private readonly groundAt: (x: number, z: number) => number;
+
+    constructor(entity: Entity, groundAt: (x: number, z: number) => number = () => 0) {
+        this.groundAt = groundAt;
         this.entity = entity;
         this.pose = entity.findByName('benny-pose') as Entity;
         this.anim = (entity.findByName('benny-model') as Entity | null)?.anim ?? null;
@@ -58,7 +62,7 @@ export class BennyView {
         const heading = a.heading + wrapAngle(b.heading - a.heading) * alpha;
         // Inside a toilet he is out of sight
         this.entity.enabled = game.phase !== 'relief';
-        this.entity.setPosition(x, 0, z);
+        this.entity.setPosition(x, this.groundAt(x, z), z);
         this.entity.setEulerAngles(0, heading * RADIANS_TO_DEGREES, 0);
         const knocked = game.stunSecondsLeft > 0;
         // The capsule tips over; the model plays its fall instead
