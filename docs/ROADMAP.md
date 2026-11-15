@@ -8,18 +8,18 @@ could not verify, and the branches it proposes next.
 
 Gameplay comes first, in greybox; art comes later (M6), so no generation credits are spent on things that may change.
 
-| Milestone                     | Status                                                                                 |
-| ----------------------------- | -------------------------------------------------------------------------------------- |
-| M0: scaffold and toolchain    | Done (#3)                                                                              |
-| M1: the city                  | Done (#5, #6)                                                                          |
-| M2: Benny moves               | Done (#7, #8)                                                                          |
-| M3: the clock and the toilets | Done (#9 to #13)                                                                       |
-| M4: food, weight and score    | Done (#14 to #16)                                                                      |
-| M5: traffic                   | Done (#17, #18)                                                                        |
-| M6: art pass                  | Benny, food, vehicles, toilets, street props, facades in felt (#55 to #66); roads left |
-| M7: game feel and flow        | Done (#20 to #23)                                                                      |
-| M8: hardening                 | Done (#24 to #26)                                                                      |
-| M9: touch controls            | In progress: touch input and compact HUD done                                          |
+| Milestone                     | Status                                                                                     |
+| ----------------------------- | ------------------------------------------------------------------------------------------ |
+| M0: scaffold and toolchain    | Done (#3)                                                                                  |
+| M1: the city                  | Done (#5, #6)                                                                              |
+| M2: Benny moves               | Done (#7, #8)                                                                              |
+| M3: the clock and the toilets | Done (#9 to #13)                                                                           |
+| M4: food, weight and score    | Done (#14 to #16)                                                                          |
+| M5: traffic                   | Done (#17, #18)                                                                            |
+| M6: art pass                  | Done (#55 to #75): Benny, food, vehicles, toilets, trees, roads, facades and roofs in felt |
+| M7: game feel and flow        | Done (#20 to #23)                                                                          |
+| M8: hardening                 | Done (#24 to #26)                                                                          |
+| M9: touch controls            | In progress: touch input and compact HUD done                                              |
 
 ## M0: scaffold and toolchain
 

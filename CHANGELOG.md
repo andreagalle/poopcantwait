@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-15
+
 ### Added
 
 - Felt facades from the buildings and shops the maintainer kept: each wall cut into bays and storeys of about 3 m, a
@@ -17,18 +19,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Roofs that differ from building to building: flat with a parapet, air conditioning and water tanks; vegetable gardens
   with raised beds and a greenhouse; pitched felt tiles with brick chimneys; slate mansards with dormers. Drawn with the
   buildings, they fade with them, and a roof that hides Benny makes its building fade.
-
 - Felt roads from the crossroads the maintainer kept: raised sidewalks with a kerb along every facade, zebra crossings
   on every arm of every crossing, stop lines and dashed centre lines, all in felt (a plain felt tile, 7.5 kB, now on the
   whole ground).
 - Traffic lights where avenues and boulevards cross, with phases: green, amber and all red for each axis in turn. Cars
   and buses stop at the line on red and queue; the lit lamp glows. Stop, give-way, pedestrian crossing and 30 limit
   signs at the other crossings, and bus shelters along the boulevards. Six Meshy models of 1,000 triangles (428 kB).
-
 - Seven felt trees from the town's sketches the maintainer kept: plane, poplar, fir, willow, cherry in blossom, maple in
   autumn and lime, 1,164 to 1,499 triangles each (676 kB in all). Limes, poplars and maples line the boulevards, 5 to
   8 m tall; the park has every kind, 6 to 10 m tall. One draw call per kind, with instancing. They replace the single
   felt tree.
+- The story's side story _The town_ (`/story/town/`): the round of sketches for the crossroads, the trees, the
+  buildings and sixteen shops, the maintainer's picks, and each pick in the game.
+
+### Changed
+
+- The story names no dates and no times of day, at the maintainer's request: the HUD shows the project day and how long
+  the agent had been going on its own, an agent's stage says "Alone for ... · n actions", a human's "Message n", and the
+  closing stage gives the hours of work on its own, the longest run and the actions per message. Messages that only
+  resumed an interrupted session ("continua") no longer end a run (`npm run story:stats`).
 
 ## [0.5.0] - 2026-11-15
 
