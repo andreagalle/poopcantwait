@@ -60,9 +60,18 @@ test('the story snaps from stage to stage and moves its HUD along', async ({ pag
     await page.goto('/story/#go');
     await expect(page.locator('#go')).toHaveClass(/is-active/);
     await expect(page.locator('.hud-human-n')).toHaveText('4');
-    await expect(page.locator('.hud-t')).toHaveText('T+7:19');
+    await expect(page.locator('.hud-t')).toHaveText('Day 1');
+    await expect(page.locator('.hud-when')).toHaveText('The human writes');
     await expect(page.locator('.seg.done')).toHaveCount(3);
     await page.screenshot({ path: `${SCREENSHOT_DIR}/site-story-go.png` });
+
+    // An agent's stage says how long it had been going on its own; the page names no date and no time of day
+    await page.goto('/story/#m2');
+    await expect(page.locator('#m2')).toHaveClass(/is-active/);
+    await expect(page.locator('.hud-when')).toHaveText(/on its own$/);
+    const text = await page.locator('main').innerText();
+    expect(text).not.toMatch(/\b\d{1,2}:\d{2}\b/);
+    expect(text).not.toMatch(/\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun) \d{1,2} Nov\b/);
 
     // Every screenshot in the story decodes
     const broken = await page.locator('.shot img').evaluateAll(async (images) => {
