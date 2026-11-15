@@ -1,5 +1,7 @@
-import { KIOSKS, POPUP_TOILETS } from '../../config/tuning';
+import { CITY, KIOSKS, POPUP_TOILETS } from '../../config/tuning';
 import type { NavGrid } from '../city/navgrid';
+import { isCircle } from '../city/props';
+import type { StreetProp } from '../city/props';
 import { ZONE } from '../city/types';
 import type { Building, Point, Zone } from '../city/types';
 import { clampWeight } from '../player/weight';
@@ -31,6 +33,24 @@ function openForCabin(zone: Zone): boolean {
     return zone === ZONE.avenue || zone === ZONE.boulevard || zone === ZONE.plaza || zone === ZONE.park;
 }
 
+/**
+ * Whether a cabin at a spot would stand in a piece of street furniture's way: on it, against it, or under a tree's
+ * canopy.
+ */
+function crowds(spot: Point, prop: StreetProp): boolean {
+    const margin = POPUP_TOILETS.footprintMetres / 2 + 0.3;
+    if (prop.kind === 'tree') {
+        return Math.hypot(spot.x - prop.x, spot.z - prop.z) < CITY.streetProps.kinds.tree.canopyRadiusMetres + margin;
+    }
+    const s = prop.solid;
+    if (isCircle(s)) {
+        return Math.hypot(spot.x - s.x, spot.z - s.z) < s.radius + margin;
+    }
+    const dx = Math.max(s.x0 - spot.x, 0, spot.x - s.x1);
+    const dz = Math.max(s.z0 - spot.z, 0, spot.z - s.z1);
+    return Math.hypot(dx, dz) < margin;
+}
+
 /** Seconds between two pop-ups: 25 s for a slim Benny down to 6 s at maximum weight (initial tuning). */
 export function popupIntervalAt(w: number): number {
     const { atZeroWeight, atMaxWeight } = POPUP_TOILETS.spawnIntervalSeconds;
@@ -51,7 +71,11 @@ export function popupDoor(popup: PopupSpot, radius: number): Point {
  * facade, its door facing away from it, on open ground where no car passes. Computed once per city; which of them Benny
  * can use depends on his girth and where he is (`choosePopupSpot`).
  */
-export function wallSpots(nav: NavGrid, buildings: readonly Building[]): PopupSpot[] {
+export function wallSpots(
+    nav: NavGrid,
+    buildings: readonly Building[],
+    props: readonly StreetProp[] = []
+): PopupSpot[] {
     const footprint = POPUP_TOILETS.footprintMetres;
     const half = footprint / 2;
     const spots: PopupSpot[] = [];
@@ -69,7 +93,10 @@ export function wallSpots(nav: NavGrid, buildings: readonly Building[]): PopupSp
                 }
             }
         }
-        spots.push({ x: fx + facing.x * half, z: fz + facing.z * half, facing });
+        const spot = { x: fx + facing.x * half, z: fz + facing.z * half, facing };
+        if (!props.some((p) => crowds(spot, p))) {
+            spots.push(spot);
+        }
     };
     for (const { rect } of buildings) {
         // Along each side, one metre apart, never past the building's corners

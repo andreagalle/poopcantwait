@@ -171,7 +171,7 @@ export class Game {
         this.foodRng = runRng.fork();
         this.trafficRng = runRng.fork();
         this.lanes = buildLaneGraph(city);
-        this.wallSpots = wallSpots(city.nav, city.buildings);
+        this.wallSpots = wallSpots(city.nav, city.buildings, city.props);
         const initial = targetCounts(0);
         for (const type of ['car', 'bus'] as const) {
             for (let i = 0; i < initial[type]; i++) {

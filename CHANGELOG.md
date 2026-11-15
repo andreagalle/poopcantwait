@@ -7,6 +7,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Felt street furniture: trees, street lamps, benches and fire hydrants along both sides of the avenues and boulevards,
+  about 210 a city, against the facades and out of the lanes. They are solid, never at a crossing or a kiosk, and the
+  widest Benny still gets down every avenue. Four Meshy models of 1,000 triangles (288 kB in all), drawn with hardware
+  instancing, one call per kind; the park's trees are the felt tree too.
+- Felt facades: every building's walls repeat one felt tile, a stitched window on a plain wall (30 kB), tinted by the
+  building's colour, with a whole number of windows across and storeys up. Still one draw call for all the buildings.
+
 ### Changed
 
 - Pop-up toilets back onto a building, door to the open ground, on the sidewalks of avenues and boulevards: never in

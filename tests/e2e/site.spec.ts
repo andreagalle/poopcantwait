@@ -83,7 +83,7 @@ test('the story snaps from stage to stage and moves its HUD along', async ({ pag
 const SIDE_STORIES = [
     { stage: 'benny-look', link: /Side story: Benny's look/, path: 'benny', title: "Benny's look" },
     { stage: 'food-look', link: /Side story: The food set/, path: 'food', title: 'The food set' },
-    { stage: 'felt-street', link: /Side story: Traffic and toilets/, path: 'street', title: 'Traffic and toilets' }
+    { stage: 'felt-street', link: /Side story: The street/, path: 'street', title: 'The street' }
 ];
 
 for (const side of SIDE_STORIES) {

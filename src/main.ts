@@ -12,7 +12,7 @@ import {
     createGraphicsDevice
 } from 'playcanvas';
 
-import { loadModels } from './assets/load';
+import { loadAssets } from './assets/load';
 import { GameAudio } from './audio/game-audio';
 import { COLLISIONS, FOOD, SIMULATION } from './config/tuning';
 import { cueFor, initialRumble, musicTempo, tickRumble } from './core/audio/director';
@@ -31,6 +31,7 @@ import { addBenny } from './game/greybox';
 import { Juice } from './game/juice';
 import { KioskView } from './game/kiosk-view';
 import { PopupView } from './game/popup-view';
+import { PropsView, PROP_MODELS } from './game/props-view';
 import { VEHICLE_MODELS, VehicleView } from './game/vehicle-view';
 import type { MenuAction } from './input/keyboard';
 import { KeyboardInput, MenuKeys } from './input/keyboard';
@@ -95,16 +96,19 @@ const game = new Game(city, {
 });
 
 // The models of the art pass so far; anything without one keeps its greybox stand-in
-const models = await loadModels(app, [
+const models = await loadAssets(app, [
+    'texture.facade-felt',
     'char.benny',
     'toilet.cabin',
     ...VEHICLE_MODELS.car,
     ...VEHICLE_MODELS.bus,
-    ...Object.values(FOOD_MODELS)
+    ...Object.values(FOOD_MODELS),
+    ...Object.values(PROP_MODELS)
 ]);
 
 addSunlight(app);
-const cityView = new CityView(app, city);
+const cityView = new CityView(app, city, models.get('texture.facade-felt'));
+new PropsView(app, city, models);
 const bennyView = new BennyView(addBenny(app, models.get('char.benny')));
 const kioskView = new KioskView(app, city, models.get('toilet.cabin'));
 const popupView = new PopupView(app, models.get('toilet.cabin'));

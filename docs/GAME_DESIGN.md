@@ -139,6 +139,22 @@ _Initial_ generation parameters:
 | Park trees                        | every 9 m, trunk radius 0.8 m, 3 m margin |
 | River sides                       | 1 or 2 (the others are parkland)          |
 
+### Street props
+
+- Street furniture in felt lines both sides of the avenues and boulevards: trees, street lamps, benches and fire
+  hydrants. Each piece stands against a continuous facade, never at a crossing, an alley mouth or a kiosk, and it is
+  solid: Benny walks around it like around a building.
+- It stays out of the lanes and never keeps a Benny who fits a road out of it: on an avenue it reaches at most 1.3 m
+  from the facades, where a bus passes 1.7 m from them, and the middle of every avenue and boulevard keeps room for the
+  widest Benny. Streets, alleys, the plaza and the park get none (the park keeps its trees).
+- Pop-up toilets keep clear of it: never on or against a piece, nor under a tree's canopy.
+- _Initial_ layout: one spot every 10 m along an avenue (in turn: lamp, nothing, bench, nothing, lamp, nothing,
+  hydrant, nothing) and every 8 m along a boulevard (tree, lamp, tree, bench, tree, lamp, tree, hydrant); the far side
+  starts half way through, so the two sides do not mirror each other. No spot within 3 m of a crossing or a kiosk.
+  Trees stand 2 m from the facade (trunk 0.35 m, canopy 1.6 m in radius, boulevards only), lamps and hydrants 1 m
+  (0.25 and 0.3 m in radius), benches against it (1.8 by 0.8 m). About 210 pieces a city.
+- The layout draws no random numbers, so for a seed the roads, buildings and kiosks stay what they were.
+
 ## Weight, girth and speed
 
 Weight `w` goes from 0 (slim) to 1 (maximum). Junk food adds weight; nothing removes it during a run.
@@ -369,6 +385,11 @@ Effects show what happened; they never change the run, and they freeze with the 
 A toy-town diorama: chunky rounded shapes, soft pastel buildings with saturated accents, warm afternoon light, soft
 shadows. Readability from a high camera beats detail: strong silhouettes, clear colors per role (food gold, vegetables
 green, toilets green or red, vehicles bright solid colors). No real brands, logos or car models anywhere.
+
+Everything is sewn from felt, with visible stitched seams: Benny, the food, the vehicles, the toilet cabins, the street
+furniture, and the buildings, whose walls repeat one felt tile, a stitched window on a plain wall, tinted by each
+building's pastel colour; each wall shows a whole number of windows across and storeys up (about 3 by 3 m each), so no
+window is cut by a corner or the roof.
 
 ## Out of scope for version 1
 

@@ -1,5 +1,5 @@
-import { BLEND_NORMAL, Color, Entity, MeshInstance, StandardMaterial } from 'playcanvas';
-import type { AppBase } from 'playcanvas';
+import { ADDRESS_REPEAT, BLEND_NORMAL, Color, Entity, MeshInstance, StandardMaterial } from 'playcanvas';
+import type { AppBase, Asset, Texture } from 'playcanvas';
 
 import { CAMERA } from '../config/tuning';
 import type { Building, City, Rect, Side } from '../core/city/types';
@@ -13,9 +13,10 @@ const RIVERBANK_WIDTH = 6;
 const RIVER_WIDTH = 40;
 const HEDGE_HEIGHT = 1.1;
 const RAILING_HEIGHT = 0.9;
-const TREE = { trunkRadius: 0.3, trunkHeight: 1.6, canopyRadius: 2.1, canopyBase: 1.2, canopyTop: 5.6 };
 const FOUNTAIN = { rimHeight: 0.6, waterInset: 0.4, columnRadius: 0.35, columnHeight: 1.8 };
 const CLOCK_TOWER_ROOF_HEIGHT = 5;
+/** One tile of the felt facade, a window in its wall, covers about this much of a wall, in metres. */
+const FACADE = { bayMetres: 3, storeyMetres: 3 };
 /**
  * Roads draw at slightly different heights so the wider class wins where two of them cross. The steps are a few
  * centimetres, enough to avoid depth fighting at the farthest camera distance.
@@ -26,11 +27,15 @@ const EDGE_DROP = { parkland: -0.15, riverbank: -0.1, river: -0.05 };
 
 const tint = (c: Color, t: number): Color => new Color(c.r * t, c.g * t, c.b * t, c.a);
 
-function vertexColorMaterial(name: string, opacity = 1): StandardMaterial {
+function vertexColorMaterial(name: string, opacity = 1, facade?: Texture): StandardMaterial {
     const material = new StandardMaterial();
     material.name = name;
     material.diffuse.set(1, 1, 1);
     material.diffuseVertexColor = true;
+    if (facade) {
+        // The felt tile, tinted by each building's colour
+        material.diffuseMap = facade;
+    }
     material.useMetalness = true;
     material.metalness = 0;
     material.gloss = 0.2;
@@ -103,10 +108,23 @@ function addBuilding(mesh: MeshBuilder, b: Building): void {
         return;
     }
     const color = PALETTE.buildings[b.colorIndex % PALETTE.buildings.length];
-    mesh.addBox(r.x0, 0, r.z0, r.x1, b.height, r.z1, color, tint(color, PALETTE.roofTint));
+    mesh.addFacadeBox(
+        r.x0,
+        r.z0,
+        r.x1,
+        r.z1,
+        b.height,
+        color,
+        tint(color, PALETTE.roofTint),
+        FACADE.bayMetres,
+        FACADE.storeyMetres
+    );
 }
 
-/** The small static solids: fountain, trees, and the hedge and railing along the border (kiosks have their own view). */
+/**
+ * The small static solids: the fountain, and the hedge and railing along the border (kiosks, trees and the street
+ * furniture have their own views).
+ */
 function addSolids(city: City): MeshBuilder {
     const solids = new MeshBuilder();
 
@@ -114,11 +132,6 @@ function addSolids(city: City): MeshBuilder {
     solids.addCylinder(f.x, f.z, f.radius, 0, FOUNTAIN.rimHeight, PALETTE.fountainStone, 24);
     solids.addCylinder(f.x, f.z, f.radius - FOUNTAIN.waterInset, 0, FOUNTAIN.rimHeight + 0.02, PALETTE.water, 24);
     solids.addCylinder(f.x, f.z, FOUNTAIN.columnRadius, 0, FOUNTAIN.columnHeight, PALETTE.fountainStone, 10);
-
-    for (const t of city.park.trees) {
-        solids.addCylinder(t.x, t.z, TREE.trunkRadius, 0, TREE.trunkHeight, PALETTE.treeTrunk, 6);
-        solids.addCone(t.x, t.z, TREE.canopyRadius, TREE.canopyBase, TREE.canopyTop, PALETTE.treeCanopy, 8);
-    }
 
     // A hedge along parkland sides and a railing along the river: the city border is a wall
     const half = city.halfSize;
@@ -151,7 +164,7 @@ function layer(app: AppBase, name: string, mesh: MeshBuilder, material: Standard
 
 /**
  * The greybox city: one mesh for the ground (edge, roads coloured by class, plaza, park), one for the small solids
- * (fountain, trees, border), and the buildings split in two meshes, opaque and faded, so the buildings between
+ * (fountain, border), and the buildings split in two meshes, opaque and faded, so the buildings between
  * the camera and Benny can turn see-through (design: *Camera*). Three or four draw calls, plus the shadow pass.
  */
 export class CityView {
@@ -161,12 +174,21 @@ export class CityView {
     private readonly buildings: Entity;
     private readonly faded: Entity;
     private readonly opaqueMaterial = vertexColorMaterial('city-greybox');
-    private readonly fadedMaterial = vertexColorMaterial('city-faded', CAMERA.buildingFadeOpacity);
+    private readonly buildingMaterial: StandardMaterial;
+    private readonly fadedMaterial: StandardMaterial;
     private fadedKey = '';
 
-    constructor(app: AppBase, city: City) {
+    constructor(app: AppBase, city: City, facade?: Asset) {
         this.app = app;
         this.city = city;
+        const tile = facade?.resource as Texture | undefined;
+        if (tile) {
+            tile.addressU = ADDRESS_REPEAT;
+            tile.addressV = ADDRESS_REPEAT;
+            tile.anisotropy = 4;
+        }
+        this.buildingMaterial = vertexColorMaterial('city-buildings', 1, tile);
+        this.fadedMaterial = vertexColorMaterial('city-faded', CAMERA.buildingFadeOpacity, tile);
         this.root = new Entity('city');
         this.root.addChild(layer(app, 'city-ground', addGround(city), this.opaqueMaterial, false));
         this.root.addChild(layer(app, 'city-solids', addSolids(city), this.opaqueMaterial, true));
@@ -174,7 +196,7 @@ export class CityView {
             app,
             'city-buildings',
             this.buildingMesh(() => true),
-            this.opaqueMaterial,
+            this.buildingMaterial,
             true
         );
         this.faded = new Entity('city-buildings-faded');
@@ -206,7 +228,7 @@ export class CityView {
         const device = this.app.graphicsDevice;
         this.buildings.render!.meshInstances =
             faded.size < this.city.buildings.length
-                ? [new MeshInstance(this.buildingMesh((i) => !faded.has(i)).build(device), this.opaqueMaterial)]
+                ? [new MeshInstance(this.buildingMesh((i) => !faded.has(i)).build(device), this.buildingMaterial)]
                 : [];
         this.faded.enabled = faded.size > 0;
         this.faded.render!.meshInstances =
