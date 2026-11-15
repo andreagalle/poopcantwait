@@ -7,6 +7,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- No more stutter when a building fades: the buildings are drawn in 16 blocks of the city, and a fade rebuilds only the
+  blocks it touches, from geometry kept as typed arrays (about 0.5 ms a block instead of about 100 ms for the whole
+  city, now that facades and roofs have 205,000 vertices). The meshes it replaces are freed on the GPU, which they were
+  not before.
+
 ## [0.6.0] - 2026-11-15
 
 ### Added
