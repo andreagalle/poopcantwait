@@ -1,6 +1,7 @@
 import type { StreetClass } from '../../config/tuning';
 
 import type { NavGrid } from './navgrid';
+import type { StreetProp } from './props';
 
 /**
  * World coordinates are metres on the ground plane: x grows to the right of the screen, z towards the bottom of the
@@ -111,6 +112,8 @@ export interface City {
     readonly kioskSpots: readonly KioskSpot[];
     readonly plaza: Plaza;
     readonly park: Park;
+    /** Street furniture along the avenues and boulevards (`placeStreetProps`). */
+    readonly props: readonly StreetProp[];
     readonly edges: readonly CityEdge[];
     /** Where Benny starts: in the plaza, south of the fountain. */
     readonly spawn: Point;

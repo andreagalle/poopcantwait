@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
-import { NAVIGATION } from '../config/tuning';
+import { NAVIGATION, POPUP_TOILETS } from '../config/tuning';
 
+import { outOfSightMetresAt } from './camera';
 import { generateCity } from './city/generate';
 import { Game } from './game';
 import { overlapDepth } from './player/collision';
-import { diameterAt } from './player/weight';
+import { diameterAt, topSpeedAt } from './player/weight';
 import { FixedStepper } from './sim/fixed-step';
+import { vehiclePose } from './traffic/vehicles';
 
 /** The urgency and relief events only, leaving out the pop-up ones. */
 const core = (events: readonly string[]) =>
@@ -232,8 +234,10 @@ describe('Game pop-up toilets', () => {
         expect(events).toContain('popupSpawned');
         expect(game.popups.length).toBeGreaterThan(0);
         const popup = game.popups[0];
-        expect(city.nav.canStand(popup.x, popup.z, 7.5)).toBe(true);
-        expect(game.toiletDistance({ kind: 'popup', id: popup.id })).toBeLessThan(200);
+        // Its door is where a massive Benny stands, within the spawn band of walking
+        expect(game.toiletDistance({ kind: 'popup', id: popup.id })).toBeLessThanOrEqual(
+            POPUP_TOILETS.spawnPathDistanceMetres.max
+        );
         // Lifetimes run out; never more than four at once
         for (let i = 0; i < 60 * 25; i++) {
             game.step({ x: 0, z: 0 });
@@ -245,7 +249,7 @@ describe('Game pop-up toilets', () => {
     });
 
     it('applies the mercy rule once per countdown cycle when no free toilet is within reach', () => {
-        const game = new Game(city, { countdownSeconds: 4 });
+        const game = new Game(city, { countdownSeconds: 10 });
         for (let i = 0; i < game.kiosks.length; i++) {
             game.kiosks[i] = { status: 'occupied', secondsLeft: 1000 };
         }
@@ -257,12 +261,27 @@ describe('Game pop-up toilets', () => {
         expect(events.filter((e) => e === 'mercy')).toHaveLength(1);
         const mercy = game.popups.at(-1)!;
         const distance = game.toiletDistance({ kind: 'popup', id: mercy.id });
-        expect(distance).toBeLessThan(0.8 * 4 * 7);
+        // Within the distance he covers in time
+        expect(distance).toBeLessThan(POPUP_TOILETS.mercyTimeShare * 10 * topSpeedAt(0));
+    });
+
+    it('puts the mercy pop-up at the nearest wall when none is within reach', () => {
+        const game = new Game(city, { countdownSeconds: 1.5 });
+        for (let i = 0; i < game.kiosks.length; i++) {
+            game.kiosks[i] = { status: 'occupied', secondsLeft: 1000 };
+        }
+        const events: string[] = [];
+        for (let i = 0; i < 60; i++) {
+            game.step({ x: 0, z: 0 });
+            events.push(...game.drainEvents());
+        }
+        expect(events).toContain('mercy');
+        expect(Number.isFinite(game.toiletDistance({ kind: 'popup', id: game.popups.at(-1)!.id }))).toBe(true);
     });
 
     it('lets Benny use a pop-up by stepping into it, and removes it', () => {
         const game = new Game(city);
-        game.popups.push({ id: 99, x: game.player.x + 1, z: game.player.z, secondsLeft: 20 });
+        game.popups.push({ id: 99, x: game.player.x + 1, z: game.player.z, facing: { x: 0, z: 1 }, secondsLeft: 20 });
         let steps = 0;
         while (game.phase === 'playing' && steps < 120) {
             game.step({ x: 0, z: 0 });
@@ -431,7 +450,7 @@ describe('Game score', () => {
         expect(game.drainGains().map((g) => g.points)).toEqual([100, 75]);
 
         // A free toilet right here: relief scores 250 plus 20 per second left
-        game.popups.push({ id: 77, x: game.player.x, z: game.player.z + 1, secondsLeft: 20 });
+        game.popups.push({ id: 77, x: game.player.x, z: game.player.z + 1, facing: { x: 0, z: 1 }, secondsLeft: 20 });
         while (game.phase === 'playing') {
             game.step({ x: 0, z: 0 });
         }
@@ -506,7 +525,8 @@ describe('Game collisions', () => {
         const start = game.lanes.nodes[e.from];
         const offset = 0.25 * (e.streetClass === 'street' ? 6 : e.streetClass === 'avenue' ? 12 : 20);
         game.player = { ...game.player, x: start.x + 15, z: start.z + offset, vx: 0, vz: 0 };
-        game.vehicles = [{ id: 900, type, edge, t: 15, speed: 10, wreckSecondsLeft: 0, honkCooldown: 0 }];
+        const next = game.lanes.nodes[e.to].edges.find((n) => n !== e.reverse)!;
+        game.vehicles = [{ id: 900, type, edge, t: 15, next, speed: 10, wreckSecondsLeft: 0, honkCooldown: 0 }];
         game.food = [];
         game.popups = [];
     };
@@ -537,11 +557,31 @@ describe('Game collisions', () => {
         expect(game.score.points).toBe(300);
         expect(game.slowSecondsLeft).toBeGreaterThan(0);
         expect(game.stunSecondsLeft).toBe(0);
-        // The wreck vanishes after three seconds
+        // Three seconds on, it is still there: a wreck is towed away only out of Benny's sight
         for (let i = 0; i < 60 * 3 + 5; i++) {
             game.step({ x: 0, z: 0 });
         }
+        const wreck = game.vehicles.find((v) => v.id === 900);
+        expect(wreck?.wreckSecondsLeft).toBeGreaterThan(0);
+        // Once he is far away, it is gone at the next step
+        const far = outOfSightMetresAt(game.player.weight) + 5;
+        game.player = { ...game.player, x: game.player.x + far, vx: 0, vz: 0 };
+        game.step({ x: 0, z: 0 });
         expect(game.vehicles.find((v) => v.id === 900)).toBeUndefined();
+    });
+
+    it("lets new vehicles join only out of Benny's sight, farther away the fatter he is", () => {
+        for (const weight of [0, 1]) {
+            const game = new Game(city, { weight });
+            game.vehicles = [];
+            game.step({ x: 0, z: 0 });
+            expect(game.vehicles.length).toBeGreaterThan(0);
+            const sight = outOfSightMetresAt(weight);
+            for (const v of game.vehicles) {
+                const pose = vehiclePose(game.lanes, v);
+                expect(Math.hypot(pose.x - game.player.x, pose.z - game.player.z)).toBeGreaterThan(sight - 15);
+            }
+        }
     });
 
     it('lets a bus knock over a Benny of weight 0.6, and crumples it from 0.85', () => {

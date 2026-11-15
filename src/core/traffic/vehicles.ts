@@ -1,9 +1,10 @@
-import { TRAFFIC } from '../../config/tuning';
+import { COLLISIONS, TRAFFIC } from '../../config/tuning';
 import type { Point, Rect } from '../city/types';
 import type { Rng } from '../rng';
 
 import type { LaneGraph } from './lanes';
 import { busAllowed, lanePosition } from './lanes';
+import { turnBetween, turnPose } from './turns';
 
 export type VehicleType = 'car' | 'bus';
 
@@ -14,6 +15,11 @@ export interface Vehicle {
     /** The edge it drives along, and how far along it, in metres. */
     readonly edge: number;
     readonly t: number;
+    /**
+     * The edge it takes at the end of this one, picked as it enters this one so it can start the turn in time. Past
+     * the point where the turn leaves its lane, `t` counts the metres driven along the curve (`turnBetween`).
+     */
+    readonly next: number;
     /** Cruising speed, in m/s, drawn per vehicle. */
     readonly speed: number;
     /** Above 0 it is a crumpled wreck, gone when this runs out, in seconds. */
@@ -46,17 +52,24 @@ const allowed = (graph: LaneGraph, type: VehicleType, edge: number): boolean =>
     type === 'car' || busAllowed(graph.edges[edge].streetClass);
 
 export function vehiclePose(graph: LaneGraph, v: Vehicle): VehiclePose {
+    const turn = turnBetween(graph, v.edge, v.next);
+    if (v.t > turn.exit) {
+        return turnPose(turn, v.t - turn.exit);
+    }
     const e = graph.edges[v.edge];
     return { ...lanePosition(graph, v.edge, v.t), dx: e.dx, dz: e.dz };
 }
 
-/** The vehicle's footprint on the ground (roads are axis-aligned, so it is too); a wreck is squashed in length. */
+/**
+ * The vehicle's footprint on the ground: its box along a road, which runs along an axis, and the box around it while it
+ * turns. A wreck is squashed in length.
+ */
 export function vehicleFootprint(v: Vehicle, pose: VehiclePose, lengthShare = 1): Rect {
     const size = TRAFFIC.size[v.type];
     const halfLength = (size.length * lengthShare) / 2;
     const halfWidth = size.width / 2;
-    const hx = pose.dx !== 0 ? halfLength : halfWidth;
-    const hz = pose.dz !== 0 ? halfLength : halfWidth;
+    const hx = Math.abs(pose.dx) * halfLength + Math.abs(pose.dz) * halfWidth;
+    const hz = Math.abs(pose.dz) * halfLength + Math.abs(pose.dx) * halfWidth;
     return { x0: pose.x - hx, z0: pose.z - hz, x1: pose.x + hx, z1: pose.z + hz };
 }
 
@@ -80,27 +93,92 @@ export function spawnVehicle(
         if (Math.hypot(p.x - avoid.x, p.z - avoid.z) < minDistance) {
             continue;
         }
-        return { id, type, edge, t, speed: rng.range(range.min, range.max), wreckSecondsLeft: 0, honkCooldown: 0 };
+        const speed = rng.range(range.min, range.max);
+        return {
+            id,
+            type,
+            edge,
+            t,
+            next: nextEdge(graph, type, edge, rng),
+            speed,
+            wreckSecondsLeft: 0,
+            honkCooldown: 0
+        };
     }
     return null;
 }
 
 /**
- * Drives a vehicle for `dt` seconds. At the end of an edge it picks a random way on (any road for a car, avenues and
- * boulevards only for a bus), turning back only where there is no other way. Wrecks stay put.
+ * The way a vehicle takes at the end of an edge: a random one (any road for a car, avenues and boulevards only for a
+ * bus), turning back only where there is no other way.
  */
-export function driveVehicle(graph: LaneGraph, v: Vehicle, dt: number, rng: Rng): Vehicle {
+function nextEdge(graph: LaneGraph, type: VehicleType, edge: number, rng: Rng): number {
+    const here = graph.edges[edge];
+    const ways = graph.nodes[here.to].edges.filter((e) => e !== here.reverse && allowed(graph, type, e));
+    return ways.length > 0 ? rng.pick(ways) : here.reverse;
+}
+
+/**
+ * The free road ahead of each vehicle, bumper to bumper, in metres: to the nearest vehicle ahead in its lane, on its
+ * edge or on the next one it takes (`Infinity` when there is none). A vehicle ahead is one farther along, or as far
+ * along with a higher id, so two vehicles never both wait for each other.
+ */
+export function gapsAhead(graph: LaneGraph, vehicles: readonly Vehicle[]): Float64Array {
+    const gaps = new Float64Array(vehicles.length).fill(Infinity);
+    for (let i = 0; i < vehicles.length; i++) {
+        const v = vehicles[i];
+        const turn = turnBetween(graph, v.edge, v.next);
+        for (const other of vehicles) {
+            let along: number;
+            if (other.edge === v.edge && (other.t > v.t || (other.t === v.t && other.id > v.id))) {
+                along = other.t - v.t;
+            } else if (other.edge === v.next && other !== v) {
+                along = turn.exit + turn.length - v.t + (other.t - turn.entry);
+            } else {
+                continue;
+            }
+            const bumpers = (lengthOf(v) + lengthOf(other)) / 2;
+            gaps[i] = Math.min(gaps[i], along - bumpers);
+        }
+    }
+    return gaps;
+}
+
+/** A vehicle's length on the road: a wreck is squashed. */
+function lengthOf(v: Vehicle): number {
+    const share = v.wreckSecondsLeft > 0 ? COLLISIONS.crumpledLengthShare : 1;
+    return TRAFFIC.size[v.type].length * share;
+}
+
+/**
+ * How fast a vehicle drives with `gap` metres of free road ahead: its cruising speed when the road is clear, slower as
+ * the gap closes to `TRAFFIC.followGapMetres`, where it stops.
+ */
+export function followSpeed(cruise: number, gap: number): number {
+    const speed = (gap - TRAFFIC.followGapMetres) / TRAFFIC.followHeadwaySeconds;
+    return Math.min(cruise, Math.max(0, speed));
+}
+
+/**
+ * Drives a vehicle for `dt` seconds at `speed` (its cruising speed unless it is held up, `followSpeed`). At the end of
+ * an edge it rounds the corner into the one it picked when it entered it, and picks the next (`nextEdge`). Wrecks stay
+ * put.
+ */
+export function driveVehicle(graph: LaneGraph, v: Vehicle, dt: number, rng: Rng, speed = v.speed): Vehicle {
     const honkCooldown = Math.max(0, v.honkCooldown - dt);
     if (v.wreckSecondsLeft > 0) {
         return { ...v, wreckSecondsLeft: Math.max(0, v.wreckSecondsLeft - dt), honkCooldown };
     }
-    let edge = v.edge;
-    let t = v.t + v.speed * dt;
-    while (t > graph.edges[edge].length) {
-        t -= graph.edges[edge].length;
-        const here = graph.edges[edge];
-        const ways = graph.nodes[here.to].edges.filter((e) => e !== here.reverse && allowed(graph, v.type, e));
-        edge = ways.length > 0 ? rng.pick(ways) : here.reverse;
+    let { edge, next } = v;
+    let t = v.t + speed * dt;
+    for (
+        let turn = turnBetween(graph, edge, next);
+        t > turn.exit + turn.length;
+        turn = turnBetween(graph, edge, next)
+    ) {
+        t = turn.entry + (t - turn.exit - turn.length);
+        edge = next;
+        next = nextEdge(graph, v.type, edge, rng);
     }
-    return { ...v, edge, t, honkCooldown };
+    return { ...v, edge, t, next, honkCooldown };
 }

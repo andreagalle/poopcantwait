@@ -78,18 +78,16 @@ test('loads without console errors and renders the city around Benny', async ({ 
             fovDegrees: camera.camera!.fov,
             distanceMetres: camera.getPosition().distance(benny.getPosition()),
             cityVertices: buildings.render!.meshInstances[0]!.mesh!.vertexBuffer!.numVertices,
-            kiosks: app.root.find((e) => e.name.startsWith('kiosk-beacon-')).length,
-            beams: app.root.find((e) => e.name.startsWith('kiosk-beam-') && (e as Entity).enabled).length,
-            freeBeacons: app.root
-                .find((e) => e.name.startsWith('kiosk-beacon-'))
-                .filter((e) => (e as Entity).render!.meshInstances[0]!.material!.name === 'beacon-free').length
+            // Each kiosk shows its state: a sign on the felt cabin's door (a roof beacon on the greybox)
+            kiosks: app.root.find((e) => /^kiosk-(sign|beacon)-\d+$/.test(e.name)).length,
+            beams: app.root.find((e) => e.name.startsWith('kiosk-beam-')).length
         };
     });
     const where = `seed ${seed}: ${JSON.stringify(view)}`;
     expect(view.cityVertices, where).toBeGreaterThan(1000);
     expect(view.kiosks, where).toBe(8);
-    // Every free kiosk sends a light beam up; occupied ones do not
-    expect(view.beams, where).toBe(view.freeBeacons);
+    // No light beam over the kiosks any more (the maintainer had it taken away): the door sign says it all
+    expect(view.beams, where).toBe(0);
     expect(view.pitchDegrees, where).toBeCloseTo(CAMERA.pitchDegrees, 3);
     expect(view.yawOffAxis, where).toBeCloseTo(0, 6);
     expect(view.fovDegrees, where).toBe(CAMERA.fovDegrees);

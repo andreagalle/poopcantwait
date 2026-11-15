@@ -99,8 +99,7 @@ export class BennyView {
         const { clip, speed } = bennyClip({
             knocked,
             accident: game.phase === 'accident',
-            speedShare: game.phase === 'playing' ? Math.hypot(b.vx, b.vz) / topSpeedAt(b.weight) : 0,
-            low: isLow(game.urgency)
+            speed: game.phase === 'playing' ? Math.hypot(b.vx, b.vz) : 0
         });
         if (clip !== this.clip) {
             this.anim.baseLayer?.transition(clip, this.clip === null ? 0 : BENNY_CLIPS.blendSeconds);

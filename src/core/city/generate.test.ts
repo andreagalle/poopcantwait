@@ -100,12 +100,24 @@ describe.each(SEEDS)('city %i', (seed) => {
         }
     });
 
-    it('never makes a road narrower than its class, and narrows it to exactly its class somewhere', () => {
+    it('never makes a road narrower than its class but for its furniture, which a massive Benny still gets past', () => {
         for (const road of city.roads) {
             const clearances = centreLine(road).map((p) => nav.clearanceAt(p.x, p.z));
-            expect(Math.min(...clearances), `road ${road.id}`).toBeGreaterThanOrEqual(widthOf(road) / 2);
+            // Furniture stands at most this far out from the facades of an avenue or a boulevard (cell centres)
+            const furnished = road.streetClass === 'avenue' || road.streetClass === 'boulevard';
+            const reach = furnished
+                ? Math.max(
+                      ...CITY.streetProps.pattern[road.streetClass as 'avenue' | 'boulevard']
+                          .filter((k) => k !== null)
+                          .map((k) => Math.ceil(CITY.streetProps.kinds[k].offsetMetres))
+                  )
+                : 0;
+            expect(Math.min(...clearances), `road ${road.id}`).toBeGreaterThanOrEqual(widthOf(road) / 2 - reach);
+            if (furnished) {
+                expect(Math.min(...clearances), `road ${road.id}`).toBeGreaterThan(MAX_DIAMETER / 2);
+            }
             const beside = (r: Rect) => touches(r, road.rect);
-            if (!beside(city.plaza.rect) && !beside(city.park.rect)) {
+            if (!furnished && !beside(city.plaza.rect) && !beside(city.park.rect)) {
                 expect(Math.min(...clearances), `road ${road.id}`).toBe(widthOf(road) / 2);
             }
         }

@@ -1,19 +1,21 @@
-import { BLEND_ADDITIVE, CylinderGeometry, Entity, Mesh, MeshInstance, StandardMaterial } from 'playcanvas';
-import type { AppBase, Color } from 'playcanvas';
+import { Entity, StandardMaterial } from 'playcanvas';
+import type { AppBase, Asset, Color } from 'playcanvas';
 
 import { POPUP_TOILETS } from '../config/tuning';
 import type { Game } from '../core/game';
 import { PALETTE } from '../render/palette';
 
+import { fittedModel } from './fit-model';
+import { DOOR_SIGN } from './kiosk-view';
+
 const CABIN_HEIGHT = 2.3;
 const DOOR = { width: 0.9, height: 1.8, depth: 0.06 };
 const BEACON = { size: 0.45, height: 0.35 };
-const BEAM = { radius: 0.3, height: 8, opacity: 0.35 };
 /** Pop in with a little overshoot over this many seconds, and sink back over the last ones, in seconds. */
 const POP_IN_SECONDS = 0.35;
 const SINK_SECONDS = 0.5;
 
-function material(name: string, color: Color, emissive = false, opacity = 1): StandardMaterial {
+function material(name: string, color: Color, emissive = false): StandardMaterial {
     const m = new StandardMaterial();
     m.name = name;
     if (emissive) {
@@ -25,11 +27,6 @@ function material(name: string, color: Color, emissive = false, opacity = 1): St
         m.useMetalness = true;
         m.metalness = 0;
         m.gloss = 0.35;
-    }
-    if (opacity < 1) {
-        m.opacity = opacity;
-        m.blendType = BLEND_ADDITIVE;
-        m.depthWrite = false;
     }
     m.update();
     return m;
@@ -43,23 +40,19 @@ function popScale(t: number): number {
 }
 
 /**
- * Pop-up toilets (design: *Pop-up toilets*): a small pool of teal cabins, each with a door facing the camera, a green
- * beacon and a light beam (they are always free). They pop out of the ground and sink back when their time is up.
+ * Pop-up toilets (design: *Pop-up toilets*): a small pool of felt cabins, the same as the kiosks, each backing onto a
+ * building with its door to the open ground and a green sign on it (they are always free). In greybox, until the model
+ * has loaded: a teal box with a door and a green beacon. They pop out of the ground and sink back when their time is up.
  */
 export class PopupView {
     private readonly slots: Entity[];
     private readonly assigned = new Map<number, Entity>();
 
-    constructor(app: AppBase) {
+    constructor(app: AppBase, cabinModel?: Asset) {
         const root = new Entity('popups');
         const cabin = material('popup-cabin', PALETTE.popup);
         const door = material('popup-door', PALETTE.popupDoor);
         const beacon = material('popup-beacon', PALETTE.beaconFree, true);
-        const beam = material('popup-beam', PALETTE.beaconFree, true, BEAM.opacity);
-        const beamMesh = Mesh.fromGeometry(
-            app.graphicsDevice,
-            new CylinderGeometry({ radius: BEAM.radius, height: BEAM.height, capSegments: 12, heightSegments: 1 })
-        );
         const size = POPUP_TOILETS.footprintMetres;
 
         this.slots = Array.from({ length: POPUP_TOILETS.maxActive }, (_, i) => {
@@ -76,17 +69,21 @@ export class PopupView {
             light.addComponent('render', { type: 'box', material: beacon, castShadows: false });
             light.setLocalScale(BEACON.size, BEACON.height, BEACON.size);
             light.setLocalPosition(0, CABIN_HEIGHT + BEACON.height / 2, 0);
-            const ray = new Entity('popup-beam');
-            ray.addComponent('render', {
-                meshInstances: [new MeshInstance(beamMesh, beam)],
-                castShadows: false,
-                receiveShadows: false
-            });
-            ray.setLocalPosition(0, CABIN_HEIGHT + BEACON.height + BEAM.height / 2, 0);
-            slot.addChild(body);
-            slot.addChild(front);
-            slot.addChild(light);
-            slot.addChild(ray);
+            if (cabinModel) {
+                slot.addChild(
+                    fittedModel(cabinModel, { width: size, height: CABIN_HEIGHT, length: size }, 'popup-cabin')
+                );
+                const sign = new Entity('popup-sign');
+                sign.addComponent('render', { type: 'cylinder', material: beacon, castShadows: false });
+                sign.setLocalScale(DOOR_SIGN.diameter, DOOR_SIGN.thickness, DOOR_SIGN.diameter);
+                sign.setLocalEulerAngles(90, 0, 0);
+                sign.setLocalPosition(0, DOOR_SIGN.heightShare * CABIN_HEIGHT, size / 2 + DOOR_SIGN.thickness / 2);
+                slot.addChild(sign);
+            } else {
+                slot.addChild(body);
+                slot.addChild(front);
+                slot.addChild(light);
+            }
             slot.enabled = false;
             root.addChild(slot);
             return slot;
@@ -116,6 +113,8 @@ export class PopupView {
                 popup.secondsLeft < SINK_SECONDS ? popup.secondsLeft / SINK_SECONDS : popScale(age / POP_IN_SECONDS);
             slot.enabled = true;
             slot.setPosition(popup.x, 0, popup.z);
+            // Its door, on the slot's +z side, faces away from the building it backs onto
+            slot.setEulerAngles(0, (Math.atan2(popup.facing.x, popup.facing.z) * 180) / Math.PI, 0);
             slot.setLocalScale(1, Math.max(0.01, scale), 1);
         }
     }

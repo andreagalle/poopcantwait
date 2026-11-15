@@ -11,6 +11,12 @@ export interface AssetEntry {
 
 export const ASSETS = {
     'char.benny': { kind: 'model', file: 'models/benny/benny.glb' },
+    'toilet.cabin': { kind: 'model', file: 'models/toilets/cabin.glb' },
+    'vehicle.car-green': { kind: 'model', file: 'models/vehicles/car-green.glb' },
+    'vehicle.car-orange': { kind: 'model', file: 'models/vehicles/car-orange.glb' },
+    'vehicle.van-blue': { kind: 'model', file: 'models/vehicles/van-blue.glb' },
+    'vehicle.car-yellow': { kind: 'model', file: 'models/vehicles/car-yellow.glb' },
+    'vehicle.bus-red': { kind: 'model', file: 'models/vehicles/bus-red.glb' },
     'food.burger': { kind: 'model', file: 'models/food/burger.glb' },
     'food.chicken-leg': { kind: 'model', file: 'models/food/chicken-leg.glb' },
     'food.pizza-slice': { kind: 'model', file: 'models/food/pizza-slice.glb' },
@@ -23,7 +29,12 @@ export const ASSETS = {
     'food.brussels-sprouts': { kind: 'model', file: 'models/food/brussels-sprouts.glb' },
     'food.broccoli': { kind: 'model', file: 'models/food/broccoli.glb' },
     'food.cauliflower': { kind: 'model', file: 'models/food/cauliflower.glb' },
-    'food.carrot': { kind: 'model', file: 'models/food/carrot.glb' }
+    'food.carrot': { kind: 'model', file: 'models/food/carrot.glb' },
+    'prop.tree': { kind: 'model', file: 'models/props/tree.glb' },
+    'prop.lamp': { kind: 'model', file: 'models/props/lamp.glb' },
+    'prop.bench': { kind: 'model', file: 'models/props/bench.glb' },
+    'prop.hydrant': { kind: 'model', file: 'models/props/hydrant.glb' },
+    'texture.facade-felt': { kind: 'texture', file: 'textures/facade-felt.webp' }
 } as const satisfies Record<string, AssetEntry>;
 
 export type AssetId = keyof typeof ASSETS;

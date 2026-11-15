@@ -1,3 +1,4 @@
+import { isCircle } from '../city/props';
 import type { Circle, City, Rect } from '../city/types';
 
 /** Side of a spatial hash cell, in metres. */
@@ -45,10 +46,18 @@ function insert(
     }
 }
 
-/** Builds the collision world of a city: buildings and kiosks as rectangles, the fountain and trees as circles. */
+/**
+ * Builds the collision world of a city: buildings, kiosks and benches as rectangles; the fountain, trees, lamps and
+ * hydrants as circles.
+ */
 export function buildCollisionWorld(city: City): CollisionWorld {
-    const rects = [...city.buildings.map((b) => b.rect), ...city.kioskSpots.map((k) => k.rect)];
-    const circles = [city.plaza.fountain, ...city.park.trees];
+    const solids = city.props.map((p) => p.solid);
+    const rects = [
+        ...city.buildings.map((b) => b.rect),
+        ...city.kioskSpots.map((k) => k.rect),
+        ...solids.filter((s): s is Rect => !isCircle(s))
+    ];
+    const circles = [city.plaza.fountain, ...city.park.trees, ...solids.filter(isCircle)];
     const cells = new Map<number, { rects: number[]; circles: number[] }>();
     rects.forEach((r, i) => insert(cells, r.x0, r.z0, r.x1, r.z1, (e) => e.rects.push(i)));
     circles.forEach((c, i) =>

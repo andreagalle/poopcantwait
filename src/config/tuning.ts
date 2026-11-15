@@ -78,6 +78,30 @@ export const CITY = {
     fountainRadiusMetres: 3,
     /** Trees in the park: spacing of their jittered grid, trunk radius and margin from the park edge, in metres. */
     parkTrees: { spacingMetres: 9, radiusMetres: 0.8, marginMetres: 3 },
+    /**
+     * Street furniture along both sides of avenues and boulevards (design: *Street props*): one spot every
+     * `spacingMetres`, filled in turn from `pattern` (null leaves the spot empty; the far side starts half way through).
+     * Spots within `clearanceMetres` of a crossing, an alley mouth or a kiosk stay empty.
+     */
+    streetProps: {
+        spacingMetres: { avenue: 10, boulevard: 8 },
+        pattern: {
+            avenue: ['lamp', null, 'bench', null, 'lamp', null, 'hydrant', null],
+            boulevard: ['tree', 'lamp', 'tree', 'bench', 'tree', 'lamp', 'tree', 'hydrant']
+        },
+        clearanceMetres: 3,
+        /**
+         * Each kind: how far its centre stands out from the facade and the solid Benny collides with, in metres (a
+         * circle's radius, or a bench's length along the facade and depth). All of them keep out of the lanes: a
+         * bus's side passes 1.7 m from the facades of an avenue and 3.7 m from those of a boulevard.
+         */
+        kinds: {
+            tree: { offsetMetres: 2, radiusMetres: 0.35, canopyRadiusMetres: 1.6 },
+            lamp: { offsetMetres: 1, radiusMetres: 0.25 },
+            hydrant: { offsetMetres: 1, radiusMetres: 0.3 },
+            bench: { offsetMetres: 0.6, lengthMetres: 1.8, depthMetres: 0.8 }
+        }
+    },
     /** Sides of the city bordered by the river; the other sides are parkland. Either way, the edge blocks the way. */
     riverSides: { min: 1, max: 2 } satisfies Range
 } as const;
@@ -90,14 +114,20 @@ export const BENNY = {
     maxHeightScale: 2
 } as const;
 
-/** Which of Benny's clips plays (design: *The protagonist*, animations): `core/fx/benny-clip.ts`. */
+/** Which of Benny's clips plays, and how fast (design: *The protagonist*, animations): `core/fx/benny-clip.ts`. */
 export const BENNY_CLIPS = {
-    /** Below this share of his top speed he stands (idle). */
-    moveShare: 0.08,
-    /** From this share of his top speed the walk turns into a run. */
-    runShare: 0.55,
-    /** Clip playback speed, from barely moving to full speed, so his feet keep up with the ground. */
-    playbackSpeed: { min: 0.7, max: 1.3 },
+    /** Below this speed, in m/s, he stands (idle). */
+    moveMetresPerSecond: 0.3,
+    /**
+     * Ground covered by his walk clip at normal speed, in m/s (measured from the clip: a 0.47 m step, two per 1.07 s
+     * cycle). The walk plays at his speed divided by this, so his feet keep up with the ground.
+     */
+    walkMetresPerSecond: 0.89,
+    /**
+     * Walk playback speed limits. At 4 times (about 7.5 steps a second, a hurried toy scurry) his feet match the ground
+     * up to 3.6 m/s, half his slim top speed; faster than that he slides a little rather than spin his legs.
+     */
+    playbackSpeed: { min: 0.8, max: 4 },
     /** Seconds to blend from one clip into the next. */
     blendSeconds: 0.15
 } as const;
@@ -218,7 +248,10 @@ export const POPUP_TOILETS = {
      */
     mercyDistanceShare: { min: 0.3, max: 0.6 } satisfies Range,
     mercyMinMetres: 5,
-    /** Side of the square cabin, in metres. Pop-ups are not solid: Benny steps into one to use it. */
+    /**
+     * Side of the square cabin, in metres. A pop-up backs onto a building, its door to the open ground, never in a
+     * street (cars pass close to the facades there). Pop-ups are not solid: Benny steps into one to use it.
+     */
     footprintMetres: 1.4
 } as const;
 
@@ -315,8 +348,28 @@ export const TRAFFIC = {
     },
     /** Each direction drives in one lane, centred this share of the road width from its centre line (right-hand traffic). */
     laneOffsetShare: 0.25,
+    /**
+     * Vehicles round each corner on a quarter circle, in metres of radius, tangent to the lane they leave and to the one
+     * they join, at their cruising speed: they never jump from lane to lane nor snap round. A right turn hugs the corner
+     * of the block (a wider one would clip the buildings of a 6 m street); a left turn swings wide across the crossing.
+     * Going straight on, they keep to their lane over the same distance as a left turn.
+     */
+    turnRadiusMetres: { right: 2.5, left: 6 },
+    /**
+     * Vehicles keep their distance from the one ahead in their lane (a wreck included): this gap, in metres, bumper to
+     * bumper when standing...
+     */
+    followGapMetres: 2,
+    /** ...plus this many seconds of driving at their speed, slowing down smoothly as the gap closes. */
+    followHeadwaySeconds: 1,
     /** New vehicles appear at least this far from Benny, in metres, so they never pop in on screen. */
     spawnMinDistanceMetres: 45,
+    /**
+     * ...and at least this many camera distances from him, so they never appear in view however far the camera has
+     * pulled back (the far corners of a 21:9 view are about 1.6 camera distances from Benny). The same distance tells
+     * when a wreck is out of sight and can be towed away.
+     */
+    outOfSightCameraDistances: 2,
     /** Vehicles honk when Benny is this close ahead of them in their lane, in metres... */
     honkDistanceMetres: 12,
     /** ...at most once in this many seconds each. */

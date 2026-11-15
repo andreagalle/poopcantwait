@@ -7,6 +7,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-15
+
+### Added
+
+- Felt traffic: four little cars that take turns (green, orange, a blue van, yellow) and a red bus, from the vehicle
+  sketches the maintainer kept, 3,999 to 5,917 triangles each, stretched to their size in the game. A wreck stays
+  squashed and grey.
+- Felt toilets: every kiosk and pop-up is the same teal portable cabin the maintainer picked (1,596 triangles). No roof
+  beacon: a round sign on the door shows free or occupied, green or red, and an occupied cabin rattles.
+- Felt street furniture: trees, street lamps, benches and fire hydrants along both sides of the avenues and boulevards,
+  about 210 a city, against the facades and out of the lanes. They are solid, never at a crossing or a kiosk, and the
+  widest Benny still gets down every avenue. Four Meshy models of 1,000 triangles (288 kB in all), drawn with hardware
+  instancing, one call per kind; the park's trees are the felt tree too.
+- Felt facades: every building's walls repeat one felt tile, a stitched window on a plain wall (30 kB), tinted by the
+  building's colour, with a whole number of windows across and storeys up. Still one draw call for all the buildings.
+
+### Changed
+
+- Benny walks briskly instead of running: his run swung his arms wide and his feet slid over the ground. One walk clip
+  plays at a cadence that follows his speed (his feet match the ground up to 3.6 m/s), and his model drops the run and
+  the waddle clips (1.18 MB instead of 1.31 MB).
+- Pop-up toilets back onto a building, door to the open ground, on the sidewalks of avenues and boulevards: never in
+  the middle of a road, never in a street, where cars pass close to the facades, never blocking an alley. The way to
+  one is measured to its door, as at a kiosk, and the mercy rule falls back on the nearest wall when none is within
+  reach.
+- No more light beam over the toilets, the maintainer's call: the green or red sign on the door says it all.
+- Traffic that never pops in or out of view: vehicles join out of Benny's sight (45 m slim, up to 83 m at maximum
+  weight, as the camera pulls back), a wreck is towed only once it is out of sight, cars round every corner on a curve
+  (2.5 m radius to the right, 6 m to the left) instead of jumping onto the next lane and snapping round, and they keep
+  their distance from the one ahead instead of driving through it, queueing behind a wreck.
+
 ## [0.4.0] - 2026-11-14
 
 ### Added

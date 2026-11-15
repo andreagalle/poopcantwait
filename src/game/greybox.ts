@@ -7,7 +7,7 @@ import { createFlatMaterial } from '../render/materials';
 
 const BENNY_COLOR = new Color(0.98, 0.72, 0.58);
 /** The clips his model carries (`npm run assets:merge-clips`), each looping except the fall, which ends lying down. */
-const CLIPS: readonly BennyClip[] = ['idle', 'walk', 'run', 'waddle', 'fall'];
+const CLIPS: readonly BennyClip[] = ['idle', 'walk', 'fall'];
 
 /**
  * Benny as the felt model of the art pass: 1.6 m tall like his plush body, feet on the ground, facing +z (his heading
