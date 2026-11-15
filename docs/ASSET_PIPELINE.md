@@ -106,7 +106,8 @@ the maintainer and the style is chosen together. Every round, rejected and accep
 | Toilet kiosk           | 3,000     | 512 px       | beacon is a separate node for the light     |
 | Pop-up toilet          | 2,000     | 256 px       |                                             |
 | Food or vegetable item | 1,500     | 256 px       | 13 items                                    |
-| Street prop            | 1,000     | 256 px       | benches, lamps, trees, hydrants             |
+| Street prop            | 1,000     | 256 px       | benches, lamps, hydrants                    |
+| Tree                   | 1,500     | 256 px       | seven kinds, drawn with instancing          |
 
 The whole of `public/assets/` stays under 12 MB, and the initial download under 15 MB.
 
