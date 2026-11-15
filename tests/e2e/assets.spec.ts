@@ -20,7 +20,7 @@ test('loads every model and texture of the art pass', async ({ page }) => {
     const names = assets.map((a) => a.name);
     expect(names).toContain('food.burger');
     expect(names).toContain('tree.lime');
-    expect(names).toContain('texture.facade-felt');
+    expect(names).toContain('texture.facade-atlas');
     for (const asset of assets) {
         expect(asset.loaded, asset.name).toBe(true);
         expect(asset.url).toMatch(asset.type === 'container' ? /^\.\/assets\/models\// : /^\.\/assets\/textures\//);

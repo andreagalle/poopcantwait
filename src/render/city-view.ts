@@ -1,13 +1,17 @@
 import { ADDRESS_REPEAT, BLEND_NORMAL, Color, Entity, MeshInstance, StandardMaterial } from 'playcanvas';
 import type { AppBase, Asset, Texture } from 'playcanvas';
 
-import { CAMERA } from '../config/tuning';
+import { CAMERA, CITY } from '../config/tuning';
+import type { NavGrid } from '../core/city/navgrid';
+import { roofOf } from '../core/city/roofs';
 import { sidewalksOf } from '../core/city/sidewalks';
 import type { Building, City, Rect, Side } from '../core/city/types';
 import type { Markings } from '../core/traffic/markings';
 
+import { addFacades, PLAIN_WALL_UV } from './facades';
 import { MeshBuilder } from './mesh-builder';
 import { PALETTE } from './palette';
+import { addRoof } from './roofs';
 
 /** Parkland and river drawn beyond the city border so the camera never sees the void, in metres. */
 const EDGE_EXTENT = 90;
@@ -16,9 +20,6 @@ const RIVER_WIDTH = 40;
 const HEDGE_HEIGHT = 1.1;
 const RAILING_HEIGHT = 0.9;
 const FOUNTAIN = { rimHeight: 0.6, waterInset: 0.4, columnRadius: 0.35, columnHeight: 1.8 };
-const CLOCK_TOWER_ROOF_HEIGHT = 5;
-/** One tile of the felt facade, a window in its wall, covers about this much of a wall, in metres. */
-const FACADE = { bayMetres: 3, storeyMetres: 3 };
 /**
  * Roads draw at slightly different heights so the wider class wins where two of them cross. The steps are a few
  * centimetres, enough to avoid depth fighting at the farthest camera distance.
@@ -101,7 +102,7 @@ function addGround(city: City, markings: Markings): MeshBuilder {
     return ground;
 }
 
-function addBuilding(mesh: MeshBuilder, b: Building): void {
+function addBuilding(mesh: MeshBuilder, b: Building, index: number, nav: NavGrid, atlas: boolean): void {
     const r = b.rect;
     if (b.landmark === 'clockTower') {
         mesh.addBox(r.x0, 0, r.z0, r.x1, b.height, r.z1, PALETTE.clockTower);
@@ -113,7 +114,7 @@ function addBuilding(mesh: MeshBuilder, b: Building): void {
             cz,
             radius,
             b.height,
-            b.height + CLOCK_TOWER_ROOF_HEIGHT,
+            b.height + CITY.clockTowerSpireMetres,
             PALETTE.clockTowerRoof,
             4,
             Math.atan2(r.z1 - r.z0, r.x1 - r.x0)
@@ -121,17 +122,13 @@ function addBuilding(mesh: MeshBuilder, b: Building): void {
         return;
     }
     const color = PALETTE.buildings[b.colorIndex % PALETTE.buildings.length];
-    mesh.addFacadeBox(
-        r.x0,
-        r.z0,
-        r.x1,
-        r.z1,
-        b.height,
-        color,
-        tint(color, PALETTE.roofTint),
-        FACADE.bayMetres,
-        FACADE.storeyMetres
-    );
+    const roof = tint(color, PALETTE.roofTint);
+    if (atlas) {
+        addFacades(mesh, b, index, nav, color);
+        addRoof(mesh, b, index, roofOf(b, index), color, roof);
+    } else {
+        mesh.addBox(r.x0, 0, r.z0, r.x1, b.height, r.z1, color, roof);
+    }
 }
 
 /**
@@ -191,7 +188,10 @@ export class CityView {
     private readonly fadedMaterial: StandardMaterial;
     private fadedKey = '';
 
-    constructor(app: AppBase, city: City, markings: Markings, facade?: Asset, felt?: Asset) {
+    /** Each building's geometry, made once: the opaque and faded meshes are put together from these. */
+    private readonly pieces: MeshBuilder[];
+
+    constructor(app: AppBase, city: City, markings: Markings, facades?: Asset, felt?: Asset) {
         this.app = app;
         this.city = city;
         const repeat = (asset?: Asset): Texture | undefined => {
@@ -203,7 +203,16 @@ export class CityView {
             }
             return texture;
         };
-        const tile = repeat(facade);
+        const atlas = facades?.resource as Texture | undefined;
+        if (atlas) {
+            atlas.anisotropy = 4;
+        }
+        const tile = atlas;
+        this.pieces = city.buildings.map((b, i) => {
+            const piece = new MeshBuilder({ plainUv: PLAIN_WALL_UV });
+            addBuilding(piece, b, i, city.nav, atlas !== undefined);
+            return piece;
+        });
         this.opaqueMaterial = vertexColorMaterial('city-ground', 1, repeat(felt));
         this.buildingMaterial = vertexColorMaterial('city-buildings', 1, tile);
         this.fadedMaterial = vertexColorMaterial('city-faded', CAMERA.buildingFadeOpacity, tile);
@@ -226,10 +235,10 @@ export class CityView {
     }
 
     private buildingMesh(include: (index: number) => boolean): MeshBuilder {
-        const mesh = new MeshBuilder();
-        this.city.buildings.forEach((b, i) => {
+        const mesh = new MeshBuilder({ plainUv: PLAIN_WALL_UV });
+        this.pieces.forEach((piece, i) => {
             if (include(i)) {
-                addBuilding(mesh, b);
+                mesh.append(piece);
             }
         });
         return mesh;

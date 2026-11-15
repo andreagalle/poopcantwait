@@ -408,9 +408,20 @@ shadows. Readability from a high camera beats detail: strong silhouettes, clear 
 green, toilets green or red, vehicles bright solid colors). No real brands, logos or car models anywhere.
 
 Everything is sewn from felt, with visible stitched seams: Benny, the food, the vehicles, the toilet cabins, the street
-furniture, and the buildings, whose walls repeat one felt tile, a stitched window on a plain wall, tinted by each
-building's pastel colour; each wall shows a whole number of windows across and storeys up (about 3 by 3 m each), so no
-window is cut by a corner or the roof.
+furniture, the roads and the buildings.
+
+- **Facades.** Each wall is cut into bays about 3 m wide and storeys about 3 m tall, a whole number of each, a tile per
+  bay and storey, tinted by the building's pastel colour. On a wall that faces a road, the ground floor has the front
+  door in its middle bay (about 2.1 m tall, Benny 1.6 m) and shops in the others, each next bay the next trade along
+  (now and then a flat's window instead): an ice cream parlour, a pet shop, a hardware store, a fishmonger, a cafe, a
+  tailor, a greengrocer and a bicycle repair shop, each with its own invented sign. Upper floors keep one style of
+  window per building (wooden shutters, green shutters closed, a balcony), two in ten of them open with a curtain
+  blowing out and one in ten with a balcony, stacked bay over bay; walls on alleys have windows only.
+- **Roofs**, picked per building without random numbers: flat with a parapet, one to three air-conditioning units and
+  half the time a water tank (35 in 100); a vegetable garden of raised beds with a greenhouse (20); a pitched roof of
+  felt tiles with one or two brick chimneys, its ridge up to 3 m (30); a slate mansard 2.2 m tall with dormer windows
+  (15). Buildings under 6 m across get flat or pitched roofs only. A roof counts in the line of sight: a building whose
+  roof hides Benny fades too.
 
 ## Out of scope for version 1
 

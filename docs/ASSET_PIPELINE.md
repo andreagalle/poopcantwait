@@ -120,6 +120,10 @@ The whole of `public/assets/` stays under 12 MB, and the initial download under 
   version in `package.json` decodes it and the game loads the result.
 - Every committed asset has an entry in `src/assets/registry.ts` and in `art/manifest.json`.
 
+- The facade atlas (`texture.facade-atlas`) is put together by `node scripts/assets/facade-atlas.mjs` from one generated
+  image per tile (`shop.*`, `facade.*`), then optimized with the `texture` preset at 1024 px. Its slots are listed in
+  `SLOT`, `src/render/facades.ts`.
+
 ## Optimization
 
 `npm run assets:optimize -- <input> <output> --preset <hero|vehicle|prop|food|texture>` wraps glTF Transform:

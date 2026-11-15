@@ -99,7 +99,7 @@ const game = new Game(city, {
 
 // The models of the art pass so far; anything without one keeps its greybox stand-in
 const models = await loadAssets(app, [
-    'texture.facade-felt',
+    'texture.facade-atlas',
     'texture.felt-plain',
     'char.benny',
     'toilet.cabin',
@@ -116,7 +116,7 @@ const cityView = new CityView(
     app,
     city,
     markingsOf(game.lanes),
-    models.get('texture.facade-felt'),
+    models.get('texture.facade-atlas'),
     models.get('texture.felt-plain')
 );
 new PropsView(app, city, models);

@@ -1767,9 +1767,50 @@
             </section>
 
             <section
+                class="stage stage--agent tone-peach"
+                id="felt-town"
+                data-t="170:45"
+                data-alone="2:01"
+                data-human="54"
+                data-agent="2520"
+                data-prs="70"
+                data-phase="M6 · The art"
+                data-done="M0 M1 M2 M3 M4 M5 M6~ M7 M8 M9~"
+            >
+                <div class="stage-inner">
+                    <div class="card">
+                        <p class="kicker">
+                            <span class="tag tag--agent">Agent</span
+                            ><span class="when">Alone for 2 h 1 min · 187 actions</span>
+                        </p>
+                        <h2><span class="m">M6</span>Shops, doors, roofs</h2>
+                        <ul class="facts">
+                            <li>Eight shops with their signs, front doors 2.1 m tall, windows open and shut.</li>
+                            <li>Roofs differ: tiles and chimneys, gardens, water tanks, mansards with dormers.</li>
+                            <li>One 272 kB atlas of 16 tiles; still one draw call for all the buildings.</li>
+                        </ul>
+                        <p class="side-link">
+                            <a class="btn" href="./town/#buildings">Side story: The town →</a>
+                        </p>
+                    </div>
+                    <figure class="shot">
+                        <img
+                            src="./shots/m6-felt-town.webp"
+                            alt="Felt buildings from above: a rooftop vegetable garden with a greenhouse, tiled roofs, water tanks, shopfronts with signs and windows with shutters, balconies and curtains"
+                            width="960"
+                            height="540"
+                            loading="lazy"
+                            decoding="async"
+                        />
+                        <figcaption>Rooftop gardens, tiled roofs and shops on every corner.</figcaption>
+                    </figure>
+                </div>
+            </section>
+
+            <section
                 class="stage stage--agent stage--numbers tone-sky"
                 id="who-did-what"
-                data-t="170:05"
+                data-t="170:45"
                 data-human="{{humanMessages}}"
                 data-agent="{{agentActions}}"
                 data-prs="{{pullRequests}}"
@@ -1815,7 +1856,7 @@
                 class="stage stage--end tone-mint"
                 id="next"
                 data-kind="end"
-                data-t="170:05"
+                data-t="170:45"
                 data-human="{{humanMessages}}"
                 data-agent="{{agentActions}}"
                 data-prs="{{pullRequests}}"
@@ -1826,7 +1867,7 @@
                     <div class="card">
                         <h2>What's next</h2>
                         <ul class="facts">
-                            <li>M6, the town: the facades with their doors and eight shops, then the roofs.</li>
+                            <li>v0.6.0: the town in felt, from its trees to its roofs, for the human to merge.</li>
                             <li>M9's last check: the frame time on a real phone, in the human's hand.</li>
                             <li>And a new stage here for each of them.</li>
                         </ul>

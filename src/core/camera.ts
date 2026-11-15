@@ -1,5 +1,6 @@
 import { CAMERA, TRAFFIC } from '../config/tuning';
 
+import { roofOf } from './city/roofs';
 import type { Building } from './city/types';
 import { clampWeight } from './player/weight';
 
@@ -85,10 +86,16 @@ export function segmentHitsBox(a: Vec3, b: Vec3, min: Vec3, max: Vec3): boolean 
 export class BuildingIndex {
     private static readonly CELL = 8;
     readonly buildings: readonly Building[];
+    /** How far each building's roof rises above its walls (`roofOf`): a pitched roof hides Benny too. */
+    readonly roofRise: readonly number[];
     private readonly cells = new Map<number, number[]>();
 
-    constructor(buildings: readonly Building[]) {
+    constructor(
+        buildings: readonly Building[],
+        roofRise: readonly number[] = buildings.map((b, i) => roofOf(b, i).rise)
+    ) {
         this.buildings = buildings;
+        this.roofRise = roofRise;
         buildings.forEach((b, i) => {
             for (
                 let cx = Math.floor(b.rect.x0 / BuildingIndex.CELL);
@@ -148,7 +155,8 @@ export function occludingBuildings(index: BuildingIndex, camera: Vec3, targets: 
             }
             const r = index.buildings[i].rect;
             const min = { x: r.x0 - m, y: 0, z: r.z0 - m };
-            const max = { x: r.x1 + m, y: index.buildings[i].height + m, z: r.z1 + m };
+            const top = index.buildings[i].height + index.roofRise[i];
+            const max = { x: r.x1 + m, y: top + m, z: r.z1 + m };
             if (segmentHitsBox(camera, target, min, max)) {
                 hits.add(i);
             }
