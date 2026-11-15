@@ -29,7 +29,12 @@ export const ASSETS = {
     'food.brussels-sprouts': { kind: 'model', file: 'models/food/brussels-sprouts.glb' },
     'food.broccoli': { kind: 'model', file: 'models/food/broccoli.glb' },
     'food.cauliflower': { kind: 'model', file: 'models/food/cauliflower.glb' },
-    'food.carrot': { kind: 'model', file: 'models/food/carrot.glb' }
+    'food.carrot': { kind: 'model', file: 'models/food/carrot.glb' },
+    'prop.tree': { kind: 'model', file: 'models/props/tree.glb' },
+    'prop.lamp': { kind: 'model', file: 'models/props/lamp.glb' },
+    'prop.bench': { kind: 'model', file: 'models/props/bench.glb' },
+    'prop.hydrant': { kind: 'model', file: 'models/props/hydrant.glb' },
+    'texture.facade-felt': { kind: 'texture', file: 'textures/facade-felt.webp' }
 } as const satisfies Record<string, AssetEntry>;
 
 export type AssetId = keyof typeof ASSETS;

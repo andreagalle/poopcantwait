@@ -2,19 +2,28 @@ import { expect, test } from '@playwright/test';
 
 import { openGame } from './helpers';
 
-// The models of the art pass (src/assets/registry.ts) load from ./assets/ under the Pages subpath, without errors
-test('loads every model of the art pass', async ({ page }) => {
+// The models and textures of the art pass (src/assets/registry.ts) load from ./assets/ under the Pages subpath, without
+// errors
+test('loads every model and texture of the art pass', async ({ page }) => {
     const errors = await openGame(page, '?seed=42', false);
-    const models = await page.evaluate(() => {
+    const assets = await page.evaluate(() => {
         const app = [...globalThis.__playcanvasApps!.keys()][0]!;
         return app.assets
-            .filter((asset) => asset.type === 'container')
-            .map((asset) => ({ name: asset.name, loaded: asset.loaded, url: asset.getFileUrl() ?? '' }));
+            .filter((asset) => asset.type === 'container' || asset.name.startsWith('texture.'))
+            .map((asset) => ({
+                name: asset.name,
+                type: asset.type,
+                loaded: asset.loaded,
+                url: asset.getFileUrl() ?? ''
+            }));
     });
-    expect(models.map((m) => m.name)).toContain('food.burger');
-    for (const model of models) {
-        expect(model.loaded, model.name).toBe(true);
-        expect(model.url).toMatch(/^\.\/assets\/models\//);
+    const names = assets.map((a) => a.name);
+    expect(names).toContain('food.burger');
+    expect(names).toContain('prop.tree');
+    expect(names).toContain('texture.facade-felt');
+    for (const asset of assets) {
+        expect(asset.loaded, asset.name).toBe(true);
+        expect(asset.url).toMatch(asset.type === 'container' ? /^\.\/assets\/models\// : /^\.\/assets\/textures\//);
     }
     expect(errors).toEqual([]);
 });

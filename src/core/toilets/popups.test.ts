@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { KIOSKS, POPUP_TOILETS } from '../../config/tuning';
+import { CITY, KIOSKS, POPUP_TOILETS } from '../../config/tuning';
 import { generateCity } from '../city/generate';
 import { ZONE } from '../city/types';
 import { Rng } from '../rng';
@@ -20,8 +20,15 @@ describe('pop-up toilets', () => {
         for (const seed of [5, 42]) {
             const city = generateCity(seed);
             const nav = city.nav;
-            const spots = wallSpots(nav, city.buildings);
+            const spots = wallSpots(nav, city.buildings, city.props);
             expect(spots.length).toBeGreaterThan(500);
+            // Clear of the street furniture, a tree's canopy included
+            for (const s of spots) {
+                for (const p of city.props) {
+                    const keep = p.kind === 'tree' ? CITY.streetProps.kinds.tree.canopyRadiusMetres : 0.3;
+                    expect(Math.hypot(s.x - p.x, s.z - p.z)).toBeGreaterThan(keep + POPUP_TOILETS.footprintMetres / 2);
+                }
+            }
             expect(spots.every((s) => nav.zoneAt(s.x + s.facing.x * 0.3, s.z + s.facing.z * 0.3) !== ZONE.alley)).toBe(
                 true
             );

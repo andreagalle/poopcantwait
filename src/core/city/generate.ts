@@ -3,6 +3,7 @@ import type { StreetClass } from '../../config/tuning';
 import { Rng } from '../rng';
 
 import { NavGrid } from './navgrid';
+import { isCircle, placeStreetProps } from './props';
 import type { Building, City, CityEdge, Circle, KioskSpot, Park, Plaza, Point, Rect, Road, Side } from './types';
 import { ZONE, ZONE_OF_CLASS } from './types';
 
@@ -494,6 +495,14 @@ export function generateCity(seed: number): City {
     for (const k of kioskSpots) {
         paintRect(zone, half, k.rect, ZONE.blocked);
     }
+    const props = placeStreetProps(roads, buildings, kioskSpots, zone, half);
+    for (const { solid } of props) {
+        if (isCircle(solid)) {
+            paintCircle(zone, half, solid, ZONE.blocked);
+        } else {
+            paintRect(zone, half, solid, ZONE.blocked);
+        }
+    }
     paintCircle(zone, half, plaza.fountain, ZONE.blocked);
     for (const t of trees) {
         paintCircle(zone, half, t, ZONE.blocked);
@@ -517,6 +526,7 @@ export function generateCity(seed: number): City {
         kioskSpots,
         plaza,
         park,
+        props,
         edges: chooseEdges(edgeRng),
         spawn,
         nav: new NavGrid(half, zone)

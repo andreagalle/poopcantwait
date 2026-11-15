@@ -3,6 +3,9 @@ import type { Color, GraphicsDevice } from 'playcanvas';
 
 type Vec = readonly [number, number, number];
 
+/** Where untextured faces sample a texture: a corner of the facade tile, plain wall. */
+const PLAIN_UV: readonly [number, number] = [0.03, 0.03];
+
 const sub = (a: Vec, b: Vec): Vec => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const cross = (a: Vec, b: Vec): Vec => [
     a[1] * b[2] - a[2] * b[1],
@@ -17,30 +20,37 @@ const normalize = (a: Vec): Vec => {
 /**
  * Collects flat-shaded, vertex-coloured faces into one mesh, so a whole layer of the city (all roads, all buildings)
  * draws in a single call. Faces wind counter-clockwise around their outward normal. Draw it with a material that has
- * `diffuseVertexColor` set.
+ * `diffuseVertexColor` set. Faces may carry texture coordinates (`addFacadeBox`); the others get `PLAIN_UV`.
  */
 export class MeshBuilder {
     private readonly positions: number[] = [];
     private readonly normals: number[] = [];
     private readonly colors: number[] = [];
+    private readonly uvs: number[] = [];
     private readonly indices: number[] = [];
+    private textured = false;
 
     get vertexCount(): number {
         return this.positions.length / 3;
     }
 
-    /** A convex polygon, its corners counter-clockwise when seen from the side it faces. */
-    addFace(corners: readonly Vec[], color: Color): void {
+    /**
+     * A convex polygon, its corners counter-clockwise when seen from the side it faces, with a texture coordinate per
+     * corner if given.
+     */
+    addFace(corners: readonly Vec[], color: Color, uv?: readonly (readonly [number, number])[]): void {
         const normal = normalize(cross(sub(corners[1], corners[0]), sub(corners[2], corners[0])));
         const base = this.vertexCount;
         // Colours are given in sRGB; vertex colours are stored in linear space
         const linear = color.clone().linear();
         const rgba = [linear.r * 255, linear.g * 255, linear.b * 255, linear.a * 255].map(Math.round);
-        for (const p of corners) {
+        corners.forEach((p, i) => {
             this.positions.push(p[0], p[1], p[2]);
             this.normals.push(normal[0], normal[1], normal[2]);
             this.colors.push(...rgba);
-        }
+            this.uvs.push(...(uv?.[i] ?? PLAIN_UV));
+        });
+        this.textured ||= uv !== undefined;
         for (let i = 1; i + 1 < corners.length; i++) {
             this.indices.push(base, base + i, base + i + 1);
         }
@@ -137,11 +147,62 @@ export class MeshBuilder {
         }
     }
 
+    /**
+     * An axis-aligned building without its bottom face, its walls textured with a facade tile (`bay` metres wide and
+     * `storey` metres tall, roughly): each wall gets a whole number of tiles each way, stretched to fit, so no window is
+     * cut by a corner or the roof. The roof samples `PLAIN_UV`, plain wall, so it shows only its colour.
+     */
+    addFacadeBox(
+        x0: number,
+        z0: number,
+        x1: number,
+        z1: number,
+        height: number,
+        wall: Color,
+        roof: Color,
+        bay: number,
+        storey: number
+    ): void {
+        this.addGroundRect(x0, z0, x1, z1, height, roof);
+        const up = Math.max(1, Math.round(height / storey));
+        // Each wall, its corners counter-clockwise from outside: bottom left, bottom right, top right, top left
+        const walls: [Vec, Vec][] = [
+            [
+                [x0, 0, z1],
+                [x1, 0, z1]
+            ],
+            [
+                [x1, 0, z0],
+                [x0, 0, z0]
+            ],
+            [
+                [x1, 0, z1],
+                [x1, 0, z0]
+            ],
+            [
+                [x0, 0, z0],
+                [x0, 0, z1]
+            ]
+        ];
+        for (const [a, b] of walls) {
+            const across = Math.max(1, Math.round(Math.hypot(b[0] - a[0], b[2] - a[2]) / bay));
+            this.addFace([a, b, [b[0], height, b[2]], [a[0], height, a[2]]], wall, [
+                [0, 0],
+                [across, 0],
+                [across, up],
+                [0, up]
+            ]);
+        }
+    }
+
     build(device: GraphicsDevice): Mesh {
         const mesh = new Mesh(device);
         mesh.setPositions(this.positions);
         mesh.setNormals(this.normals);
         mesh.setColors32(this.colors);
+        if (this.textured) {
+            mesh.setUvs(0, this.uvs);
+        }
         mesh.setIndices(new Uint32Array(this.indices));
         mesh.update(PRIMITIVE_TRIANGLES);
         return mesh;

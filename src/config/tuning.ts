@@ -78,6 +78,30 @@ export const CITY = {
     fountainRadiusMetres: 3,
     /** Trees in the park: spacing of their jittered grid, trunk radius and margin from the park edge, in metres. */
     parkTrees: { spacingMetres: 9, radiusMetres: 0.8, marginMetres: 3 },
+    /**
+     * Street furniture along both sides of avenues and boulevards (design: *Street props*): one spot every
+     * `spacingMetres`, filled in turn from `pattern` (null leaves the spot empty; the far side starts half way through).
+     * Spots within `clearanceMetres` of a crossing, an alley mouth or a kiosk stay empty.
+     */
+    streetProps: {
+        spacingMetres: { avenue: 10, boulevard: 8 },
+        pattern: {
+            avenue: ['lamp', null, 'bench', null, 'lamp', null, 'hydrant', null],
+            boulevard: ['tree', 'lamp', 'tree', 'bench', 'tree', 'lamp', 'tree', 'hydrant']
+        },
+        clearanceMetres: 3,
+        /**
+         * Each kind: how far its centre stands out from the facade and the solid Benny collides with, in metres (a
+         * circle's radius, or a bench's length along the facade and depth). All of them keep out of the lanes: a
+         * bus's side passes 1.7 m from the facades of an avenue and 3.7 m from those of a boulevard.
+         */
+        kinds: {
+            tree: { offsetMetres: 2, radiusMetres: 0.35, canopyRadiusMetres: 1.6 },
+            lamp: { offsetMetres: 1, radiusMetres: 0.25 },
+            hydrant: { offsetMetres: 1, radiusMetres: 0.3 },
+            bench: { offsetMetres: 0.6, lengthMetres: 1.8, depthMetres: 0.8 }
+        }
+    },
     /** Sides of the city bordered by the river; the other sides are parkland. Either way, the edge blocks the way. */
     riverSides: { min: 1, max: 2 } satisfies Range
 } as const;
