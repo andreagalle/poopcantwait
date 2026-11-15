@@ -7,6 +7,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Seven felt trees from the town's sketches the maintainer kept: plane, poplar, fir, willow, cherry in blossom, maple in
+  autumn and lime, 1,164 to 1,499 triangles each (676 kB in all). Limes, poplars and maples line the boulevards, 5 to
+  8 m tall; the park has every kind, 6 to 10 m tall. One draw call per kind, with instancing. They replace the single
+  felt tree.
+
 ## [0.5.0] - 2026-11-15
 
 ### Added

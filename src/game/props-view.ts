@@ -18,24 +18,60 @@ import type { City } from '../core/city/types';
 import { MeshBuilder } from '../render/mesh-builder';
 import { PALETTE } from '../render/palette';
 
-/** The felt model of each kind of street furniture (design: *Street props*). */
+/** The felt model of each kind of street furniture but the trees (design: *Street props*). */
 export const PROP_MODELS = {
-    tree: 'prop.tree',
     lamp: 'prop.lamp',
     bench: 'prop.bench',
     hydrant: 'prop.hydrant'
-} as const satisfies Record<PropKind, AssetId>;
+} as const satisfies Record<Exclude<PropKind, 'tree'>, AssetId>;
 
-/** The size each piece is drawn at, in metres, once turned to face the road: across, up, and out from the facade. */
+/** The trees: seven kinds, each its own felt model. */
+export type TreeSpecies = 'plane' | 'poplar' | 'fir' | 'willow' | 'cherry' | 'maple' | 'lime';
+export const TREE_MODELS = {
+    plane: 'tree.plane',
+    poplar: 'tree.poplar',
+    fir: 'tree.fir',
+    willow: 'tree.willow',
+    cherry: 'tree.cherry',
+    maple: 'tree.maple',
+    lime: 'tree.lime'
+} as const satisfies Record<TreeSpecies, AssetId>;
+
+/**
+ * The size each piece is drawn at, in metres, once turned to face the road: across, up, and out from the facade. A
+ * `uniform` piece keeps its proportions: it is as tall as `height` unless that would make it wider than `width`.
+ */
 interface Size {
     readonly width: number;
     readonly height: number;
     readonly length: number;
+    readonly uniform?: boolean;
 }
 
+/**
+ * Trees along a boulevard keep their crowns clear of the buses: no wider than the canopy the city leaves them. The tall,
+ * narrow kinds (lime, poplar) grow tallest there, a smaller maple now and then; in turn along each side.
+ */
 const canopy = 2 * CITY.streetProps.kinds.tree.canopyRadiusMetres;
-const SIZE: Record<PropKind, Size> = {
-    tree: { width: canopy, height: 4.4, length: canopy },
+const STREET_TREES: readonly { species: TreeSpecies; height: number }[] = [
+    { species: 'lime', height: 7 },
+    { species: 'poplar', height: 8 },
+    { species: 'lime', height: 7 },
+    { species: 'maple', height: 5 }
+];
+/** The park's trees are older and bigger, every kind of them: their trunks are 0.8 m wide in the game. */
+const PARK_TREES: readonly { species: TreeSpecies; height: number }[] = [
+    { species: 'plane', height: 8 },
+    { species: 'willow', height: 7 },
+    { species: 'fir', height: 8.5 },
+    { species: 'cherry', height: 6 },
+    { species: 'maple', height: 7 },
+    { species: 'lime', height: 8 },
+    { species: 'poplar', height: 10 }
+];
+const PARK_CANOPY_METRES = 7;
+
+const SIZE: Record<Exclude<PropKind, 'tree'>, Size> = {
     lamp: { width: 0.9, height: 3.6, length: 0.9 },
     hydrant: { width: 0.62, height: 0.85, length: 0.62 },
     bench: {
@@ -44,9 +80,6 @@ const SIZE: Record<PropKind, Size> = {
         length: CITY.streetProps.kinds.bench.depthMetres
     }
 };
-/** The park's trees are older and bigger: their trunks are 0.8 m wide in the game. */
-const PARK_TREE: Size = { width: 4.6, height: 6, length: 4.6 };
-
 interface Placement {
     readonly x: number;
     readonly z: number;
@@ -121,22 +154,51 @@ function addGreybox(mesh: MeshBuilder, kind: PropKind, p: Placement): void {
     }
 }
 
+/** The scale that stretches a model of these extents to a size. */
+function scaleFor(size: Size, extents: Vec3, out: Vec3): Vec3 {
+    if (size.uniform) {
+        const s = Math.min(size.height / extents.y, size.width / Math.max(extents.x, extents.z));
+        return out.set(s, s, s);
+    }
+    return out.set(size.width / extents.x, size.height / extents.y, size.length / extents.z);
+}
+
+/** The pieces drawn from one model: its kind of furniture, for the greybox stand-in, and where each stands. */
+interface Group {
+    readonly kind: PropKind;
+    readonly list: Placement[];
+}
+
 /**
- * The street furniture and the park's trees (design: *Street props*): each kind drawn in one call, with hardware
- * instancing, from its felt model; a kind whose model did not load is drawn in greybox, all such kinds in one mesh.
+ * The street furniture and the park's trees (design: *Street props*): each model drawn in one call, with hardware
+ * instancing; a model that did not load is drawn in greybox, all such pieces in one mesh.
  */
 export class PropsView {
     readonly root = new Entity('props');
 
     constructor(app: AppBase, city: City, models: ReadonlyMap<AssetId, Asset>) {
-        const placements: Record<PropKind, Placement[]> = { tree: [], lamp: [], bench: [], hydrant: [] };
+        const groups = new Map<AssetId, Group>();
+        const add = (id: AssetId, kind: PropKind, placement: Placement): void => {
+            const group = groups.get(id) ?? { kind, list: [] };
+            group.list.push(placement);
+            groups.set(id, group);
+        };
+        let streetTrees = 0;
         for (const p of city.props) {
             const yaw = (Math.atan2(p.facing.x, p.facing.z) * 180) / Math.PI;
-            placements[p.kind].push({ x: p.x, z: p.z, yaw, size: SIZE[p.kind] });
+            if (p.kind === 'tree') {
+                const { species, height } = STREET_TREES[streetTrees++ % STREET_TREES.length];
+                // Trees turn any way, so they do not look stamped
+                const size = { width: canopy, height, length: canopy, uniform: true };
+                add(TREE_MODELS[species], 'tree', { x: p.x, z: p.z, yaw: (streetTrees * 97) % 360, size });
+            } else {
+                add(PROP_MODELS[p.kind], p.kind, { x: p.x, z: p.z, yaw, size: SIZE[p.kind] });
+            }
         }
         city.park.trees.forEach((t, i) => {
-            // Each park tree turned its own way, so they do not look stamped
-            placements.tree.push({ x: t.x, z: t.z, yaw: (i * 137) % 360, size: PARK_TREE });
+            const { species, height } = PARK_TREES[(i * 3) % PARK_TREES.length];
+            const size = { width: PARK_CANOPY_METRES, height, length: PARK_CANOPY_METRES, uniform: true };
+            add(TREE_MODELS[species], 'tree', { x: t.x, z: t.z, yaw: (i * 137) % 360, size });
         });
 
         const greybox = new MeshBuilder();
@@ -147,12 +209,8 @@ export class PropsView {
         const position = new Vec3();
         const trs = new Mat4();
         const world = new Mat4();
-        for (const kind of Object.keys(placements) as PropKind[]) {
-            const list = placements[kind];
-            const piece = pieceOf(models.get(PROP_MODELS[kind]));
-            if (list.length === 0) {
-                continue;
-            }
+        for (const [id, { kind, list }] of groups) {
+            const piece = pieceOf(models.get(id));
             if (!piece) {
                 list.forEach((p) => addGreybox(greybox, kind, p));
                 continue;
@@ -161,18 +219,13 @@ export class PropsView {
             list.forEach((p, i) => {
                 position.set(p.x, 0, p.z);
                 turn.setFromEulerAngles(0, p.yaw, 0);
-                scale.set(
-                    p.size.width / piece.extents.x,
-                    p.size.height / piece.extents.y,
-                    p.size.length / piece.extents.z
-                );
-                trs.setTRS(position, turn, scale);
+                trs.setTRS(position, turn, scaleFor(p.size, piece.extents, scale));
                 world.mul2(trs, piece.base);
                 matrices.set(world.data, i * 16);
             });
             const instance = new MeshInstance(piece.mesh, piece.material);
             instance.setInstancing(new VertexBuffer(device, format, list.length, { data: matrices }));
-            const entity = new Entity(`props-${kind}`);
+            const entity = new Entity(`props-${id}`);
             entity.addComponent('render', {
                 meshInstances: [instance],
                 castShadows: kind === 'tree' || kind === 'lamp',

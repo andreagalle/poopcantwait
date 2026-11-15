@@ -19,7 +19,7 @@ test('loads every model and texture of the art pass', async ({ page }) => {
     });
     const names = assets.map((a) => a.name);
     expect(names).toContain('food.burger');
-    expect(names).toContain('prop.tree');
+    expect(names).toContain('tree.lime');
     expect(names).toContain('texture.facade-felt');
     for (const asset of assets) {
         expect(asset.loaded, asset.name).toBe(true);

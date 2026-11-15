@@ -31,7 +31,7 @@ import { addBenny } from './game/greybox';
 import { Juice } from './game/juice';
 import { KioskView } from './game/kiosk-view';
 import { PopupView } from './game/popup-view';
-import { PropsView, PROP_MODELS } from './game/props-view';
+import { PropsView, PROP_MODELS, TREE_MODELS } from './game/props-view';
 import { VEHICLE_MODELS, VehicleView } from './game/vehicle-view';
 import type { MenuAction } from './input/keyboard';
 import { KeyboardInput, MenuKeys } from './input/keyboard';
@@ -103,7 +103,8 @@ const models = await loadAssets(app, [
     ...VEHICLE_MODELS.car,
     ...VEHICLE_MODELS.bus,
     ...Object.values(FOOD_MODELS),
-    ...Object.values(PROP_MODELS)
+    ...Object.values(PROP_MODELS),
+    ...Object.values(TREE_MODELS)
 ]);
 
 addSunlight(app);

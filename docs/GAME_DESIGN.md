@@ -151,9 +151,12 @@ _Initial_ generation parameters:
 - _Initial_ layout: one spot every 10 m along an avenue (in turn: lamp, nothing, bench, nothing, lamp, nothing,
   hydrant, nothing) and every 8 m along a boulevard (tree, lamp, tree, bench, tree, lamp, tree, hydrant); the far side
   starts half way through, so the two sides do not mirror each other. No spot within 3 m of a crossing or a kiosk.
-  Trees stand 2 m from the facade (trunk 0.35 m, canopy 1.6 m in radius, boulevards only), lamps and hydrants 1 m
+  Trees stand 2 m from the facade (trunk 0.35 m, canopy 1.7 m in radius, boulevards only), lamps and hydrants 1 m
   (0.25 and 0.3 m in radius), benches against it (1.8 by 0.8 m). About 210 pieces a city.
 - The layout draws no random numbers, so for a seed the roads, buildings and kiosks stay what they were.
+- Seven kinds of tree, much taller than Benny. Along the boulevards, in turn: a lime (7 m), a poplar (8 m), a lime and a
+  maple (5 m), their crowns no wider than 3.4 m so the buses pass clear. In the park, every kind, older and bigger: plane
+  8 m, willow 7 m, fir 8.5 m, cherry in blossom 6 m, maple in autumn 7 m, lime 8 m, poplar 10 m, crowns up to 7 m wide.
 
 ## Weight, girth and speed
 
