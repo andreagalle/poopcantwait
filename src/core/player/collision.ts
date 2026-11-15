@@ -47,17 +47,17 @@ function insert(
 }
 
 /**
- * Builds the collision world of a city: buildings, kiosks and benches as rectangles; the fountain, trees, lamps and
- * hydrants as circles.
+ * Builds the collision world of a city: buildings, kiosks, benches and bus shelters as rectangles; the fountain,
+ * trees, lamps, hydrants and any `poles` (the traffic lights and road signs) as circles.
  */
-export function buildCollisionWorld(city: City): CollisionWorld {
+export function buildCollisionWorld(city: City, poles: readonly Circle[] = []): CollisionWorld {
     const solids = city.props.map((p) => p.solid);
     const rects = [
         ...city.buildings.map((b) => b.rect),
         ...city.kioskSpots.map((k) => k.rect),
         ...solids.filter((s): s is Rect => !isCircle(s))
     ];
-    const circles = [city.plaza.fountain, ...city.park.trees, ...solids.filter(isCircle)];
+    const circles = [city.plaza.fountain, ...city.park.trees, ...solids.filter(isCircle), ...poles];
     const cells = new Map<number, { rects: number[]; circles: number[] }>();
     rects.forEach((r, i) => insert(cells, r.x0, r.z0, r.x1, r.z1, (e) => e.rects.push(i)));
     circles.forEach((c, i) =>

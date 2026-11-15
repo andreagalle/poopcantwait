@@ -2,7 +2,9 @@ import { ADDRESS_REPEAT, BLEND_NORMAL, Color, Entity, MeshInstance, StandardMate
 import type { AppBase, Asset, Texture } from 'playcanvas';
 
 import { CAMERA } from '../config/tuning';
+import { sidewalksOf } from '../core/city/sidewalks';
 import type { Building, City, Rect, Side } from '../core/city/types';
+import type { Markings } from '../core/traffic/markings';
 
 import { MeshBuilder } from './mesh-builder';
 import { PALETTE } from './palette';
@@ -23,18 +25,23 @@ const FACADE = { bayMetres: 3, storeyMetres: 3 };
  */
 const ROAD_LIFT: Record<string, number> = { alley: 0.02, street: 0.03, avenue: 0.04, boulevard: 0.05 };
 const OPEN_SPACE_LIFT = 0.02;
+/** White paint lies just above the widest road; sidewalks stand a kerb's height above the road. */
+const PAINT_LIFT = 0.056;
+const SIDEWALK_HEIGHT = 0.1;
+/** The felt tile repeats every this many metres on the ground. */
+const FELT_METRES = 3;
 const EDGE_DROP = { parkland: -0.15, riverbank: -0.1, river: -0.05 };
 
 const tint = (c: Color, t: number): Color => new Color(c.r * t, c.g * t, c.b * t, c.a);
 
-function vertexColorMaterial(name: string, opacity = 1, facade?: Texture): StandardMaterial {
+function vertexColorMaterial(name: string, opacity = 1, map?: Texture): StandardMaterial {
     const material = new StandardMaterial();
     material.name = name;
     material.diffuse.set(1, 1, 1);
     material.diffuseVertexColor = true;
-    if (facade) {
-        // The felt tile, tinted by each building's colour
-        material.diffuseMap = facade;
+    if (map) {
+        // A felt tile, tinted by the vertex colours
+        material.diffuseMap = map;
     }
     material.useMetalness = true;
     material.metalness = 0;
@@ -63,10 +70,10 @@ function beyond(side: Side, half: number, inner: number, outer: number): Rect {
     }
 }
 
-function addGround(city: City): MeshBuilder {
+function addGround(city: City, markings: Markings): MeshBuilder {
     const half = city.halfSize;
     const far = half + EDGE_EXTENT;
-    const ground = new MeshBuilder();
+    const ground = new MeshBuilder({ worldUvMetres: FELT_METRES });
     ground.addGroundRect(-far, -far, far, far, EDGE_DROP.parkland, PALETTE.parkland);
     for (const edge of city.edges.filter((e) => e.kind === 'river')) {
         const bank = beyond(edge.side, half, 0, RIVERBANK_WIDTH);
@@ -85,6 +92,12 @@ function addGround(city: City): MeshBuilder {
     ground.addGroundRect(plaza.x0, plaza.z0, plaza.x1, plaza.z1, OPEN_SPACE_LIFT, PALETTE.plaza);
     const park = city.park.rect;
     ground.addGroundRect(park.x0, park.z0, park.x1, park.z1, OPEN_SPACE_LIFT, PALETTE.grass);
+    for (const { rect: r } of sidewalksOf(city)) {
+        ground.addBox(r.x0, 0, r.z0, r.x1, SIDEWALK_HEIGHT, r.z1, PALETTE.kerb, PALETTE.sidewalk);
+    }
+    for (const r of [...markings.zebras, ...markings.stopLines, ...markings.dashes]) {
+        ground.addGroundRect(r.x0, r.z0, r.x1, r.z1, PAINT_LIFT, PALETTE.roadPaint);
+    }
     return ground;
 }
 
@@ -126,7 +139,7 @@ function addBuilding(mesh: MeshBuilder, b: Building): void {
  * furniture have their own views).
  */
 function addSolids(city: City): MeshBuilder {
-    const solids = new MeshBuilder();
+    const solids = new MeshBuilder({ worldUvMetres: FELT_METRES });
 
     const f = city.plaza.fountain;
     solids.addCylinder(f.x, f.z, f.radius, 0, FOUNTAIN.rimHeight, PALETTE.fountainStone, 24);
@@ -173,24 +186,29 @@ export class CityView {
     private readonly city: City;
     private readonly buildings: Entity;
     private readonly faded: Entity;
-    private readonly opaqueMaterial = vertexColorMaterial('city-greybox');
+    private readonly opaqueMaterial: StandardMaterial;
     private readonly buildingMaterial: StandardMaterial;
     private readonly fadedMaterial: StandardMaterial;
     private fadedKey = '';
 
-    constructor(app: AppBase, city: City, facade?: Asset) {
+    constructor(app: AppBase, city: City, markings: Markings, facade?: Asset, felt?: Asset) {
         this.app = app;
         this.city = city;
-        const tile = facade?.resource as Texture | undefined;
-        if (tile) {
-            tile.addressU = ADDRESS_REPEAT;
-            tile.addressV = ADDRESS_REPEAT;
-            tile.anisotropy = 4;
-        }
+        const repeat = (asset?: Asset): Texture | undefined => {
+            const texture = asset?.resource as Texture | undefined;
+            if (texture) {
+                texture.addressU = ADDRESS_REPEAT;
+                texture.addressV = ADDRESS_REPEAT;
+                texture.anisotropy = 4;
+            }
+            return texture;
+        };
+        const tile = repeat(facade);
+        this.opaqueMaterial = vertexColorMaterial('city-ground', 1, repeat(felt));
         this.buildingMaterial = vertexColorMaterial('city-buildings', 1, tile);
         this.fadedMaterial = vertexColorMaterial('city-faded', CAMERA.buildingFadeOpacity, tile);
         this.root = new Entity('city');
-        this.root.addChild(layer(app, 'city-ground', addGround(city), this.opaqueMaterial, false));
+        this.root.addChild(layer(app, 'city-ground', addGround(city, markings), this.opaqueMaterial, false));
         this.root.addChild(layer(app, 'city-solids', addSolids(city), this.opaqueMaterial, true));
         this.buildings = layer(
             app,

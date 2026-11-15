@@ -157,6 +157,24 @@ _Initial_ generation parameters:
 - Seven kinds of tree, much taller than Benny. Along the boulevards, in turn: a lime (7 m), a poplar (8 m), a lime and a
   maple (5 m), their crowns no wider than 3.4 m so the buses pass clear. In the park, every kind, older and bigger: plane
   8 m, willow 7 m, fir 8.5 m, cherry in blossom 6 m, maple in autumn 7 m, lime 8 m, poplar 10 m, crowns up to 7 m wide.
+- A bus shelter now and then along the boulevards (3 by 1.4 m, against the facade, solid).
+
+### Roads
+
+- Raised sidewalks with a kerb line the facades of every street (0.5 m), avenue (1.5 m) and boulevard (3 m), and the
+  plaza and the park, with a square at every corner; they stay clear of the lanes. Benny walks over them as over the
+  road (presentation only).
+- White paint, in felt: a zebra crossing on every arm of every crossing (stripes 0.5 m wide every metre, 3 m deep, 0.6 m
+  out from the crossing), a stop line across the incoming lane just before it, and a dashed centre line (3 m dashes,
+  3 m gaps) between the crossings.
+- **Traffic lights** where avenues and boulevards cross, on the near-right corner of every arm, facing the traffic
+  coming in. Each crossing gives one axis green (12 s), amber (2.5 s) and all red (1.5 s), then the other; each crossing
+  starts 7 s later in the cycle than the one before. Vehicles stop at the stop line on red, and on amber unless they are
+  within 8 m of it; the traffic queues behind them. Benny ignores the lights.
+- **Road signs** on the same corners: a stop sign on a street that meets an avenue or a boulevard, which itself gets a
+  pedestrian crossing sign; a give-way sign where two streets cross, for the traffic along z; a 30 limit at the start of
+  a street, for the traffic turning into it from a bigger road. Poles are solid (0.15 m in radius) and only stand on a
+  sidewalk; pop-ups keep clear of them.
 
 ## Weight, girth and speed
 

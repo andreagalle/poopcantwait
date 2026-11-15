@@ -22,7 +22,8 @@ import { PALETTE } from '../render/palette';
 export const PROP_MODELS = {
     lamp: 'prop.lamp',
     bench: 'prop.bench',
-    hydrant: 'prop.hydrant'
+    hydrant: 'prop.hydrant',
+    shelter: 'street.bus-shelter'
 } as const satisfies Record<Exclude<PropKind, 'tree'>, AssetId>;
 
 /** The trees: seven kinds, each its own felt model. */
@@ -78,6 +79,11 @@ const SIZE: Record<Exclude<PropKind, 'tree'>, Size> = {
         width: CITY.streetProps.kinds.bench.lengthMetres,
         height: 0.95,
         length: CITY.streetProps.kinds.bench.depthMetres
+    },
+    shelter: {
+        width: CITY.streetProps.kinds.shelter.lengthMetres,
+        height: 2.6,
+        length: CITY.streetProps.kinds.shelter.depthMetres
     }
 };
 interface Placement {
@@ -89,14 +95,14 @@ interface Placement {
 }
 
 /** A model's one mesh, its material, and how to stand it: centred over the origin, its lowest point at y = 0. */
-interface Piece {
+export interface Piece {
     readonly mesh: Mesh;
     readonly material: Material;
     readonly base: Mat4;
     readonly extents: Vec3;
 }
 
-function pieceOf(asset: Asset | undefined): Piece | null {
+export function pieceOf(asset: Asset | undefined): Piece | null {
     if (!asset) {
         return null;
     }
@@ -145,11 +151,13 @@ function addGreybox(mesh: MeshBuilder, kind: PropKind, p: Placement): void {
         case 'hydrant':
             mesh.addCylinder(x, z, size.width / 2, 0, size.height, new Color(0.85, 0.2, 0.18), 8);
             return;
-        case 'bench': {
+        case 'bench':
+        case 'shelter': {
             const across = Math.abs(Math.round(p.yaw / 90)) % 2 === 1;
             const hx = (across ? size.length : size.width) / 2;
             const hz = (across ? size.width : size.length) / 2;
-            mesh.addBox(x - hx, 0, z - hz, x + hx, size.height * 0.5, z + hz, new Color(0.75, 0.5, 0.25));
+            const height = kind === 'bench' ? size.height * 0.5 : size.height;
+            mesh.addBox(x - hx, 0, z - hz, x + hx, height, z + hz, new Color(0.75, 0.5, 0.25));
         }
     }
 }

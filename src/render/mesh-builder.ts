@@ -29,6 +29,12 @@ export class MeshBuilder {
     private readonly uvs: number[] = [];
     private readonly indices: number[] = [];
     private textured = false;
+    /** Faces given no texture coordinates get world ones, a texture repeat every this many metres (0: none). */
+    private readonly worldUvMetres: number;
+
+    constructor(options: { readonly worldUvMetres?: number } = {}) {
+        this.worldUvMetres = options.worldUvMetres ?? 0;
+    }
 
     get vertexCount(): number {
         return this.positions.length / 3;
@@ -44,13 +50,21 @@ export class MeshBuilder {
         // Colours are given in sRGB; vertex colours are stored in linear space
         const linear = color.clone().linear();
         const rgba = [linear.r * 255, linear.g * 255, linear.b * 255, linear.a * 255].map(Math.round);
+        const s = this.worldUvMetres;
         corners.forEach((p, i) => {
             this.positions.push(p[0], p[1], p[2]);
             this.normals.push(normal[0], normal[1], normal[2]);
             this.colors.push(...rgba);
-            this.uvs.push(...(uv?.[i] ?? PLAIN_UV));
+            if (uv) {
+                this.uvs.push(...uv[i]);
+            } else if (s > 0) {
+                // Lying faces take the ground's coordinates; standing ones run along the wall and up
+                this.uvs.push(...(Math.abs(normal[1]) > 0.5 ? [p[0] / s, p[2] / s] : [(p[0] + p[2]) / s, p[1] / s]));
+            } else {
+                this.uvs.push(...PLAIN_UV);
+            }
         });
-        this.textured ||= uv !== undefined;
+        this.textured ||= uv !== undefined || s > 0;
         for (let i = 1; i + 1 < corners.length; i++) {
             this.indices.push(base, base + i, base + i + 1);
         }

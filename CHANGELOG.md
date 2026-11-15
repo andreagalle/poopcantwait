@@ -9,6 +9,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Felt roads from the crossroads the maintainer kept: raised sidewalks with a kerb along every facade, zebra crossings
+  on every arm of every crossing, stop lines and dashed centre lines, all in felt (a plain felt tile, 7.5 kB, now on the
+  whole ground).
+- Traffic lights where avenues and boulevards cross, with phases: green, amber and all red for each axis in turn. Cars
+  and buses stop at the line on red and queue; the lit lamp glows. Stop, give-way, pedestrian crossing and 30 limit
+  signs at the other crossings, and bus shelters along the boulevards. Six Meshy models of 1,000 triangles (428 kB).
+
 - Seven felt trees from the town's sketches the maintainer kept: plane, poplar, fir, willow, cherry in blossom, maple in
   autumn and lime, 1,164 to 1,499 triangles each (676 kB in all). Limes, poplars and maples line the boulevards, 5 to
   8 m tall; the park has every kind, 6 to 10 m tall. One draw call per kind, with instancing. They replace the single
