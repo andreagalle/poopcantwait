@@ -16,7 +16,7 @@ shiver and a stained icon in the HUD.
 
 ## Core loop
 
-1. Read the city: which toilets are free (green sign and beam) and which ones Benny can still reach at his current size.
+1. Read the city: which toilets are free (green door sign) and which ones Benny can still reach at his current size.
 2. Run there with the arrow keys, grabbing junk food on the way and dodging vegetables and traffic.
 3. Reach a free toilet: relief, bonus points, countdown reset.
 4. Bigger Benny means more points and crushed cars, but slower runs and fewer usable streets. Pop-up toilets appear
@@ -180,8 +180,8 @@ the HUD:
   never narrows the street; its door zone is the 1.5 m of sidewalk in front of the door.
 - Every toilet is the same felt portable cabin (teal, with a rounded cream roof), the maintainer chose: no roof beacon.
   A round sign on its door shows the state like a real cabin's latch, and the kiosk fills its 2 m notch, 2.6 m tall.
-- Each kiosk cycles between **free** (green door sign and an upward light beam) and **occupied** (red door sign, the
-  cabin rattling). _Initial_ free time: 6 to 14 s; occupied time: 5 to 15 s; both random per cycle.
+- Each kiosk cycles between **free** (green door sign) and **occupied** (red door sign, the cabin rattling). No light
+  beam over the cabins: the maintainer had it taken away. _Initial_ free time: 6 to 14 s; occupied time: 5 to 15 s; both random per cycle.
 - Benny uses a free toilet by standing in its door zone for 0.5 s. He enters (he squeezes through comically at any
   size), relief plays for 1.5 s during which he cannot be hurt, then he comes out with a fresh countdown. The kiosk
   turns occupied for 5 to 10 s.
@@ -196,11 +196,17 @@ the HUD:
 - Spawn interval shrinks with weight: _initial_ every 25 s at `w = 0` down to every 6 s at `w = 1`. Lifetime 20 s.
   At most 4 at a time.
 - They spawn only where Benny can go at his current girth, at a path distance of 25 to 80 m from him.
+- A pop-up always backs onto a building, its door to the open ground: on the sidewalks of avenues and boulevards, never
+  in the middle of a road, never in a street, where cars drive within a metre or two of the facades, and never in an
+  alley, which it would block. The way to it is measured to its door, where Benny stands to step in, as at a kiosk.
 - **Mercy rule:** if no free toilet is reachable within 80% of the remaining time at Benny's current speed, one pop-up
-  toilet spawns within reach immediately. At most once per countdown cycle.
+  toilet spawns within reach immediately, or at the nearest wall there is when none is within reach. At most once per
+  countdown cycle.
 - _Initial_ details: a mercy pop-up appears at a path distance between 30% and 60% of the distance Benny can still
   cover (at least 5 m), replacing the oldest pop-up if four are already out. Pop-ups are the same felt cabin, 1.4 m wide
-  and 2.3 m tall with a green door sign and a light beam, always free and not solid: Benny steps into one and stays half a second to use it, and it is gone once used.
+  and 2.3 m tall with a green door sign, always free and not solid: Benny steps into one and stays half a second to use
+  it, and it is gone once used. The spots are every metre of facade where the cabin fits off the streets, worked out
+  once per city; two pop-ups never overlap.
 - Path distances from Benny at his current girth are recomputed every 0.5 s of game time, up to 200 m along the paths;
   toilets farther than that count as out of reach. Each search is spread over several steps, 4,000 cells a step (a slim
   Benny's takes 10 steps, 0.17 s), so no frame pays for all of it; the old distances stay in use until the new ones are
@@ -257,11 +263,20 @@ With these values Benny reaches maximum weight after roughly 35 to 45 items.
 ## Traffic
 
 - Cars drive on streets, avenues and boulevards; buses only on avenues and boulevards. Nothing drives in alleys.
-- Vehicles follow lanes and pick a random direction at each intersection. They do not brake for Benny and they honk
-  when he is close ahead.
+- Vehicles follow lanes and pick a random direction at each intersection, which they choose as they enter the stretch
+  before it, so they round the corner on a curve instead of jumping onto the next lane. They do not brake for Benny
+  and they honk when he is close ahead.
+- Vehicles keep their distance from the one ahead in their lane, so a fast car slows down behind a slow one instead of
+  driving through it, and the traffic queues behind a wreck. _Initial_ gap: 2 m bumper to bumper when standing, plus
+  1 s of driving at their speed.
+- Nothing appears or vanishes in view: vehicles join the traffic out of Benny's sight, and a wreck is towed away only
+  once it is out of sight too.
 - _Initial_ details: one lane each way, a quarter of the road width from its centre line (right-hand traffic); a
-  vehicle turns back only where there is no other way; new vehicles join at least 45 m from Benny; a vehicle honks
-  when he is within 12 m ahead of it in its lane, at most every 2.5 s. Cars are 4.2 by 1.9 m, buses 11 by 2.6 m.
+  vehicle turns back only where there is no other way, on a half circle to the other lane; it turns right on a quarter
+  circle of 2.5 m radius (hugging the block, which a wider one would clip on a 6 m street) and left on one of 6 m,
+  tangent to both lanes, at its cruising speed. Out of sight means farther from Benny than twice the camera distance
+  plus the 3 m look-ahead, and at least 45 m: 45 m for a slim Benny, 83 m at maximum weight. A vehicle honks when he
+  is within 12 m ahead of it in its lane, at most every 2.5 s. Cars are 4.2 by 1.9 m, buses 11 by 2.6 m.
 - _Initial_ speeds: cars 9 to 14 m/s, buses 7 to 9 m/s. _Initial_ density: 12 cars and 3 buses, growing 15% per minute
   up to three times that.
 
@@ -273,7 +288,7 @@ With these values Benny reaches maximum weight after roughly 35 to 45 items.
   less.
 - **The vehicle crumples** when his weight is at or above the threshold: it squashes to 40% of its length with a puff
   of smoke and stops, Benny does a belly bounce and is slowed for 0.3 s, and the player scores the bonus. Crumpled
-  vehicles disappear after 3 s; other vehicles drive around them.
+  vehicles are towed away after 3 s, as soon as they are out of Benny's sight; the traffic queues behind them meanwhile.
 - _Initial_ details: the knock-back is a push along the vehicle's way that Benny's ordinary braking soaks up over the
   knock-back distance, so walls stop him the usual way; the arrow keys do nothing while he is stunned, and vehicles
   cannot hit him again until 0.5 s after the stun. While slowed after a belly bounce, his top speed is halved.

@@ -1,4 +1,4 @@
-import { CAMERA } from '../config/tuning';
+import { CAMERA, TRAFFIC } from '../config/tuning';
 
 import type { Building } from './city/types';
 import { clampWeight } from './player/weight';
@@ -18,6 +18,18 @@ export interface Vec3 {
 export function cameraDistanceAt(w: number): number {
     const { slimMetres, maxWeightMetres } = CAMERA.distance;
     return slimMetres + (maxWeightMetres - slimMetres) * clampWeight(w);
+}
+
+/**
+ * How far from Benny something must be to be out of view, in metres, at his weight: twice the camera's distance (18 m
+ * slim, 40 m at maximum weight), plus the look-ahead, and never less than the traffic's minimum spawn distance.
+ * New vehicles appear and wrecks are towed away only beyond it (design: *Traffic*).
+ */
+export function outOfSightMetresAt(w: number): number {
+    return Math.max(
+        TRAFFIC.spawnMinDistanceMetres,
+        TRAFFIC.outOfSightCameraDistances * cameraDistanceAt(w) + CAMERA.maxLookAheadMetres
+    );
 }
 
 /** Where the camera aims ahead of Benny: his velocity times the look-ahead time, capped. */

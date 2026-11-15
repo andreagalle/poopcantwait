@@ -7,6 +7,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Pop-up toilets back onto a building, door to the open ground, on the sidewalks of avenues and boulevards: never in
+  the middle of a road, never in a street, where cars pass close to the facades, never blocking an alley. The way to
+  one is measured to its door, as at a kiosk, and the mercy rule falls back on the nearest wall when none is within
+  reach.
+- No more light beam over the toilets, the maintainer's call: the green or red sign on the door says it all.
+- Traffic that never pops in or out of view: vehicles join out of Benny's sight (45 m slim, up to 83 m at maximum
+  weight, as the camera pulls back), a wreck is towed only once it is out of sight, cars round every corner on a curve
+  (2.5 m radius to the right, 6 m to the left) instead of jumping onto the next lane and snapping round, and they keep
+  their distance from the one ahead instead of driving through it, queueing behind a wreck.
+
 ## [0.5.0] - 2026-11-14
 
 ### Added

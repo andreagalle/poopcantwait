@@ -224,7 +224,10 @@ export const POPUP_TOILETS = {
      */
     mercyDistanceShare: { min: 0.3, max: 0.6 } satisfies Range,
     mercyMinMetres: 5,
-    /** Side of the square cabin, in metres. Pop-ups are not solid: Benny steps into one to use it. */
+    /**
+     * Side of the square cabin, in metres. A pop-up backs onto a building, its door to the open ground, never in a
+     * street (cars pass close to the facades there). Pop-ups are not solid: Benny steps into one to use it.
+     */
     footprintMetres: 1.4
 } as const;
 
@@ -321,8 +324,28 @@ export const TRAFFIC = {
     },
     /** Each direction drives in one lane, centred this share of the road width from its centre line (right-hand traffic). */
     laneOffsetShare: 0.25,
+    /**
+     * Vehicles round each corner on a quarter circle, in metres of radius, tangent to the lane they leave and to the one
+     * they join, at their cruising speed: they never jump from lane to lane nor snap round. A right turn hugs the corner
+     * of the block (a wider one would clip the buildings of a 6 m street); a left turn swings wide across the crossing.
+     * Going straight on, they keep to their lane over the same distance as a left turn.
+     */
+    turnRadiusMetres: { right: 2.5, left: 6 },
+    /**
+     * Vehicles keep their distance from the one ahead in their lane (a wreck included): this gap, in metres, bumper to
+     * bumper when standing...
+     */
+    followGapMetres: 2,
+    /** ...plus this many seconds of driving at their speed, slowing down smoothly as the gap closes. */
+    followHeadwaySeconds: 1,
     /** New vehicles appear at least this far from Benny, in metres, so they never pop in on screen. */
     spawnMinDistanceMetres: 45,
+    /**
+     * ...and at least this many camera distances from him, so they never appear in view however far the camera has
+     * pulled back (the far corners of a 21:9 view are about 1.6 camera distances from Benny). The same distance tells
+     * when a wreck is out of sight and can be towed away.
+     */
+    outOfSightCameraDistances: 2,
     /** Vehicles honk when Benny is this close ahead of them in their lane, in metres... */
     honkDistanceMetres: 12,
     /** ...at most once in this many seconds each. */

@@ -1,5 +1,6 @@
 import { COLLISIONS, FOOD, KIOSKS, MOVEMENT, NAVIGATION, POPUP_TOILETS, SIMULATION, TRAFFIC } from '../config/tuning';
 
+import { outOfSightMetresAt } from './camera';
 import { PathSearch } from './city/navgrid';
 import type { City, Point } from './city/types';
 import type { FoodItem, FoodKind } from './food/food';
@@ -14,13 +15,21 @@ import type { ScoreState } from './score/score';
 import { initialScore, scoreCrumple, scoreJunk, scoreRelief, tickScore } from './score/score';
 import type { KioskState } from './toilets/kiosks';
 import { circleNearRect, initialKiosks, occupyAfterUse, tickKiosks } from './toilets/kiosks';
-import type { PopupToilet } from './toilets/popups';
-import { choosePopupSpot, popupIntervalAt, touchesPopup } from './toilets/popups';
+import type { PopupSpot, PopupToilet } from './toilets/popups';
+import { choosePopupSpot, popupDoor, popupIntervalAt, touchesPopup, wallSpots } from './toilets/popups';
 import { hitOutcome, knockSpeed } from './traffic/collisions';
 import type { LaneGraph } from './traffic/lanes';
 import { buildLaneGraph } from './traffic/lanes';
 import type { Vehicle } from './traffic/vehicles';
-import { driveVehicle, spawnVehicle, targetCounts, vehicleFootprint, vehiclePose } from './traffic/vehicles';
+import {
+    driveVehicle,
+    followSpeed,
+    gapsAhead,
+    spawnVehicle,
+    targetCounts,
+    vehicleFootprint,
+    vehiclePose
+} from './traffic/vehicles';
 import type { UrgencyState } from './urgency/urgency';
 import { initialUrgency, isOut, penalize, relieve, tickUrgency } from './urgency/urgency';
 
@@ -124,6 +133,9 @@ export class Game {
     private readonly gains: Gain[] = [];
     /** The lanes vehicles drive on. */
     readonly lanes: LaneGraph;
+    /** The nav cells inside buildings: a pop-up backs onto one of them. */
+    /** Every spot against a building where a pop-up may appear (`wallSpots`). */
+    private readonly wallSpots: readonly PopupSpot[];
     vehicles: Vehicle[] = [];
     private nextVehicleId = 1;
     private readonly honks: Point[] = [];
@@ -159,6 +171,7 @@ export class Game {
         this.foodRng = runRng.fork();
         this.trafficRng = runRng.fork();
         this.lanes = buildLaneGraph(city);
+        this.wallSpots = wallSpots(city.nav, city.buildings);
         const initial = targetCounts(0);
         for (const type of ['car', 'bus'] as const) {
             for (let i = 0; i < initial[type]; i++) {
@@ -263,7 +276,8 @@ export class Game {
             if (!popup) {
                 return Infinity;
             }
-            target = popup;
+            // Likewise out from the cabin's door, which faces away from the building it backs onto
+            target = popupDoor(popup, radius);
         }
         // The nearest of the cells around the target, so rounding to the grid never hides a reachable door
         let best = Infinity;
@@ -390,8 +404,7 @@ export class Game {
         if (this.popupTimer <= 0 && this.field.diameter === diameterAt(this.player.weight)) {
             this.popupTimer = popupIntervalAt(this.player.weight);
             if (this.popups.length < POPUP_TOILETS.maxActive) {
-                const { min, max } = POPUP_TOILETS.spawnPathDistanceMetres;
-                this.spawnPopup(min, max);
+                this.spawnPopup(POPUP_TOILETS.spawnPathDistanceMetres);
             }
         }
 
@@ -411,8 +424,10 @@ export class Game {
             this.popups.shift();
             this.events.push('popupGone');
         }
+        // Within that share of his reach, or else the nearest spot there is, even past it: a long run beats none
         const spawned =
-            this.spawnPopup(Math.max(floor, reach * min), Math.max(floor, reach * max)) || this.spawnPopup(0, reach);
+            this.spawnPopup({ min: Math.max(floor, reach * min), max: Math.max(floor, reach * max) }) ||
+            this.spawnPopup({ min: floor, max: Infinity, nearest: true });
         this.mercyUsed = true;
         if (spawned) {
             this.events.push('mercy');
@@ -426,7 +441,7 @@ export class Game {
             type,
             this.trafficRng,
             this.player,
-            TRAFFIC.spawnMinDistanceMetres
+            outOfSightMetresAt(this.player.weight)
         );
         if (v) {
             this.nextVehicleId++;
@@ -435,13 +450,23 @@ export class Game {
     }
 
     /**
-     * Vehicles drive on (wrecks vanish when their time is up), new ones join far from Benny as the density grows, and
-     * a vehicle honks when Benny is close ahead in its lane.
+     * Vehicles drive on, keeping their distance from the one ahead, new ones join out of Benny's sight as the density
+     * grows, and a vehicle honks when Benny is close ahead in its lane. A wreck is towed away when its time is up, but
+     * only out of sight: until then it waits where it crumpled, the traffic queueing behind it, so nothing vanishes on
+     * screen.
      */
     private updateTraffic(dt: number): void {
-        this.vehicles = this.vehicles.flatMap((v) => {
-            const next = driveVehicle(this.lanes, v, dt, this.trafficRng);
-            return v.wreckSecondsLeft > 0 && next.wreckSecondsLeft === 0 ? [] : [next];
+        const sight = outOfSightMetresAt(this.player.weight);
+        const gaps = gapsAhead(this.lanes, this.vehicles);
+        this.vehicles = this.vehicles.flatMap((v, i) => {
+            const next = driveVehicle(this.lanes, v, dt, this.trafficRng, followSpeed(v.speed, gaps[i]));
+            if (!(v.wreckSecondsLeft > 0 && next.wreckSecondsLeft === 0)) {
+                return [next];
+            }
+            const pose = vehiclePose(this.lanes, next);
+            const outOfSight = Math.hypot(pose.x - this.player.x, pose.z - this.player.z) > sight;
+            // Still in view: stay a wreck, parked, for one more step (the smallest time left that is still a wreck)
+            return outOfSight ? [] : [{ ...next, wreckSecondsLeft: Number.MIN_VALUE }];
         });
 
         const target = targetCounts(this.time);
@@ -558,13 +583,27 @@ export class Game {
         }
     }
 
-    /** Adds a pop-up at a path distance between `min` and `max` from Benny; false when no spot fits. */
-    private spawnPopup(min: number, max: number): boolean {
-        const spot = choosePopupSpot(this.city.nav, this.field.distances, this.field.diameter, min, max, this.popupRng);
+    /** Adds a pop-up against a building, its door within `band` of walking from Benny (`choosePopupSpot`); false if none fits. */
+    private spawnPopup(band: { readonly min: number; readonly max: number; readonly nearest?: boolean }): boolean {
+        const spot = choosePopupSpot(
+            this.city.nav,
+            this.field.distances,
+            this.wallSpots,
+            this.popups,
+            this.field.diameter,
+            band,
+            this.popupRng
+        );
         if (!spot) {
             return false;
         }
-        this.popups.push({ id: this.nextPopupId++, x: spot.x, z: spot.z, secondsLeft: POPUP_TOILETS.lifetimeSeconds });
+        this.popups.push({
+            id: this.nextPopupId++,
+            x: spot.x,
+            z: spot.z,
+            facing: spot.facing,
+            secondsLeft: POPUP_TOILETS.lifetimeSeconds
+        });
         this.events.push('popupSpawned');
         return true;
     }

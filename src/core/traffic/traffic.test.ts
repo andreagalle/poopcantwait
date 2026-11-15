@@ -97,7 +97,16 @@ describe('vehicles', () => {
     });
 
     it('have a footprint along their direction, squashed when crumpled', () => {
-        const v = { id: 1, type: 'car' as const, edge: 0, t: 0, speed: 10, wreckSecondsLeft: 0, honkCooldown: 0 };
+        const v = {
+            id: 1,
+            type: 'car' as const,
+            edge: 0,
+            t: 0,
+            next: 2,
+            speed: 10,
+            wreckSecondsLeft: 0,
+            honkCooldown: 0
+        };
         const along = vehicleFootprint(v, { x: 0, z: 0, dx: 1, dz: 0 });
         expect(along.x1 - along.x0).toBeCloseTo(TRAFFIC.size.car.length, 10);
         expect(along.z1 - along.z0).toBeCloseTo(TRAFFIC.size.car.width, 10);

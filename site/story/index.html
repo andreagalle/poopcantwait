@@ -1511,10 +1511,82 @@
             </section>
 
             <section
+                class="stage stage--human stage--quote"
+                id="no-beam"
+                data-when="Sat 14 Nov · 18:01"
+                data-t="147:20"
+                data-human="49"
+                data-agent="2010"
+                data-prs="60"
+                data-phase="M6 · The art"
+                data-done="M0 M1 M2 M3 M4 M5 M6~ M7 M8 M9~"
+            >
+                <div class="stage-inner stage-inner--solo">
+                    <p class="kicker">
+                        <span class="tag tag--human">Human</span><span class="when">Message 49 · 18:01</span>
+                    </p>
+                    <blockquote class="bubble">
+                        “Benny is just right now!! Take it away [the green beam] and make the toilets always appear
+                        against the buildings, never in the middle of the road. Improve the cars' dynamics too:
+                        sometimes they appear and vanish out of nowhere, and it isn't realistic. [Street props and felt
+                        facades:] go straight into this same release!”
+                    </blockquote>
+                    <p class="reply">
+                        <span class="tag tag--agent">Agent</span>So v0.5.0 waits: the cabins move to the walls, the
+                        traffic learns to turn corners, and the street gets its felt furniture first.
+                    </p>
+                </div>
+            </section>
+
+            <section
+                class="stage stage--agent tone-mint"
+                id="against-the-walls"
+                data-when="Sat 14 Nov · 18:55"
+                data-t="148:14"
+                data-human="49"
+                data-agent="2135"
+                data-prs="61"
+                data-phase="M6 · The art"
+                data-done="M0 M1 M2 M3 M4 M5 M6~ M7 M8 M9~"
+            >
+                <div class="stage-inner flip">
+                    <div class="card">
+                        <p class="kicker"><span class="tag tag--agent">Agent</span><span class="when">18:55</span></p>
+                        <h2><span class="m">M6</span>Against the walls, round the corners</h2>
+                        <ul class="facts">
+                            <li>
+                                Pop-ups back onto a building on an avenue or a boulevard, about 4,500 spots a city,
+                                never in a street. No more beam.
+                            </li>
+                            <li>
+                                Cars round each corner on a quarter circle, 2.5 m to the right and 6 m to the left,
+                                instead of jumping lanes, and slow down behind the car ahead.
+                            </li>
+                            <li>
+                                They join and get towed only out of sight: 45 m from a slim Benny, 83 m from a massive
+                                one.
+                            </li>
+                        </ul>
+                    </div>
+                    <figure class="shot">
+                        <img
+                            src="./shots/m6-cabin-against-wall.webp"
+                            alt="A teal felt toilet cabin with a green door sign, standing with its back against a pink building on a sidewalk"
+                            width="960"
+                            height="540"
+                            loading="lazy"
+                            decoding="async"
+                        />
+                        <figcaption>A pop-up against its wall, door to the sidewalk.</figcaption>
+                    </figure>
+                </div>
+            </section>
+
+            <section
                 class="stage stage--agent stage--numbers tone-sky"
                 id="who-did-what"
                 data-when="So far"
-                data-t="144:40"
+                data-t="148:14"
                 data-human="{{humanMessages}}"
                 data-agent="{{agentActions}}"
                 data-prs="{{pullRequests}}"
@@ -1559,7 +1631,7 @@
                 id="next"
                 data-kind="end"
                 data-when="Next"
-                data-t="144:40"
+                data-t="148:14"
                 data-human="{{humanMessages}}"
                 data-agent="{{agentActions}}"
                 data-prs="{{pullRequests}}"
@@ -1571,8 +1643,8 @@
                         <h2>What's next</h2>
                         <ul class="facts">
                             <li>
-                                M6, the art: the street props and the buildings, in felt, each starting as a round of
-                                sketches.
+                                M6, the art, still in v0.5.0 as the human asked: trees, benches, lamps and hydrants in
+                                felt, then felt facades for the buildings.
                             </li>
                             <li>M9's last check: the frame time on a real phone, in the human's hand.</li>
                             <li>And a new stage here for each of them.</li>
