@@ -92,7 +92,8 @@ test('the story snaps from stage to stage and moves its HUD along', async ({ pag
 const SIDE_STORIES = [
     { stage: 'benny-look', link: /Side story: Benny's look/, path: 'benny', title: "Benny's look" },
     { stage: 'food-look', link: /Side story: The food set/, path: 'food', title: 'The food set' },
-    { stage: 'felt-street', link: /Side story: The street/, path: 'street', title: 'The street' }
+    { stage: 'felt-street', link: /Side story: The street/, path: 'street', title: 'The street' },
+    { stage: 'town-sketches', link: /Side story: The town/, path: 'town', title: 'The town' }
 ];
 
 for (const side of SIDE_STORIES) {
@@ -130,7 +131,15 @@ for (const side of SIDE_STORIES) {
 test('the landing page and the story fit a phone screen', async ({ page }) => {
     const errors = collectErrors(page);
     await page.setViewportSize({ width: 375, height: 740 });
-    for (const path of ['/', '/story/benny/', '/story/food/', '/story/street/', '/story/', '/story/#m3-toilets']) {
+    for (const path of [
+        '/',
+        '/story/benny/',
+        '/story/food/',
+        '/story/street/',
+        '/story/town/',
+        '/story/',
+        '/story/#m3-toilets'
+    ]) {
         await page.goto(path);
         const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
         expect(overflow, `horizontal overflow on ${path}`).toBeLessThanOrEqual(0);
