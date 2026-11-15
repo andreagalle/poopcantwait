@@ -20,7 +20,8 @@ const normalize = (a: Vec): Vec => {
 /**
  * Collects flat-shaded, vertex-coloured faces into one mesh, so a whole layer of the city (all roads, all buildings)
  * draws in a single call. Faces wind counter-clockwise around their outward normal. Draw it with a material that has
- * `diffuseVertexColor` set. Faces may carry texture coordinates (`addFacadeBox`); the others get `PLAIN_UV`.
+ * `diffuseVertexColor` set. Faces may carry texture coordinates; the others get world ones (`worldUvMetres`) or one
+ * plain spot of the texture (`plainUv`).
  */
 export class MeshBuilder {
     private readonly positions: number[] = [];
@@ -32,8 +33,12 @@ export class MeshBuilder {
     /** Faces given no texture coordinates get world ones, a texture repeat every this many metres (0: none). */
     private readonly worldUvMetres: number;
 
-    constructor(options: { readonly worldUvMetres?: number } = {}) {
+    /** Where faces with no texture coordinates sample the texture, when they get no world ones either. */
+    private readonly plainUv: readonly [number, number];
+
+    constructor(options: { readonly worldUvMetres?: number; readonly plainUv?: readonly [number, number] } = {}) {
         this.worldUvMetres = options.worldUvMetres ?? 0;
+        this.plainUv = options.plainUv ?? PLAIN_UV;
     }
 
     get vertexCount(): number {
@@ -61,7 +66,7 @@ export class MeshBuilder {
                 // Lying faces take the ground's coordinates; standing ones run along the wall and up
                 this.uvs.push(...(Math.abs(normal[1]) > 0.5 ? [p[0] / s, p[2] / s] : [(p[0] + p[2]) / s, p[1] / s]));
             } else {
-                this.uvs.push(...PLAIN_UV);
+                this.uvs.push(...this.plainUv);
             }
         });
         this.textured ||= uv !== undefined || s > 0;
@@ -161,52 +166,23 @@ export class MeshBuilder {
         }
     }
 
-    /**
-     * An axis-aligned building without its bottom face, its walls textured with a facade tile (`bay` metres wide and
-     * `storey` metres tall, roughly): each wall gets a whole number of tiles each way, stretched to fit, so no window is
-     * cut by a corner or the roof. The roof samples `PLAIN_UV`, plain wall, so it shows only its colour.
-     */
-    addFacadeBox(
-        x0: number,
-        z0: number,
-        x1: number,
-        z1: number,
-        height: number,
-        wall: Color,
-        roof: Color,
-        bay: number,
-        storey: number
-    ): void {
-        this.addGroundRect(x0, z0, x1, z1, height, roof);
-        const up = Math.max(1, Math.round(height / storey));
-        // Each wall, its corners counter-clockwise from outside: bottom left, bottom right, top right, top left
-        const walls: [Vec, Vec][] = [
-            [
-                [x0, 0, z1],
-                [x1, 0, z1]
-            ],
-            [
-                [x1, 0, z0],
-                [x0, 0, z0]
-            ],
-            [
-                [x1, 0, z1],
-                [x1, 0, z0]
-            ],
-            [
-                [x0, 0, z0],
-                [x0, 0, z1]
-            ]
-        ];
-        for (const [a, b] of walls) {
-            const across = Math.max(1, Math.round(Math.hypot(b[0] - a[0], b[2] - a[2]) / bay));
-            this.addFace([a, b, [b[0], height, b[2]], [a[0], height, a[2]]], wall, [
-                [0, 0],
-                [across, 0],
-                [across, up],
-                [0, up]
-            ]);
+    /** Adds everything another builder holds, as it is: building one mesh out of pieces made once. */
+    append(other: MeshBuilder): void {
+        const base = this.vertexCount;
+        // A loop, not a spread: a whole city's worth of numbers is too many arguments for one call
+        const pushAll = (target: number[], source: readonly number[]): void => {
+            for (const value of source) {
+                target.push(value);
+            }
+        };
+        pushAll(this.positions, other.positions);
+        pushAll(this.normals, other.normals);
+        pushAll(this.colors, other.colors);
+        pushAll(this.uvs, other.uvs);
+        for (const index of other.indices) {
+            this.indices.push(base + index);
         }
+        this.textured ||= other.textured;
     }
 
     build(device: GraphicsDevice): Mesh {

@@ -74,6 +74,24 @@ export const CITY = {
     buildingHeightMetres: { min: 4, max: 12 } satisfies Range,
     /** The clock tower landmark, next to the central plaza, in metres. */
     clockTowerHeightMetres: 24,
+    /** The clock tower's spire above its walls, in metres. */
+    clockTowerSpireMetres: 5,
+    /**
+     * Roofs (design: *Art direction*), picked per building without random numbers: the odds of each kind (narrow
+     * buildings, under `narrowMetres` across, get flat or pitched only), a pitched roof's ridge (its slope over half
+     * the building's depth, at most `maxRidgeMetres`) with chimneys `chimneyMetres` above it, a mansard's height, and
+     * how high a greenhouse and a water tank stand on their roofs, in metres.
+     */
+    roofs: {
+        weights: { flat: 35, garden: 20, pitched: 30, mansard: 15 },
+        narrowMetres: 6,
+        ridgeSlope: 0.7,
+        maxRidgeMetres: 3,
+        chimneyMetres: 0.8,
+        mansardMetres: 2.2,
+        greenhouseMetres: 1.9,
+        tankMetres: 2.4
+    },
     /** Radius of the fountain in the middle of the central plaza, in metres. */
     fountainRadiusMetres: 3,
     /** Trees in the park: spacing of their jittered grid, trunk radius and margin from the park edge, in metres. */

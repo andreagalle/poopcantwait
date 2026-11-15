@@ -356,19 +356,6 @@
             "approvedBy": "agent, on the maintainer's go-ahead (message 49)"
         },
         {
-            "id": "texture.facade-felt",
-            "file": "public/assets/textures/facade-felt.webp",
-            "source": "openrouter",
-            "tool": "npm run assets:image (openai/gpt-image-2, medium, 1:1, --raw), then the wall normalized to white with sharp (each channel scaled by 245 over the wall's mean) so the buildings' vertex colours tint it unchanged, and npm run assets:optimize --preset texture --max-texture 512",
-            "inputImage": "art/raw/images/texture.facade/2026-11-15T01-07-34-244Z-2.png (image 2 of 2, picked by the agent as the maintainer asked it to go straight on; reference: street props sheet 2)",
-            "prompt": "A flat, straight-on texture tile of one bay of a toy-town building facade sewn from felt, in the felt material of the reference image: a plain off-white cream felt wall filling the entire square edge to edge, with one window in the middle taking up about half the width and half the height: a rounded rectangular window with a slightly darker cream felt frame and visible stitched seams, pale blue-grey felt panes divided into four by stitched felt bars, and a small felt sill below it. Plain cream felt wall all around the window with an even margin to every edge, so the tile repeats seamlessly side by side and on top of itself. Orthographic front view, no perspective, no cast shadows, no vignette, even flat lighting, no other objects, no text.",
-            "generatedAt": "2026-11-15",
-            "license": "OpenAI's terms assign the output to the user.",
-            "attributionRequired": false,
-            "bytes": 30618,
-            "approvedBy": "agent, on the maintainer's go-ahead (message 49)"
-        },
-        {
             "id": "tree.plane",
             "file": "public/assets/models/trees/plane.glb",
             "source": "meshy",
@@ -574,6 +561,19 @@
             "attributionRequired": false,
             "bytes": 7492,
             "approvedBy": "agent (no new generation)"
+        },
+        {
+            "id": "texture.facade-atlas",
+            "file": "public/assets/textures/facade-atlas.webp",
+            "source": "openrouter",
+            "tool": "npm run assets:image (openai/gpt-image-2, medium, 1:1, --raw), one image per tile; node scripts/assets/facade-atlas.mjs puts them into 4 by 4 tiles (the 8 shops as they are, the 6 residential tiles with their wall scaled to white, a plain wall mirrored from the shuttered window's corner, felt roof tiles drawn as an SVG over that felt grain), then npm run assets:optimize --preset texture --max-texture 1024",
+            "inputImage": "art/raw/images/shop.ice-cream/2026-11-15T15-52-41-301Z-1.png; art/raw/images/shop.pet-shop/2026-11-15T15-53-16-470Z-1.png; art/raw/images/shop.hardware/2026-11-15T15-53-53-923Z-1.png; art/raw/images/shop.fishmonger/2026-11-15T15-54-30-832Z-1.png; art/raw/images/shop.cafe/2026-11-15T15-56-15-010Z-1.png; art/raw/images/shop.tailor/2026-11-15T15-56-49-690Z-1.png; art/raw/images/shop.greengrocer/2026-11-15T15-57-27-016Z-1.png; art/raw/images/shop.bike-repair/2026-11-15T15-58-03-138Z-1.png; art/raw/images/facade.window-shutters/2026-11-15T15-59-07-639Z-1.png; art/raw/images/facade.window-open/2026-11-15T15-59-43-426Z-1.png; art/raw/images/facade.window-balcony/2026-11-15T16-00-19-929Z-1.png; art/raw/images/facade.window-closed/2026-11-15T16-00-54-615Z-1.png; art/raw/images/facade.front-door/2026-11-15T16-01-30-704Z-1.png; art/raw/images/facade.ground-window/2026-11-15T16-02-02-860Z-1.png (references: shops sheet B and buildings sheet 2 of the town's round 1, kept by the maintainer)",
+            "prompt": "Shops: 'The shopfront of <shop> exactly as in the reference sheet ... seen straight on, orthographic ... filling the whole square image edge to edge'. Residential tiles: 'One bay of a felt building's facade ... a plain off-white cream felt wall filling the whole square ... and in its middle <window or door>'. The full prompts are in each image's JSON next to it.",
+            "generatedAt": "2026-11-15",
+            "license": "OpenAI's terms assign the output to the user.",
+            "attributionRequired": false,
+            "bytes": 272010,
+            "approvedBy": "maintainer (picked buildings sheet 2 and shops sheet B, message 54)"
         }
     ]
 }

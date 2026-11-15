@@ -46,7 +46,7 @@ export const ASSETS = {
     'street.crossing-sign': { kind: 'model', file: 'models/street/crossing-sign.glb' },
     'street.speed-30': { kind: 'model', file: 'models/street/speed-30.glb' },
     'street.bus-shelter': { kind: 'model', file: 'models/street/bus-shelter.glb' },
-    'texture.facade-felt': { kind: 'texture', file: 'textures/facade-felt.webp' },
+    'texture.facade-atlas': { kind: 'texture', file: 'textures/facade-atlas.webp' },
     'texture.felt-plain': { kind: 'texture', file: 'textures/felt-plain.webp' }
 } as const satisfies Record<string, AssetEntry>;
 

@@ -9,6 +9,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Felt facades from the buildings and shops the maintainer kept: each wall cut into bays and storeys of about 3 m, a
+  front door (about 2.1 m, in proportion to Benny) and shops on the ground floor of every wall that faces a road, eight
+  trades with invented signs, from Two Scoops Ahead to Spoke Folks; upper floors with wooden shutters, closed shutters,
+  balconies and open windows with a curtain blowing out. One 1024 px atlas of 16 tiles (272 kB), still one draw call
+  for all the buildings.
+- Roofs that differ from building to building: flat with a parapet, air conditioning and water tanks; vegetable gardens
+  with raised beds and a greenhouse; pitched felt tiles with brick chimneys; slate mansards with dormers. Drawn with the
+  buildings, they fade with them, and a roof that hides Benny makes its building fade.
+
 - Felt roads from the crossroads the maintainer kept: raised sidewalks with a kerb along every facade, zebra crossings
   on every arm of every crossing, stop lines and dashed centre lines, all in felt (a plain felt tile, 7.5 kB, now on the
   whole ground).
