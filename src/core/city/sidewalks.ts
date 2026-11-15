@@ -35,15 +35,37 @@ export function sidewalksOf(city: City): Sidewalk[] {
         city.plaza.rect,
         city.park.rect
     ];
+    // The cells of every building and kiosk, as the navigation grid paints them: a side with one right outside it
+    // backs onto a neighbour, not onto a road
+    const solid = new Uint8Array(nav.size * nav.size);
+    for (const r of solids.slice(0, solids.length - 2)) {
+        for (let z = Math.ceil(r.z0); z <= Math.floor(r.z1); z++) {
+            for (let x = Math.ceil(r.x0); x <= Math.floor(r.x1); x++) {
+                const cell = nav.cellAt(x, z);
+                if (cell >= 0) {
+                    solid[cell] = 1;
+                }
+            }
+        }
+    }
+    const against = (x: number, z: number): boolean => {
+        const cell = nav.cellAt(x, z);
+        return cell >= 0 && solid[cell] === 1;
+    };
     const strips: Sidewalk[] = [];
     for (const r of solids) {
         const cx = (r.x0 + r.x1) / 2;
         const cz = (r.z0 + r.z1) / 2;
-        // The road each side faces, one metre out from its middle, and so the sidewalk's width (null: none)
-        const north = outside(cx, r.z0 - 1);
-        const south = outside(cx, r.z1 + 1);
-        const west = outside(r.x0 - 1, cz);
-        const east = outside(r.x1 + 1, cz);
+        // The road each side faces, looked for out from its middle past the street furniture standing by the facade
+        // (a lamp or a bench takes the cells a metre out), and so the sidewalk's width (null: none)
+        const out = (x: number, z: number, dx: number, dz: number): number | null =>
+            against(x + 0.6 * dx, z + 0.6 * dz)
+                ? null
+                : (outside(x + 2 * dx, z + 2 * dz) ?? outside(x + 3 * dx, z + 3 * dz));
+        const north = out(cx, r.z0, 0, -1);
+        const south = out(cx, r.z1, 0, 1);
+        const west = out(r.x0, cz, -1, 0);
+        const east = out(r.x1, cz, 1, 0);
         if (north) strips.push({ rect: { x0: r.x0, z0: r.z0 - north, x1: r.x1, z1: r.z0 } });
         if (south) strips.push({ rect: { x0: r.x0, z0: r.z1, x1: r.x1, z1: r.z1 + south } });
         if (west) strips.push({ rect: { x0: r.x0 - west, z0: r.z0, x1: r.x0, z1: r.z1 } });

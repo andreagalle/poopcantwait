@@ -48,7 +48,11 @@ export class PopupView {
     private readonly slots: Entity[];
     private readonly assigned = new Map<number, Entity>();
 
-    constructor(app: AppBase, cabinModel?: Asset) {
+    /** The ground's height under a point: pop-ups stand on the sidewalks. */
+    private readonly groundAt: (x: number, z: number) => number;
+
+    constructor(app: AppBase, cabinModel?: Asset, groundAt: (x: number, z: number) => number = () => 0) {
+        this.groundAt = groundAt;
         const root = new Entity('popups');
         const cabin = material('popup-cabin', PALETTE.popup);
         const door = material('popup-door', PALETTE.popupDoor);
@@ -112,7 +116,7 @@ export class PopupView {
             const scale =
                 popup.secondsLeft < SINK_SECONDS ? popup.secondsLeft / SINK_SECONDS : popScale(age / POP_IN_SECONDS);
             slot.enabled = true;
-            slot.setPosition(popup.x, 0, popup.z);
+            slot.setPosition(popup.x, this.groundAt(popup.x, popup.z), popup.z);
             // Its door, on the slot's +z side, faces away from the building it backs onto
             slot.setEulerAngles(0, (Math.atan2(popup.facing.x, popup.facing.z) * 180) / Math.PI, 0);
             slot.setLocalScale(1, Math.max(0.01, scale), 1);

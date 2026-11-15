@@ -7,6 +7,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- Sidewalks were missing along some facades, where a lamp or a bench stood a metre out from the middle of the wall:
+  the road a side faces is now looked for past the street furniture (and never across a neighbouring building).
+- Benny, the pop-ups, the street furniture and the signs stand on the sidewalks instead of sinking 10 cm into them;
+  Benny steps up onto the kerb.
+
+- No more stutter when a building fades: the buildings are drawn in 16 blocks of the city, and a fade rebuilds only the
+  blocks it touches, from geometry kept as typed arrays (about 0.5 ms a block instead of about 100 ms for the whole
+  city, now that facades and roofs have 205,000 vertices). The meshes it replaces are freed on the GPU, which they were
+  not before.
+
 ## [0.6.0] - 2026-11-15
 
 ### Added

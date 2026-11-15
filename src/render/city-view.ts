@@ -9,9 +9,11 @@ import type { Building, City, Rect, Side } from '../core/city/types';
 import type { Markings } from '../core/traffic/markings';
 
 import { addFacades, PLAIN_WALL_UV } from './facades';
-import { MeshBuilder } from './mesh-builder';
+import { MeshBuilder, meshFromArrays } from './mesh-builder';
+import type { MeshArrays } from './mesh-builder';
 import { PALETTE } from './palette';
 import { addRoof } from './roofs';
+import { SIDEWALK_HEIGHT } from './sidewalk-map';
 
 /** Parkland and river drawn beyond the city border so the camera never sees the void, in metres. */
 const EDGE_EXTENT = 90;
@@ -28,7 +30,6 @@ const ROAD_LIFT: Record<string, number> = { alley: 0.02, street: 0.03, avenue: 0
 const OPEN_SPACE_LIFT = 0.02;
 /** White paint lies just above the widest road; sidewalks stand a kerb's height above the road. */
 const PAINT_LIFT = 0.056;
-const SIDEWALK_HEIGHT = 0.1;
 /** The felt tile repeats every this many metres on the ground. */
 const FELT_METRES = 3;
 const EDGE_DROP = { parkland: -0.15, riverbank: -0.1, river: -0.05 };
@@ -177,23 +178,27 @@ function layer(app: AppBase, name: string, mesh: MeshBuilder, material: Standard
  * (fountain, border), and the buildings split in two meshes, opaque and faded, so the buildings between
  * the camera and Benny can turn see-through (design: *Camera*). Three or four draw calls, plus the shadow pass.
  */
+/** The buildings are drawn in square blocks of the city, this many to a side: a fade rebuilds only the blocks it touches. */
+const BLOCKS_PER_SIDE = 4;
+
 export class CityView {
     readonly root: Entity;
     private readonly app: AppBase;
-    private readonly city: City;
-    private readonly buildings: Entity;
     private readonly faded: Entity;
     private readonly opaqueMaterial: StandardMaterial;
     private readonly buildingMaterial: StandardMaterial;
     private readonly fadedMaterial: StandardMaterial;
-    private fadedKey = '';
+    private fadedSet = new Set<number>();
 
-    /** Each building's geometry, made once: the opaque and faded meshes are put together from these. */
-    private readonly pieces: MeshBuilder[];
+    /** Each building's geometry, made once, as typed arrays. */
+    private readonly pieces: MeshArrays[];
+    /** The block each building is drawn in, each block's buildings and its entity. */
+    private readonly blockOf: number[];
+    private readonly blockMembers: number[][];
+    private readonly blocks: Entity[];
 
     constructor(app: AppBase, city: City, markings: Markings, facades?: Asset, felt?: Asset) {
         this.app = app;
-        this.city = city;
         const repeat = (asset?: Asset): Texture | undefined => {
             const texture = asset?.resource as Texture | undefined;
             if (texture) {
@@ -207,60 +212,84 @@ export class CityView {
         if (atlas) {
             atlas.anisotropy = 4;
         }
-        const tile = atlas;
         this.pieces = city.buildings.map((b, i) => {
             const piece = new MeshBuilder({ plainUv: PLAIN_WALL_UV });
             addBuilding(piece, b, i, city.nav, atlas !== undefined);
-            return piece;
+            return piece.toArrays();
         });
         this.opaqueMaterial = vertexColorMaterial('city-ground', 1, repeat(felt));
-        this.buildingMaterial = vertexColorMaterial('city-buildings', 1, tile);
-        this.fadedMaterial = vertexColorMaterial('city-faded', CAMERA.buildingFadeOpacity, tile);
+        this.buildingMaterial = vertexColorMaterial('city-buildings', 1, atlas);
+        this.fadedMaterial = vertexColorMaterial('city-faded', CAMERA.buildingFadeOpacity, atlas);
         this.root = new Entity('city');
         this.root.addChild(layer(app, 'city-ground', addGround(city, markings), this.opaqueMaterial, false));
         this.root.addChild(layer(app, 'city-solids', addSolids(city), this.opaqueMaterial, true));
-        this.buildings = layer(
-            app,
-            'city-buildings',
-            this.buildingMesh(() => true),
-            this.buildingMaterial,
-            true
+
+        // The buildings, block by block, by where their centre stands
+        const size = (2 * city.halfSize) / BLOCKS_PER_SIDE;
+        const cell = (v: number): number =>
+            Math.min(BLOCKS_PER_SIDE - 1, Math.max(0, Math.floor((v + city.halfSize) / size)));
+        this.blockOf = city.buildings.map(
+            ({ rect: r }) => cell((r.z0 + r.z1) / 2) * BLOCKS_PER_SIDE + cell((r.x0 + r.x1) / 2)
         );
+        this.blockMembers = Array.from({ length: BLOCKS_PER_SIDE * BLOCKS_PER_SIDE }, () => []);
+        this.blockOf.forEach((block, i) => this.blockMembers[block].push(i));
+        this.blocks = this.blockMembers.map((members, block) => {
+            const entity = new Entity(`city-buildings-${block}`);
+            entity.addComponent('render', { meshInstances: [], castShadows: true, receiveShadows: true });
+            this.root.addChild(entity);
+            this.fillBlock(entity, members);
+            return entity;
+        });
         this.faded = new Entity('city-buildings-faded');
         this.faded.addComponent('render', { meshInstances: [], castShadows: true, receiveShadows: true });
         this.faded.enabled = false;
-        this.root.addChild(this.buildings);
         this.root.addChild(this.faded);
         app.root.addChild(this.root);
     }
 
-    private buildingMesh(include: (index: number) => boolean): MeshBuilder {
-        const mesh = new MeshBuilder({ plainUv: PLAIN_WALL_UV });
-        this.pieces.forEach((piece, i) => {
-            if (include(i)) {
-                mesh.append(piece);
-            }
-        });
-        return mesh;
+    /** Swaps a render component's mesh instances for new ones, freeing the old meshes on the GPU. */
+    private static swap(entity: Entity, instances: MeshInstance[]): void {
+        const old = entity.render!.meshInstances;
+        entity.render!.meshInstances = instances;
+        for (const instance of old) {
+            instance.destroy();
+        }
     }
 
-    /** Fades the buildings with these indices (sorted) and makes every other one opaque again. */
+    /** Draws a block's buildings into its entity, all but the faded ones. */
+    private fillBlock(entity: Entity, members: readonly number[]): void {
+        const shown = members.filter((i) => !this.fadedSet.has(i)).map((i) => this.pieces[i]);
+        const device = this.app.graphicsDevice;
+        CityView.swap(
+            entity,
+            shown.length > 0 ? [new MeshInstance(meshFromArrays(device, shown), this.buildingMaterial)] : []
+        );
+    }
+
+    /**
+     * Fades the buildings with these indices and makes every other one opaque again. Only the blocks of the buildings
+     * whose fade changed are rebuilt, and the faded ones are drawn in one small mesh of their own.
+     */
     setFaded(indices: readonly number[]): void {
-        const key = indices.join(',');
-        if (key === this.fadedKey) {
+        const next = new Set(indices);
+        const changed = [
+            ...indices.filter((i) => !this.fadedSet.has(i)),
+            ...[...this.fadedSet].filter((i) => !next.has(i))
+        ];
+        if (changed.length === 0) {
             return;
         }
-        this.fadedKey = key;
-        const faded = new Set(indices);
-        const device = this.app.graphicsDevice;
-        this.buildings.render!.meshInstances =
-            faded.size < this.city.buildings.length
-                ? [new MeshInstance(this.buildingMesh((i) => !faded.has(i)).build(device), this.buildingMaterial)]
-                : [];
-        this.faded.enabled = faded.size > 0;
-        this.faded.render!.meshInstances =
-            faded.size > 0
-                ? [new MeshInstance(this.buildingMesh((i) => faded.has(i)).build(device), this.fadedMaterial)]
-                : [];
+        this.fadedSet = next;
+        for (const block of new Set(changed.map((i) => this.blockOf[i]))) {
+            this.fillBlock(this.blocks[block], this.blockMembers[block]);
+        }
+        const faded = indices.map((i) => this.pieces[i]);
+        CityView.swap(
+            this.faded,
+            faded.length > 0
+                ? [new MeshInstance(meshFromArrays(this.app.graphicsDevice, faded), this.fadedMaterial)]
+                : []
+        );
+        this.faded.enabled = faded.length > 0;
     }
 }

@@ -186,15 +186,67 @@ export class MeshBuilder {
     }
 
     build(device: GraphicsDevice): Mesh {
-        const mesh = new Mesh(device);
-        mesh.setPositions(this.positions);
-        mesh.setNormals(this.normals);
-        mesh.setColors32(this.colors);
-        if (this.textured) {
-            mesh.setUvs(0, this.uvs);
-        }
-        mesh.setIndices(new Uint32Array(this.indices));
-        mesh.update(PRIMITIVE_TRIANGLES);
-        return mesh;
+        return meshFromArrays(device, [this.toArrays()]);
     }
+
+    /** What it holds as typed arrays, ready to be put together with others quickly (`meshFromArrays`). */
+    toArrays(): MeshArrays {
+        return {
+            positions: new Float32Array(this.positions),
+            normals: new Float32Array(this.normals),
+            colors: new Uint8Array(this.colors),
+            uvs: this.textured ? new Float32Array(this.uvs) : null,
+            indices: new Uint32Array(this.indices)
+        };
+    }
+}
+
+/** A piece of mesh as typed arrays: 3 numbers a vertex for positions and normals, 4 bytes of colour, 2 of uv. */
+export interface MeshArrays {
+    readonly positions: Float32Array;
+    readonly normals: Float32Array;
+    readonly colors: Uint8Array;
+    /** null when no face has texture coordinates. */
+    readonly uvs: Float32Array | null;
+    readonly indices: Uint32Array;
+}
+
+/**
+ * One mesh out of several pieces, copied block by block rather than number by number: fast enough to rebuild a part of
+ * the city between two frames. Texture coordinates are kept if any piece has them (the others get zeros).
+ */
+export function meshFromArrays(device: GraphicsDevice, parts: readonly MeshArrays[]): Mesh {
+    const vertices = parts.reduce((sum, p) => sum + p.positions.length / 3, 0);
+    const count = parts.reduce((sum, p) => sum + p.indices.length, 0);
+    const textured = parts.some((p) => p.uvs !== null);
+    const positions = new Float32Array(vertices * 3);
+    const normals = new Float32Array(vertices * 3);
+    const colors = new Uint8Array(vertices * 4);
+    const uvs = textured ? new Float32Array(vertices * 2) : null;
+    const indices = new Uint32Array(count);
+    let v = 0;
+    let n = 0;
+    for (const p of parts) {
+        positions.set(p.positions, v * 3);
+        normals.set(p.normals, v * 3);
+        colors.set(p.colors, v * 4);
+        if (uvs && p.uvs) {
+            uvs.set(p.uvs, v * 2);
+        }
+        for (let i = 0; i < p.indices.length; i++) {
+            indices[n + i] = p.indices[i] + v;
+        }
+        v += p.positions.length / 3;
+        n += p.indices.length;
+    }
+    const mesh = new Mesh(device);
+    mesh.setPositions(positions);
+    mesh.setNormals(normals);
+    mesh.setColors32(colors);
+    if (uvs) {
+        mesh.setUvs(0, uvs);
+    }
+    mesh.setIndices(indices);
+    mesh.update(PRIMITIVE_TRIANGLES);
+    return mesh;
 }
