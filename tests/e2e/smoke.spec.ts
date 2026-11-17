@@ -70,14 +70,18 @@ test('loads without console errors and renders the city around Benny', async ({ 
         const app = [...globalThis.__playcanvasApps!.keys()][0]!;
         const camera = app.root.findByName('camera') as Entity;
         const benny = app.root.findByName('benny') as Entity;
-        const buildings = app.root.findByName('city-buildings') as Entity;
+        // The buildings are drawn block by block (city-buildings-<n>)
+        const blocks = app.root.find((e) => /^city-buildings-\d+$/.test(e.name)) as Entity[];
         const forward = camera.forward;
         return {
             pitchDegrees: (Math.asin(-forward.y) * 180) / Math.PI,
             yawOffAxis: Math.abs(forward.x),
             fovDegrees: camera.camera!.fov,
             distanceMetres: camera.getPosition().distance(benny.getPosition()),
-            cityVertices: buildings.render!.meshInstances[0]!.mesh!.vertexBuffer!.numVertices,
+            cityVertices: blocks.reduce(
+                (sum, b) => sum + b.render!.meshInstances.reduce((n, mi) => n + mi.mesh!.vertexBuffer!.numVertices, 0),
+                0
+            ),
             // Each kiosk shows its state: a sign on the felt cabin's door (a roof beacon on the greybox)
             kiosks: app.root.find((e) => /^kiosk-(sign|beacon)-\d+$/.test(e.name)).length,
             beams: app.root.find((e) => e.name.startsWith('kiosk-beam-')).length

@@ -151,9 +151,30 @@ _Initial_ generation parameters:
 - _Initial_ layout: one spot every 10 m along an avenue (in turn: lamp, nothing, bench, nothing, lamp, nothing,
   hydrant, nothing) and every 8 m along a boulevard (tree, lamp, tree, bench, tree, lamp, tree, hydrant); the far side
   starts half way through, so the two sides do not mirror each other. No spot within 3 m of a crossing or a kiosk.
-  Trees stand 2 m from the facade (trunk 0.35 m, canopy 1.6 m in radius, boulevards only), lamps and hydrants 1 m
+  Trees stand 2 m from the facade (trunk 0.35 m, canopy 1.7 m in radius, boulevards only), lamps and hydrants 1 m
   (0.25 and 0.3 m in radius), benches against it (1.8 by 0.8 m). About 210 pieces a city.
 - The layout draws no random numbers, so for a seed the roads, buildings and kiosks stay what they were.
+- Seven kinds of tree, much taller than Benny. Along the boulevards, in turn: a lime (7 m), a poplar (8 m), a lime and a
+  maple (5 m), their crowns no wider than 3.4 m so the buses pass clear. In the park, every kind, older and bigger: plane
+  8 m, willow 7 m, fir 8.5 m, cherry in blossom 6 m, maple in autumn 7 m, lime 8 m, poplar 10 m, crowns up to 7 m wide.
+- A bus shelter now and then along the boulevards (3 by 1.4 m, against the facade, solid).
+
+### Roads
+
+- Raised sidewalks with a kerb line the facades of every street (0.5 m), avenue (1.5 m) and boulevard (3 m), and the
+  plaza and the park, with a square at every corner; they stay clear of the lanes. Benny walks over them as over the
+  road (presentation only).
+- White paint, in felt: a zebra crossing on every arm of every crossing (stripes 0.5 m wide every metre, 3 m deep, 0.6 m
+  out from the crossing), a stop line across the incoming lane just before it, and a dashed centre line (3 m dashes,
+  3 m gaps) between the crossings.
+- **Traffic lights** where avenues and boulevards cross, on the near-right corner of every arm, facing the traffic
+  coming in. Each crossing gives one axis green (12 s), amber (2.5 s) and all red (1.5 s), then the other; each crossing
+  starts 7 s later in the cycle than the one before. Vehicles stop at the stop line on red, and on amber unless they are
+  within 8 m of it; the traffic queues behind them. Benny ignores the lights.
+- **Road signs** on the same corners: a stop sign on a street that meets an avenue or a boulevard, which itself gets a
+  pedestrian crossing sign; a give-way sign where two streets cross, for the traffic along z; a 30 limit at the start of
+  a street, for the traffic turning into it from a bigger road. Poles are solid (0.15 m in radius) and only stand on a
+  sidewalk; pop-ups keep clear of them.
 
 ## Weight, girth and speed
 
@@ -387,9 +408,20 @@ shadows. Readability from a high camera beats detail: strong silhouettes, clear 
 green, toilets green or red, vehicles bright solid colors). No real brands, logos or car models anywhere.
 
 Everything is sewn from felt, with visible stitched seams: Benny, the food, the vehicles, the toilet cabins, the street
-furniture, and the buildings, whose walls repeat one felt tile, a stitched window on a plain wall, tinted by each
-building's pastel colour; each wall shows a whole number of windows across and storeys up (about 3 by 3 m each), so no
-window is cut by a corner or the roof.
+furniture, the roads and the buildings.
+
+- **Facades.** Each wall is cut into bays about 3 m wide and storeys about 3 m tall, a whole number of each, a tile per
+  bay and storey, tinted by the building's pastel colour. On a wall that faces a road, the ground floor has the front
+  door in its middle bay (about 2.1 m tall, Benny 1.6 m) and shops in the others, each next bay the next trade along
+  (now and then a flat's window instead): an ice cream parlour, a pet shop, a hardware store, a fishmonger, a cafe, a
+  tailor, a greengrocer and a bicycle repair shop, each with its own invented sign. Upper floors keep one style of
+  window per building (wooden shutters, green shutters closed, a balcony), two in ten of them open with a curtain
+  blowing out and one in ten with a balcony, stacked bay over bay; walls on alleys have windows only.
+- **Roofs**, picked per building without random numbers: flat with a parapet, one to three air-conditioning units and
+  half the time a water tank (35 in 100); a vegetable garden of raised beds with a greenhouse (20); a pitched roof of
+  felt tiles with one or two brick chimneys, its ridge up to 3 m (30); a slate mansard 2.2 m tall with dormer windows
+  (15). Buildings under 6 m across get flat or pitched roofs only. A roof counts in the line of sight: a building whose
+  roof hides Benny fades too.
 
 ## Out of scope for version 1
 

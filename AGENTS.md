@@ -205,8 +205,8 @@ coding agents. Use them rather than recalling the engine API from memory:
 ## The story page
 
 `/story/` tells how the game is being built, from the kickoff prompt to the latest merge, as full-screen stages that
-snap one at a time under a HUD borrowed from the game: time since the kickoff, merged PRs, the maintainer's messages
-against the agent's actions, finished milestones. Its point is to show how agentic the development is and how little
+snap one at a time under a HUD borrowed from the game: the day of the project, how long the agent had been going on its
+own, merged PRs, the maintainer's messages against the agent's actions, finished milestones. Its point is to show how agentic the development is and how little
 supervision it takes, so **keep it current as part of the work, not as an afterthought**:
 
 - **When to add a stage.** When a milestone (or a part of one) closes, when an asset set lands, when a release is cut,
@@ -214,10 +214,18 @@ supervision it takes, so **keep it current as part of the work, not as an aftert
   the PR that does the work, or in a `docs/story-*` PR right after, before reporting to the maintainer.
 - **Where.** `site/story/index.html`, one `<section class="stage">` per stage, in time order, just before the two
   closing stages (`#who-did-what` and `#next`), which stay last and get updated. Copy the attributes of a neighbouring
-  stage: `id`, `data-when`, `data-t`, `data-human`, `data-agent`, `data-prs`, `data-phase`, `data-done` (the comment at
-  the top of the file explains them), and the `stage--agent` or `stage--human` class with a `tone-*` colour.
+  stage: `id`, `data-t`, `data-alone` (agent stages), `data-human`, `data-agent`, `data-prs`, `data-phase`,
+  `data-done` (the comment at the top of the file explains them), and the `stage--agent` or `stage--human` class with a
+  `tone-*` colour.
+- **No dates, no times of day.** The maintainer wants only generic, aggregate time on the page, above all how long the
+  agent went on by itself. A human stage's kicker says "Message n"; an agent stage's says "Alone for 40 min · 104
+  actions", counted since the maintainer's last message; the HUD shows the project day; side stories say "Day n"; the
+  closing stage gives the totals (`aloneHours`, `longestAlone`, `actionsPerMessage` in `site/stats.json`).
 - **The numbers.** Run `npm run story:stats` in the Codespace: it lists every maintainer message and merged PR with
-  the agent's tool calls up to that moment. Use its values in the stage, and update the totals in `site/stats.json`.
+  the agent's tool calls up to that moment, and how long the agent worked after each message; `-- --json` gives the same
+  without the messages' text. A run goes from one message of the maintainer to the next, adding up the agent's working
+  time; messages that only resume an interrupted session ("continua") are nudges and do not end it, as the maintainer
+  asked. Use its values in the stage (`data-alone` and the kicker), and update the totals in `site/stats.json`.
   If the transcripts are not available (another machine), say so in the PR and leave the counts you cannot measure.
 - **The words.** English, short: a title of a few words, at most one line of lede, two to four facts with real numbers
   (tuning values, timings, sizes). Quote the maintainer briefly, translated from Italian, never more than they wrote.

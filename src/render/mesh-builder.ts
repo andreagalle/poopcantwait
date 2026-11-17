@@ -20,7 +20,8 @@ const normalize = (a: Vec): Vec => {
 /**
  * Collects flat-shaded, vertex-coloured faces into one mesh, so a whole layer of the city (all roads, all buildings)
  * draws in a single call. Faces wind counter-clockwise around their outward normal. Draw it with a material that has
- * `diffuseVertexColor` set. Faces may carry texture coordinates (`addFacadeBox`); the others get `PLAIN_UV`.
+ * `diffuseVertexColor` set. Faces may carry texture coordinates; the others get world ones (`worldUvMetres`) or one
+ * plain spot of the texture (`plainUv`).
  */
 export class MeshBuilder {
     private readonly positions: number[] = [];
@@ -29,6 +30,16 @@ export class MeshBuilder {
     private readonly uvs: number[] = [];
     private readonly indices: number[] = [];
     private textured = false;
+    /** Faces given no texture coordinates get world ones, a texture repeat every this many metres (0: none). */
+    private readonly worldUvMetres: number;
+
+    /** Where faces with no texture coordinates sample the texture, when they get no world ones either. */
+    private readonly plainUv: readonly [number, number];
+
+    constructor(options: { readonly worldUvMetres?: number; readonly plainUv?: readonly [number, number] } = {}) {
+        this.worldUvMetres = options.worldUvMetres ?? 0;
+        this.plainUv = options.plainUv ?? PLAIN_UV;
+    }
 
     get vertexCount(): number {
         return this.positions.length / 3;
@@ -44,13 +55,21 @@ export class MeshBuilder {
         // Colours are given in sRGB; vertex colours are stored in linear space
         const linear = color.clone().linear();
         const rgba = [linear.r * 255, linear.g * 255, linear.b * 255, linear.a * 255].map(Math.round);
+        const s = this.worldUvMetres;
         corners.forEach((p, i) => {
             this.positions.push(p[0], p[1], p[2]);
             this.normals.push(normal[0], normal[1], normal[2]);
             this.colors.push(...rgba);
-            this.uvs.push(...(uv?.[i] ?? PLAIN_UV));
+            if (uv) {
+                this.uvs.push(...uv[i]);
+            } else if (s > 0) {
+                // Lying faces take the ground's coordinates; standing ones run along the wall and up
+                this.uvs.push(...(Math.abs(normal[1]) > 0.5 ? [p[0] / s, p[2] / s] : [(p[0] + p[2]) / s, p[1] / s]));
+            } else {
+                this.uvs.push(...this.plainUv);
+            }
         });
-        this.textured ||= uv !== undefined;
+        this.textured ||= uv !== undefined || s > 0;
         for (let i = 1; i + 1 < corners.length; i++) {
             this.indices.push(base, base + i, base + i + 1);
         }
@@ -147,64 +166,87 @@ export class MeshBuilder {
         }
     }
 
-    /**
-     * An axis-aligned building without its bottom face, its walls textured with a facade tile (`bay` metres wide and
-     * `storey` metres tall, roughly): each wall gets a whole number of tiles each way, stretched to fit, so no window is
-     * cut by a corner or the roof. The roof samples `PLAIN_UV`, plain wall, so it shows only its colour.
-     */
-    addFacadeBox(
-        x0: number,
-        z0: number,
-        x1: number,
-        z1: number,
-        height: number,
-        wall: Color,
-        roof: Color,
-        bay: number,
-        storey: number
-    ): void {
-        this.addGroundRect(x0, z0, x1, z1, height, roof);
-        const up = Math.max(1, Math.round(height / storey));
-        // Each wall, its corners counter-clockwise from outside: bottom left, bottom right, top right, top left
-        const walls: [Vec, Vec][] = [
-            [
-                [x0, 0, z1],
-                [x1, 0, z1]
-            ],
-            [
-                [x1, 0, z0],
-                [x0, 0, z0]
-            ],
-            [
-                [x1, 0, z1],
-                [x1, 0, z0]
-            ],
-            [
-                [x0, 0, z0],
-                [x0, 0, z1]
-            ]
-        ];
-        for (const [a, b] of walls) {
-            const across = Math.max(1, Math.round(Math.hypot(b[0] - a[0], b[2] - a[2]) / bay));
-            this.addFace([a, b, [b[0], height, b[2]], [a[0], height, a[2]]], wall, [
-                [0, 0],
-                [across, 0],
-                [across, up],
-                [0, up]
-            ]);
+    /** Adds everything another builder holds, as it is: building one mesh out of pieces made once. */
+    append(other: MeshBuilder): void {
+        const base = this.vertexCount;
+        // A loop, not a spread: a whole city's worth of numbers is too many arguments for one call
+        const pushAll = (target: number[], source: readonly number[]): void => {
+            for (const value of source) {
+                target.push(value);
+            }
+        };
+        pushAll(this.positions, other.positions);
+        pushAll(this.normals, other.normals);
+        pushAll(this.colors, other.colors);
+        pushAll(this.uvs, other.uvs);
+        for (const index of other.indices) {
+            this.indices.push(base + index);
         }
+        this.textured ||= other.textured;
     }
 
     build(device: GraphicsDevice): Mesh {
-        const mesh = new Mesh(device);
-        mesh.setPositions(this.positions);
-        mesh.setNormals(this.normals);
-        mesh.setColors32(this.colors);
-        if (this.textured) {
-            mesh.setUvs(0, this.uvs);
-        }
-        mesh.setIndices(new Uint32Array(this.indices));
-        mesh.update(PRIMITIVE_TRIANGLES);
-        return mesh;
+        return meshFromArrays(device, [this.toArrays()]);
     }
+
+    /** What it holds as typed arrays, ready to be put together with others quickly (`meshFromArrays`). */
+    toArrays(): MeshArrays {
+        return {
+            positions: new Float32Array(this.positions),
+            normals: new Float32Array(this.normals),
+            colors: new Uint8Array(this.colors),
+            uvs: this.textured ? new Float32Array(this.uvs) : null,
+            indices: new Uint32Array(this.indices)
+        };
+    }
+}
+
+/** A piece of mesh as typed arrays: 3 numbers a vertex for positions and normals, 4 bytes of colour, 2 of uv. */
+export interface MeshArrays {
+    readonly positions: Float32Array;
+    readonly normals: Float32Array;
+    readonly colors: Uint8Array;
+    /** null when no face has texture coordinates. */
+    readonly uvs: Float32Array | null;
+    readonly indices: Uint32Array;
+}
+
+/**
+ * One mesh out of several pieces, copied block by block rather than number by number: fast enough to rebuild a part of
+ * the city between two frames. Texture coordinates are kept if any piece has them (the others get zeros).
+ */
+export function meshFromArrays(device: GraphicsDevice, parts: readonly MeshArrays[]): Mesh {
+    const vertices = parts.reduce((sum, p) => sum + p.positions.length / 3, 0);
+    const count = parts.reduce((sum, p) => sum + p.indices.length, 0);
+    const textured = parts.some((p) => p.uvs !== null);
+    const positions = new Float32Array(vertices * 3);
+    const normals = new Float32Array(vertices * 3);
+    const colors = new Uint8Array(vertices * 4);
+    const uvs = textured ? new Float32Array(vertices * 2) : null;
+    const indices = new Uint32Array(count);
+    let v = 0;
+    let n = 0;
+    for (const p of parts) {
+        positions.set(p.positions, v * 3);
+        normals.set(p.normals, v * 3);
+        colors.set(p.colors, v * 4);
+        if (uvs && p.uvs) {
+            uvs.set(p.uvs, v * 2);
+        }
+        for (let i = 0; i < p.indices.length; i++) {
+            indices[n + i] = p.indices[i] + v;
+        }
+        v += p.positions.length / 3;
+        n += p.indices.length;
+    }
+    const mesh = new Mesh(device);
+    mesh.setPositions(positions);
+    mesh.setNormals(normals);
+    mesh.setColors32(colors);
+    if (uvs) {
+        mesh.setUvs(0, uvs);
+    }
+    mesh.setIndices(indices);
+    mesh.update(PRIMITIVE_TRIANGLES);
+    return mesh;
 }

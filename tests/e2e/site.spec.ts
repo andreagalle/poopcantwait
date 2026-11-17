@@ -60,9 +60,18 @@ test('the story snaps from stage to stage and moves its HUD along', async ({ pag
     await page.goto('/story/#go');
     await expect(page.locator('#go')).toHaveClass(/is-active/);
     await expect(page.locator('.hud-human-n')).toHaveText('4');
-    await expect(page.locator('.hud-t')).toHaveText('T+7:19');
+    await expect(page.locator('.hud-t')).toHaveText('Day 1');
+    await expect(page.locator('.hud-when')).toHaveText('The human writes');
     await expect(page.locator('.seg.done')).toHaveCount(3);
     await page.screenshot({ path: `${SCREENSHOT_DIR}/site-story-go.png` });
+
+    // An agent's stage says how long it had been going on its own; the page names no date and no time of day
+    await page.goto('/story/#m2');
+    await expect(page.locator('#m2')).toHaveClass(/is-active/);
+    await expect(page.locator('.hud-when')).toHaveText(/on its own$/);
+    const text = await page.locator('main').innerText();
+    expect(text).not.toMatch(/\b\d{1,2}:\d{2}\b/);
+    expect(text).not.toMatch(/\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun) \d{1,2} Nov\b/);
 
     // Every screenshot in the story decodes
     const broken = await page.locator('.shot img').evaluateAll(async (images) => {
@@ -83,7 +92,8 @@ test('the story snaps from stage to stage and moves its HUD along', async ({ pag
 const SIDE_STORIES = [
     { stage: 'benny-look', link: /Side story: Benny's look/, path: 'benny', title: "Benny's look" },
     { stage: 'food-look', link: /Side story: The food set/, path: 'food', title: 'The food set' },
-    { stage: 'felt-street', link: /Side story: The street/, path: 'street', title: 'The street' }
+    { stage: 'felt-street', link: /Side story: The street/, path: 'street', title: 'The street' },
+    { stage: 'town-sketches', link: /Side story: The town/, path: 'town', title: 'The town' }
 ];
 
 for (const side of SIDE_STORIES) {
@@ -121,7 +131,15 @@ for (const side of SIDE_STORIES) {
 test('the landing page and the story fit a phone screen', async ({ page }) => {
     const errors = collectErrors(page);
     await page.setViewportSize({ width: 375, height: 740 });
-    for (const path of ['/', '/story/benny/', '/story/food/', '/story/street/', '/story/', '/story/#m3-toilets']) {
+    for (const path of [
+        '/',
+        '/story/benny/',
+        '/story/food/',
+        '/story/street/',
+        '/story/town/',
+        '/story/',
+        '/story/#m3-toilets'
+    ]) {
         await page.goto(path);
         const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
         expect(overflow, `horizontal overflow on ${path}`).toBeLessThanOrEqual(0);

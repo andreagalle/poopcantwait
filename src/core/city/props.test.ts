@@ -35,7 +35,7 @@ describe('street props', () => {
 
         it(`furnish the avenues and boulevards with every kind, seed ${seed}`, () => {
             const kinds = new Set(city.props.map((p) => p.kind));
-            expect([...kinds].sort()).toEqual(['bench', 'hydrant', 'lamp', 'tree']);
+            expect([...kinds].sort()).toEqual(['bench', 'hydrant', 'lamp', 'shelter', 'tree']);
             expect(city.props.length).toBeGreaterThan(100);
             // Trees only along boulevards, which are wide enough for their canopy
             for (const p of city.props.filter((q) => q.kind === 'tree')) {

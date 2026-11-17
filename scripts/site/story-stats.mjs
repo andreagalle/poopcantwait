@@ -3,13 +3,20 @@
  * Prints the numbers behind the story page (site/story/): every message the maintainer typed, the agent's tool calls
  * up to each of them, and the merged pull requests with the agent's tool calls up to each merge.
  *
- *   npm run story:stats
+ *   npm run story:stats            the lists and the totals
+ *   npm run story:stats -- --json  the numbers the story is built from, as JSON (no message text)
  *
  * It reads the Claude Code transcripts of this project (~/.claude/projects/<project>/*.jsonl, top-level sessions
  * only) and `gh pr list`. Transcripts stay on the machine that ran the sessions: run it in the Codespace. It prints
  * the maintainer's messages, so keep its output out of the repository; the story quotes them in short, translated.
  *
- * T+ is the time since the first message (the kickoff); times are UTC and CET (UTC+1).
+ * T+ is the time since the first message (the kickoff); times are UTC and CET (UTC+1). The page itself shows no dates or
+ * times of day, only the project day and how long the agent had been going on its own.
+ *
+ * A run is the agent's work on its own from one message of the maintainer to the next. Messages that only resume an
+ * interrupted session ("continua", "presegui quello che stavi facendo", an interruption) are nudges: they do not end a
+ * run, since at the maintainer's request the story counts the work as if they had never been needed. A run adds up the
+ * agent's working time, from each message to its last action before the next one, leaving out the idle time between.
  */
 import { execFileSync } from 'node:child_process';
 import { readdirSync, readFileSync } from 'node:fs';
@@ -75,11 +82,80 @@ const elapsed = (iso) => {
     return `T+${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, '0')}`;
 };
 const cet = (iso) => new Date(Date.parse(iso) + 3600_000).toISOString().slice(5, 16).replace('T', ' ');
+const minutesSince = (ms) => Math.round((ms - start) / 60000);
+const hm = (minutes) => `${Math.floor(minutes / 60)}:${String(Math.round(minutes) % 60).padStart(2, '0')}`;
 
-console.log('Maintainer messages (n, UTC, CET, T+, agent tool calls so far, start of the message)');
+/** A message that only resumes an interrupted session, and so does not end the agent's run. */
+const isNudge = (text) =>
+    /^(continua|\[Request interrupted by user[^\]]*\]|presegui quello che stavi facendo\b[\s\S]*)$/i.test(text.trim());
+
+// The agent's working time after each message: from the message to its last action before the next one
+const humanMs = human.map((m) => Date.parse(m.at));
+const toolMs = tools.map((t) => Date.parse(t));
+const runs = humanMs.map((at, i) => {
+    const next = humanMs[i + 1] ?? Infinity;
+    let last = at;
+    let actions = 0;
+    for (const t of toolMs) {
+        if (t > at && t < next) {
+            last = Math.max(last, t);
+            actions++;
+        }
+    }
+    return { from: minutesSince(at), minutes: (last - at) / 60000, actions };
+});
+const aloneMinutes = runs.reduce((sum, r) => sum + r.minutes, 0);
+// The runs: working time added up from one message that is not a nudge to the next
+const merged = [];
+runs.forEach((r, i) => {
+    if (i > 0 && isNudge(human[i].text)) {
+        merged[merged.length - 1].minutes += r.minutes;
+        merged[merged.length - 1].actions += r.actions;
+    } else {
+        merged.push({ from: r.from, minutes: r.minutes, actions: r.actions, message: i + 1 });
+    }
+});
+const longest = merged.reduce((best, r) => (r.minutes > best.minutes ? r : best), merged[0]);
+
+if (process.argv.includes('--json')) {
+    console.log(
+        JSON.stringify(
+            {
+                kickoffCet: cet(human[0].at),
+                messages: runs.map((r, i) => ({
+                    n: i + 1,
+                    t: hm(r.from),
+                    nudge: i > 0 && isNudge(human[i].text),
+                    actionsBefore: toolsUntil(human[i].at),
+                    aloneAfter: hm(r.minutes),
+                    actions: r.actions
+                })),
+                aloneHours: Math.round(aloneMinutes / 60),
+                longestAlone: hm(longest.minutes),
+                longestAloneActions: longest.actions,
+                longestAloneFrom: longest.message,
+                runsOverAnHour: merged.filter((r) => r.minutes >= 60).length,
+                nudges: runs.filter((_, i) => i > 0 && isNudge(human[i].text)).length,
+                actionsPerMessage: Math.round(tools.length / human.length),
+                clock: hm(minutesSince(Date.now()))
+            },
+            null,
+            2
+        )
+    );
+    process.exit(0);
+}
+
+console.log(
+    'Maintainer messages (n, UTC, CET, T+, agent tool calls so far, agent working time after it h:mm, a nudge?, start)'
+);
 human.forEach((m, i) => {
     const preview = m.text.replace(/\s+/g, ' ').slice(0, 70);
-    console.log(`${i + 1}\t${m.at.slice(0, 16)}\t${cet(m.at)}\t${elapsed(m.at)}\t${toolsUntil(m.at)}\t${preview}`);
+    const alone = hm(runs[i].minutes);
+    const nudge = i > 0 && isNudge(m.text) ? 'nudge' : '';
+    console.log(
+        `${i + 1}\t${m.at.slice(0, 16)}\t${cet(m.at)}\t${elapsed(m.at)}\t${toolsUntil(m.at)}\t${alone}\t${nudge}\t${preview}`
+    );
 });
 
 let prs = [];
@@ -104,4 +180,7 @@ if (prs.length > 0) {
 
 console.log(
     `\nTotals: ${human.length} maintainer messages, ${tools.length} agent tool calls, ${prs.length} merged PRs, ${elapsed(new Date().toISOString())} since the kickoff`
+);
+console.log(
+    `Alone: ${hm(aloneMinutes)} of agent work on its own in all, longest run ${hm(longest.minutes)} (${longest.actions} actions, from message ${longest.message}), ${merged.filter((r) => r.minutes >= 60).length} runs of an hour or more, nudges not counted as ending a run`
 );

@@ -1,11 +1,19 @@
 import { ADDRESS_REPEAT, BLEND_NORMAL, Color, Entity, MeshInstance, StandardMaterial } from 'playcanvas';
 import type { AppBase, Asset, Texture } from 'playcanvas';
 
-import { CAMERA } from '../config/tuning';
+import { CAMERA, CITY } from '../config/tuning';
+import type { NavGrid } from '../core/city/navgrid';
+import { roofOf } from '../core/city/roofs';
+import { sidewalksOf } from '../core/city/sidewalks';
 import type { Building, City, Rect, Side } from '../core/city/types';
+import type { Markings } from '../core/traffic/markings';
 
-import { MeshBuilder } from './mesh-builder';
+import { addFacades, PLAIN_WALL_UV } from './facades';
+import { MeshBuilder, meshFromArrays } from './mesh-builder';
+import type { MeshArrays } from './mesh-builder';
 import { PALETTE } from './palette';
+import { addRoof } from './roofs';
+import { SIDEWALK_HEIGHT } from './sidewalk-map';
 
 /** Parkland and river drawn beyond the city border so the camera never sees the void, in metres. */
 const EDGE_EXTENT = 90;
@@ -14,27 +22,28 @@ const RIVER_WIDTH = 40;
 const HEDGE_HEIGHT = 1.1;
 const RAILING_HEIGHT = 0.9;
 const FOUNTAIN = { rimHeight: 0.6, waterInset: 0.4, columnRadius: 0.35, columnHeight: 1.8 };
-const CLOCK_TOWER_ROOF_HEIGHT = 5;
-/** One tile of the felt facade, a window in its wall, covers about this much of a wall, in metres. */
-const FACADE = { bayMetres: 3, storeyMetres: 3 };
 /**
  * Roads draw at slightly different heights so the wider class wins where two of them cross. The steps are a few
  * centimetres, enough to avoid depth fighting at the farthest camera distance.
  */
 const ROAD_LIFT: Record<string, number> = { alley: 0.02, street: 0.03, avenue: 0.04, boulevard: 0.05 };
 const OPEN_SPACE_LIFT = 0.02;
+/** White paint lies just above the widest road; sidewalks stand a kerb's height above the road. */
+const PAINT_LIFT = 0.056;
+/** The felt tile repeats every this many metres on the ground. */
+const FELT_METRES = 3;
 const EDGE_DROP = { parkland: -0.15, riverbank: -0.1, river: -0.05 };
 
 const tint = (c: Color, t: number): Color => new Color(c.r * t, c.g * t, c.b * t, c.a);
 
-function vertexColorMaterial(name: string, opacity = 1, facade?: Texture): StandardMaterial {
+function vertexColorMaterial(name: string, opacity = 1, map?: Texture): StandardMaterial {
     const material = new StandardMaterial();
     material.name = name;
     material.diffuse.set(1, 1, 1);
     material.diffuseVertexColor = true;
-    if (facade) {
-        // The felt tile, tinted by each building's colour
-        material.diffuseMap = facade;
+    if (map) {
+        // A felt tile, tinted by the vertex colours
+        material.diffuseMap = map;
     }
     material.useMetalness = true;
     material.metalness = 0;
@@ -63,10 +72,10 @@ function beyond(side: Side, half: number, inner: number, outer: number): Rect {
     }
 }
 
-function addGround(city: City): MeshBuilder {
+function addGround(city: City, markings: Markings): MeshBuilder {
     const half = city.halfSize;
     const far = half + EDGE_EXTENT;
-    const ground = new MeshBuilder();
+    const ground = new MeshBuilder({ worldUvMetres: FELT_METRES });
     ground.addGroundRect(-far, -far, far, far, EDGE_DROP.parkland, PALETTE.parkland);
     for (const edge of city.edges.filter((e) => e.kind === 'river')) {
         const bank = beyond(edge.side, half, 0, RIVERBANK_WIDTH);
@@ -85,10 +94,16 @@ function addGround(city: City): MeshBuilder {
     ground.addGroundRect(plaza.x0, plaza.z0, plaza.x1, plaza.z1, OPEN_SPACE_LIFT, PALETTE.plaza);
     const park = city.park.rect;
     ground.addGroundRect(park.x0, park.z0, park.x1, park.z1, OPEN_SPACE_LIFT, PALETTE.grass);
+    for (const { rect: r } of sidewalksOf(city)) {
+        ground.addBox(r.x0, 0, r.z0, r.x1, SIDEWALK_HEIGHT, r.z1, PALETTE.kerb, PALETTE.sidewalk);
+    }
+    for (const r of [...markings.zebras, ...markings.stopLines, ...markings.dashes]) {
+        ground.addGroundRect(r.x0, r.z0, r.x1, r.z1, PAINT_LIFT, PALETTE.roadPaint);
+    }
     return ground;
 }
 
-function addBuilding(mesh: MeshBuilder, b: Building): void {
+function addBuilding(mesh: MeshBuilder, b: Building, index: number, nav: NavGrid, atlas: boolean): void {
     const r = b.rect;
     if (b.landmark === 'clockTower') {
         mesh.addBox(r.x0, 0, r.z0, r.x1, b.height, r.z1, PALETTE.clockTower);
@@ -100,7 +115,7 @@ function addBuilding(mesh: MeshBuilder, b: Building): void {
             cz,
             radius,
             b.height,
-            b.height + CLOCK_TOWER_ROOF_HEIGHT,
+            b.height + CITY.clockTowerSpireMetres,
             PALETTE.clockTowerRoof,
             4,
             Math.atan2(r.z1 - r.z0, r.x1 - r.x0)
@@ -108,17 +123,13 @@ function addBuilding(mesh: MeshBuilder, b: Building): void {
         return;
     }
     const color = PALETTE.buildings[b.colorIndex % PALETTE.buildings.length];
-    mesh.addFacadeBox(
-        r.x0,
-        r.z0,
-        r.x1,
-        r.z1,
-        b.height,
-        color,
-        tint(color, PALETTE.roofTint),
-        FACADE.bayMetres,
-        FACADE.storeyMetres
-    );
+    const roof = tint(color, PALETTE.roofTint);
+    if (atlas) {
+        addFacades(mesh, b, index, nav, color);
+        addRoof(mesh, b, index, roofOf(b, index), color, roof);
+    } else {
+        mesh.addBox(r.x0, 0, r.z0, r.x1, b.height, r.z1, color, roof);
+    }
 }
 
 /**
@@ -126,7 +137,7 @@ function addBuilding(mesh: MeshBuilder, b: Building): void {
  * furniture have their own views).
  */
 function addSolids(city: City): MeshBuilder {
-    const solids = new MeshBuilder();
+    const solids = new MeshBuilder({ worldUvMetres: FELT_METRES });
 
     const f = city.plaza.fountain;
     solids.addCylinder(f.x, f.z, f.radius, 0, FOUNTAIN.rimHeight, PALETTE.fountainStone, 24);
@@ -167,73 +178,118 @@ function layer(app: AppBase, name: string, mesh: MeshBuilder, material: Standard
  * (fountain, border), and the buildings split in two meshes, opaque and faded, so the buildings between
  * the camera and Benny can turn see-through (design: *Camera*). Three or four draw calls, plus the shadow pass.
  */
+/** The buildings are drawn in square blocks of the city, this many to a side: a fade rebuilds only the blocks it touches. */
+const BLOCKS_PER_SIDE = 4;
+
 export class CityView {
     readonly root: Entity;
     private readonly app: AppBase;
-    private readonly city: City;
-    private readonly buildings: Entity;
     private readonly faded: Entity;
-    private readonly opaqueMaterial = vertexColorMaterial('city-greybox');
+    private readonly opaqueMaterial: StandardMaterial;
     private readonly buildingMaterial: StandardMaterial;
     private readonly fadedMaterial: StandardMaterial;
-    private fadedKey = '';
+    private fadedSet = new Set<number>();
 
-    constructor(app: AppBase, city: City, facade?: Asset) {
+    /** Each building's geometry, made once, as typed arrays. */
+    private readonly pieces: MeshArrays[];
+    /** The block each building is drawn in, each block's buildings and its entity. */
+    private readonly blockOf: number[];
+    private readonly blockMembers: number[][];
+    private readonly blocks: Entity[];
+
+    constructor(app: AppBase, city: City, markings: Markings, facades?: Asset, felt?: Asset) {
         this.app = app;
-        this.city = city;
-        const tile = facade?.resource as Texture | undefined;
-        if (tile) {
-            tile.addressU = ADDRESS_REPEAT;
-            tile.addressV = ADDRESS_REPEAT;
-            tile.anisotropy = 4;
+        const repeat = (asset?: Asset): Texture | undefined => {
+            const texture = asset?.resource as Texture | undefined;
+            if (texture) {
+                texture.addressU = ADDRESS_REPEAT;
+                texture.addressV = ADDRESS_REPEAT;
+                texture.anisotropy = 4;
+            }
+            return texture;
+        };
+        const atlas = facades?.resource as Texture | undefined;
+        if (atlas) {
+            atlas.anisotropy = 4;
         }
-        this.buildingMaterial = vertexColorMaterial('city-buildings', 1, tile);
-        this.fadedMaterial = vertexColorMaterial('city-faded', CAMERA.buildingFadeOpacity, tile);
+        this.pieces = city.buildings.map((b, i) => {
+            const piece = new MeshBuilder({ plainUv: PLAIN_WALL_UV });
+            addBuilding(piece, b, i, city.nav, atlas !== undefined);
+            return piece.toArrays();
+        });
+        this.opaqueMaterial = vertexColorMaterial('city-ground', 1, repeat(felt));
+        this.buildingMaterial = vertexColorMaterial('city-buildings', 1, atlas);
+        this.fadedMaterial = vertexColorMaterial('city-faded', CAMERA.buildingFadeOpacity, atlas);
         this.root = new Entity('city');
-        this.root.addChild(layer(app, 'city-ground', addGround(city), this.opaqueMaterial, false));
+        this.root.addChild(layer(app, 'city-ground', addGround(city, markings), this.opaqueMaterial, false));
         this.root.addChild(layer(app, 'city-solids', addSolids(city), this.opaqueMaterial, true));
-        this.buildings = layer(
-            app,
-            'city-buildings',
-            this.buildingMesh(() => true),
-            this.buildingMaterial,
-            true
+
+        // The buildings, block by block, by where their centre stands
+        const size = (2 * city.halfSize) / BLOCKS_PER_SIDE;
+        const cell = (v: number): number =>
+            Math.min(BLOCKS_PER_SIDE - 1, Math.max(0, Math.floor((v + city.halfSize) / size)));
+        this.blockOf = city.buildings.map(
+            ({ rect: r }) => cell((r.z0 + r.z1) / 2) * BLOCKS_PER_SIDE + cell((r.x0 + r.x1) / 2)
         );
+        this.blockMembers = Array.from({ length: BLOCKS_PER_SIDE * BLOCKS_PER_SIDE }, () => []);
+        this.blockOf.forEach((block, i) => this.blockMembers[block].push(i));
+        this.blocks = this.blockMembers.map((members, block) => {
+            const entity = new Entity(`city-buildings-${block}`);
+            entity.addComponent('render', { meshInstances: [], castShadows: true, receiveShadows: true });
+            this.root.addChild(entity);
+            this.fillBlock(entity, members);
+            return entity;
+        });
         this.faded = new Entity('city-buildings-faded');
         this.faded.addComponent('render', { meshInstances: [], castShadows: true, receiveShadows: true });
         this.faded.enabled = false;
-        this.root.addChild(this.buildings);
         this.root.addChild(this.faded);
         app.root.addChild(this.root);
     }
 
-    private buildingMesh(include: (index: number) => boolean): MeshBuilder {
-        const mesh = new MeshBuilder();
-        this.city.buildings.forEach((b, i) => {
-            if (include(i)) {
-                addBuilding(mesh, b);
-            }
-        });
-        return mesh;
+    /** Swaps a render component's mesh instances for new ones, freeing the old meshes on the GPU. */
+    private static swap(entity: Entity, instances: MeshInstance[]): void {
+        const old = entity.render!.meshInstances;
+        entity.render!.meshInstances = instances;
+        for (const instance of old) {
+            instance.destroy();
+        }
     }
 
-    /** Fades the buildings with these indices (sorted) and makes every other one opaque again. */
+    /** Draws a block's buildings into its entity, all but the faded ones. */
+    private fillBlock(entity: Entity, members: readonly number[]): void {
+        const shown = members.filter((i) => !this.fadedSet.has(i)).map((i) => this.pieces[i]);
+        const device = this.app.graphicsDevice;
+        CityView.swap(
+            entity,
+            shown.length > 0 ? [new MeshInstance(meshFromArrays(device, shown), this.buildingMaterial)] : []
+        );
+    }
+
+    /**
+     * Fades the buildings with these indices and makes every other one opaque again. Only the blocks of the buildings
+     * whose fade changed are rebuilt, and the faded ones are drawn in one small mesh of their own.
+     */
     setFaded(indices: readonly number[]): void {
-        const key = indices.join(',');
-        if (key === this.fadedKey) {
+        const next = new Set(indices);
+        const changed = [
+            ...indices.filter((i) => !this.fadedSet.has(i)),
+            ...[...this.fadedSet].filter((i) => !next.has(i))
+        ];
+        if (changed.length === 0) {
             return;
         }
-        this.fadedKey = key;
-        const faded = new Set(indices);
-        const device = this.app.graphicsDevice;
-        this.buildings.render!.meshInstances =
-            faded.size < this.city.buildings.length
-                ? [new MeshInstance(this.buildingMesh((i) => !faded.has(i)).build(device), this.buildingMaterial)]
-                : [];
-        this.faded.enabled = faded.size > 0;
-        this.faded.render!.meshInstances =
-            faded.size > 0
-                ? [new MeshInstance(this.buildingMesh((i) => faded.has(i)).build(device), this.fadedMaterial)]
-                : [];
+        this.fadedSet = next;
+        for (const block of new Set(changed.map((i) => this.blockOf[i]))) {
+            this.fillBlock(this.blocks[block], this.blockMembers[block]);
+        }
+        const faded = indices.map((i) => this.pieces[i]);
+        CityView.swap(
+            this.faded,
+            faded.length > 0
+                ? [new MeshInstance(meshFromArrays(this.app.graphicsDevice, faded), this.fadedMaterial)]
+                : []
+        );
+        this.faded.enabled = faded.length > 0;
     }
 }

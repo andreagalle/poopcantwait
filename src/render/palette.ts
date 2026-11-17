@@ -15,10 +15,13 @@ export const PALETTE = {
     clockTowerRoof: hex('#5d6d7e'),
     roads: {
         alley: hex('#d8c8b0'),
-        street: hex('#b0b0b4'),
-        avenue: hex('#93979f'),
-        boulevard: hex('#7a8698')
+        street: hex('#8f9196'),
+        avenue: hex('#7b7f86'),
+        boulevard: hex('#6c727d')
     } satisfies Record<StreetClass, Color>,
+    sidewalk: hex('#ddd7cc'),
+    kerb: hex('#aaa397'),
+    roadPaint: hex('#f7f4ec'),
     cityGround: hex('#c9c3b8'),
     plaza: hex('#eadcc0'),
     fountainStone: hex('#d8d0c4'),

@@ -73,13 +73,22 @@ describe('occludingBuildings', () => {
     const benny = [{ x: 0, y: 0.8, z: 0 }];
 
     it('fades a tall building between the camera and Benny, and nothing else', () => {
-        const index = new BuildingIndex([
-            building(-5, 3, 5, 9, 12), // just south of Benny, tall: in the way
-            building(-5, -9, 5, -3, 12), // north of Benny, behind him
-            building(20, 3, 30, 9, 12), // off to the side
-            building(-5, 3, 5, 9, 1) // low wall south of him, below the line of sight
-        ]);
+        const index = new BuildingIndex(
+            [
+                building(-5, 3, 5, 9, 12), // just south of Benny, tall: in the way
+                building(-5, -9, 5, -3, 12), // north of Benny, behind him
+                building(20, 3, 30, 9, 12), // off to the side
+                building(-5, 3, 5, 9, 1) // low wall south of him, below the line of sight
+            ],
+            [0, 0, 0, 0]
+        );
         expect(occludingBuildings(index, camera, benny)).toEqual([0]);
+    });
+
+    it('counts a roof: a low building whose roof rises into the line of sight fades too', () => {
+        const low = building(-5, 3, 5, 9, 1);
+        expect(occludingBuildings(new BuildingIndex([low], [0]), camera, benny)).toEqual([]);
+        expect(occludingBuildings(new BuildingIndex([low], [3]), camera, benny)).toEqual([0]);
     });
 
     it('checks every target point and returns sorted, unique indices', () => {

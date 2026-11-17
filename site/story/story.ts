@@ -1,11 +1,13 @@
 /**
  * The story page: finds the stage in the middle of the screen, reveals it, and moves the HUD to that point of the
- * development (time since the kickoff, merged PRs, the human's messages, the agent's actions, finished milestones).
- * Every number comes from the stage's data-* attributes; without JavaScript the stages read the same, minus the HUD.
+ * development (the day of the project, how long the agent had been going on its own, merged PRs, the human's messages,
+ * the agent's actions, finished milestones). Every number comes from the stage's data-* attributes; without JavaScript
+ * the stages read the same, minus the HUD. The page shows no dates or times of day: only the project day and durations.
  */
 
 interface StageState {
     readonly kind: string;
+    /** The line under the day: how long the agent had been going on its own, or who has the floor. */
     readonly when: string;
     readonly minutes: number;
     readonly human: number;
@@ -23,6 +25,36 @@ document.documentElement.classList.add('js');
 
 const stages = Array.from(document.querySelectorAll<HTMLElement>('.stage'));
 
+/** A duration in words: "under a minute", "40 min", "2 h 25 min". */
+function duration(minutes: number): string {
+    if (minutes < 1) {
+        return 'under a minute';
+    }
+    if (minutes < 60) {
+        return `${minutes} min`;
+    }
+    const rest = minutes % 60;
+    return `${Math.floor(minutes / 60)} h${rest > 0 ? ` ${rest} min` : ''}`;
+}
+
+/** What the HUD says under the day, by kind of stage. */
+function whenOf(stage: HTMLElement, kind: string): string {
+    const alone = stage.dataset.alone;
+    if (alone !== undefined) {
+        return `${duration(toMinutes(alone))} on its own`;
+    }
+    if (stage.classList.contains('stage--numbers')) {
+        return 'In all';
+    }
+    const labels: Record<string, string> = {
+        cover: 'Before day one',
+        human: 'The human writes',
+        wait: 'The agent waits',
+        end: 'What comes next'
+    };
+    return labels[kind] ?? '';
+}
+
 /** "h:mm" since the kickoff to minutes. */
 function toMinutes(text: string): number {
     const [hours = 0, minutes = 0] = text.split(':').map(Number);
@@ -37,7 +69,7 @@ function readStage(stage: HTMLElement): StageState {
     }
     return {
         kind,
-        when: data.when ?? '',
+        when: whenOf(stage, kind),
         minutes: toMinutes(data.t ?? '0:00'),
         human: Number(data.human ?? 0),
         agent: Number(data.agent ?? 0),
@@ -50,6 +82,8 @@ function readStage(stage: HTMLElement): StageState {
 const states = stages.map(readStage);
 const totalMinutes = Math.max(1, ...states.map((state) => state.minutes));
 const totalHuman = Number(document.body.dataset.humanTotal ?? 0);
+/** Minutes past midnight at the kickoff, so the HUD can tell the project day from the minutes since it. */
+const kickoffMinute = Number(document.body.dataset.kickoffMinute ?? 0);
 
 function find<T extends Element>(selector: string): T {
     const element = document.querySelector<T>(selector);
@@ -118,9 +152,9 @@ const dots = stages.map((stage, index) => {
 const shown = { minutes: 0, prs: 0, human: 0, agent: 0 };
 let animation = 0;
 
+/** The day of the project, the kickoff's being day 1. */
 function formatClock(minutes: number): string {
-    const rounded = Math.round(minutes);
-    return `T+${Math.floor(rounded / 60)}:${String(rounded % 60).padStart(2, '0')}`;
+    return `Day ${Math.floor((kickoffMinute + Math.round(minutes)) / 1440) + 1}`;
 }
 
 function paintNumbers(): void {

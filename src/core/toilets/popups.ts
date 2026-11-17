@@ -3,7 +3,7 @@ import type { NavGrid } from '../city/navgrid';
 import { isCircle } from '../city/props';
 import type { StreetProp } from '../city/props';
 import { ZONE } from '../city/types';
-import type { Building, Point, Zone } from '../city/types';
+import type { Building, Circle, Point, Zone } from '../city/types';
 import { clampWeight } from '../player/weight';
 import type { Rng } from '../rng';
 
@@ -74,7 +74,8 @@ export function popupDoor(popup: PopupSpot, radius: number): Point {
 export function wallSpots(
     nav: NavGrid,
     buildings: readonly Building[],
-    props: readonly StreetProp[] = []
+    props: readonly StreetProp[] = [],
+    poles: readonly Circle[] = []
 ): PopupSpot[] {
     const footprint = POPUP_TOILETS.footprintMetres;
     const half = footprint / 2;
@@ -94,7 +95,9 @@ export function wallSpots(
             }
         }
         const spot = { x: fx + facing.x * half, z: fz + facing.z * half, facing };
-        if (!props.some((p) => crowds(spot, p))) {
+        const margin = POPUP_TOILETS.footprintMetres / 2 + 0.3;
+        const onPole = poles.some((c) => Math.hypot(spot.x - c.x, spot.z - c.z) < c.radius + margin);
+        if (!onPole && !props.some((p) => crowds(spot, p))) {
             spots.push(spot);
         }
     };
